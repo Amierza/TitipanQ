@@ -1,0 +1,50 @@
+[
+  {
+    "user_id": "d7f3e1c2-4e27-4d83-91d3-8cda0b1b68a1",
+    "user_name": "Michael",
+    "user_email": "michael01@gmail.com",
+    "user_password": "password123"
+  },
+  {
+    "user_id": "9b6f1b48-fc88-43f0-b28e-56718efcf139",
+    "user_name": "Jessica",
+    "user_email": "jessica99@gmail.com",
+    "user_password": "securepass456"
+  },
+  {
+    "user_id": "3a0e2d93-7723-4c25-b1cc-b6cce34f9023",
+    "user_name": "Raymond",
+    "user_email": "raymond33@gmail.com",
+    "user_password": "hunter2pass"
+  },
+  {
+    "user_id": "b8c24547-9f59-40cb-8e63-0df261ce1991",
+    "user_name": "Natalie",
+    "user_email": "natalie@gmail.com",
+    "user_password": "natalie321"
+  },
+  {
+    "user_id": "0de18934-1760-4e28-9f91-e390a12fd50e",
+    "user_name": "Samuel",
+    "user_email": "samuel88@gmail.com",
+    "user_password": "samspassword"
+  },
+  {
+    "user_id": "61b8c03a-95d6-4fa4-bd2b-3d8438a6b04a",
+    "user_name": "Rebecca",
+    "user_email": "rebecca@gmail.com",
+    "user_password": "rebpass789"
+  },
+  {
+    "user_id": "f942df91-f6be-44cd-968c-0ed9056a9e19",
+    "user_name": "Thomas",
+    "user_email": "thomas12@gmail.com",
+    "user_password": "thomaspass"
+  },
+  {
+    "user_id": "27c8c7fa-476e-4d44-9c22-f383c0ac7b19",
+    "user_name": "Isabella",
+    "user_email": "isabella@gmail.com",
+    "user_password": "isa123456"
+  }
+]
