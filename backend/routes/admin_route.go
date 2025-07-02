@@ -1,0 +1,26 @@
+package routes
+
+import (
+	"github.com/Amierza/TitipanQ/backend/handler"
+	"github.com/Amierza/TitipanQ/backend/middleware"
+	"github.com/Amierza/TitipanQ/backend/service"
+	"github.com/gin-gonic/gin"
+)
+
+func Admin(route *gin.Engine, adminHandler handler.IAdminHandler, jwtService service.IJWTService) {
+	routes := route.Group("/api/v1/admin")
+	{
+		// Authentication
+		routes.POST("/login", adminHandler.Login)
+
+		routes.Use(middleware.Authentication(jwtService), middleware.RouteAccessControl(jwtService))
+		{
+			// User
+			routes.POST("/create-user", adminHandler.CreateUser)
+			routes.GET("/get-all-user", adminHandler.ReadAllUser)
+			routes.GET("/get-detail-user/:id", adminHandler.GetDetailUser)
+			routes.PATCH("/update-user/:id", adminHandler.UpdateUser)
+			routes.DELETE("/delete-user/:id", adminHandler.DeleteUser)
+		}
+	}
+}

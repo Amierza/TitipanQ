@@ -1,0 +1,27 @@
+[
+  {
+    "permission_id": "b3177e49-9628-40e5-8cf4-4b3482e4adcf",
+    "permission_endpoint": "/api/v1/admin/create-user",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "ceaa7e3b-2501-4521-9fbc-a8ca72082a26",
+    "permission_endpoint": "/api/v1/admin/get-all-user",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "bff3533d-5bf3-4d2a-81ca-268bd96ce944",
+    "permission_endpoint": "/api/v1/admin/get-detail-user/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "d5ea74da-595d-4f03-b60c-98f951ec25fc",
+    "permission_endpoint": "/api/v1/admin/update-user/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "d06765de-127e-4a3a-a0fa-5f8e286ac165",
+    "permission_endpoint": "/api/v1/admin/delete-user/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  }
+]

@@ -8,21 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Type string
-type Status string
-
-const (
-	Document Type = "document"
-	Item     Type = "item"
-	Other    Type = "other"
-
-	Received   Status = "received"
-	Processing Status = "processing"
-	Delivered  Status = "delivered"
-	Completed  Status = "completed"
-	Expired    Status = "expired"
-)
-
 type Package struct {
 	ID          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"package_id"`
 	Description string     `gorm:"type:text" json:"package_description"`
@@ -32,6 +17,8 @@ type Package struct {
 	ReceivedAt  time.Time  `json:"package_received_at"`
 	DeliveredAt *time.Time `json:"package_delivered_at"`
 	ExpiredAt   *time.Time `json:"package_expired_at"`
+
+	PackageHistories []PackageHistory `gorm:"foreignKey:PackageID"`
 
 	UserID *uuid.UUID `gorm:"type:uuid" json:"user_id"`
 	User   User       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
@@ -44,12 +31,4 @@ func (p *Package) BeforeCreate(tx *gorm.DB) error {
 		return errors.New("invalid type or status")
 	}
 	return nil
-}
-
-func isValidType(t Type) bool {
-	return t == Document || t == Item || t == Other
-}
-
-func isValidStatus(s Status) bool {
-	return s == Received || s == Processing || s == Delivered || s == Completed || s == Expired
 }

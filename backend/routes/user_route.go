@@ -7,11 +7,10 @@ import (
 )
 
 func User(route *gin.Engine, userHandler handler.IUserHandler, jwtService service.IJWTService) {
-	routes := route.Group("/api/v1/users")
+	routes := route.Group("/api/v1/user")
 	{
-		routes.POST("/", userHandler.CreateUser)
-		routes.GET("/", userHandler.ReadAllUser)
-		routes.PATCH("/:id", userHandler.UpdateUser)
-		routes.DELETE("/:id", userHandler.DeleteUser)
+		// Authentiation
+		routes.POST("/register", userHandler.Register)
+		routes.POST("/login", userHandler.Login)
 	}
 }
