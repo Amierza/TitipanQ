@@ -14,7 +14,8 @@ type User struct {
 	PhoneNumber string    `gorm:"not null" json:"user_phone_number"`
 	Address     string    `gorm:"type:text" json:"user_address"`
 
-	Packages []Package `gorm:"foreignKey:UserID"`
+	Packages         []Package        `gorm:"foreignKey:UserID"`
+	PackageHistories []PackageHistory `gorm:"foreignKey:ChangedBy"`
 
 	CompanyID *uuid.UUID `gorm:"type:uuid" json:"company_id"`
 	Company   Company    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`

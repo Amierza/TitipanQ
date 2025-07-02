@@ -7,15 +7,13 @@ import (
 	"github.com/Amierza/TitipanQ/backend/entity"
 	"github.com/Amierza/TitipanQ/backend/helpers"
 	"github.com/Amierza/TitipanQ/backend/repository"
-	"github.com/google/uuid"
 )
 
 type (
 	IUserService interface {
-		CreateUser(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error)
-		ReadAllUserWithPagination(ctx context.Context, req dto.UserPaginationRequest) (dto.UserPaginationResponse, error)
-		UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error)
-		DeleteUser(ctx context.Context, req dto.DeleteUserRequest) (dto.UserResponse, error)
+		// Authentication
+		Register(ctx context.Context, req dto.RegisterRequest) (dto.UserResponse, error)
+		Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error)
 	}
 
 	UserService struct {
@@ -31,13 +29,10 @@ func NewUserService(userRepo repository.IUserRepository, jwtService IJWTService)
 	}
 }
 
-func (us *UserService) CreateUser(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error) {
+// Authentication
+func (us *UserService) Register(ctx context.Context, req dto.RegisterRequest) (dto.UserResponse, error) {
 	if len(req.Name) < 5 {
 		return dto.UserResponse{}, dto.ErrInvalidName
-	}
-
-	if !helpers.IsValidEmail(req.Email) {
-		return dto.UserResponse{}, dto.ErrInvalidEmail
 	}
 
 	_, flag, err := us.userRepo.GetUserByEmail(ctx, nil, req.Email)
@@ -45,129 +40,99 @@ func (us *UserService) CreateUser(ctx context.Context, req dto.CreateUserRequest
 		return dto.UserResponse{}, dto.ErrEmailAlreadyExists
 	}
 
+	if !helpers.IsValidEmail(req.Email) {
+		return dto.UserResponse{}, dto.ErrInvalidEmail
+	}
+
 	if len(req.Password) < 8 {
 		return dto.UserResponse{}, dto.ErrInvalidPassword
 	}
 
-	user := entity.User{
-		ID:       uuid.New(),
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
+	phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber, true)
+	if err != nil {
+		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
 
-	err = us.userRepo.CreateUser(ctx, nil, user)
+	company, err := us.userRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
+	if err != nil {
+		return dto.UserResponse{}, dto.ErrGetCompanyByID
+	}
+
+	role, _, err := us.userRepo.GetRoleByName(ctx, nil, "user")
+	if err != nil {
+		return dto.UserResponse{}, dto.ErrGetRoleFromName
+	}
+
+	user := entity.User{
+		Name:        req.Name,
+		Email:       req.Email,
+		Password:    req.Password,
+		PhoneNumber: phoneNumberFormatted,
+		Address:     req.Address,
+		CompanyID:   &company.ID,
+		Company:     company,
+		RoleID:      &role.ID,
+		Role:        role,
+	}
+
+	userReg, err := us.userRepo.Register(ctx, nil, user)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrRegisterUser
 	}
 
-	res := dto.UserResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-	}
-
-	return res, nil
-}
-
-func (us *UserService) ReadAllUserWithPagination(ctx context.Context, req dto.UserPaginationRequest) (dto.UserPaginationResponse, error) {
-	dataWithPaginate, err := us.userRepo.GetAllUserWithPagination(ctx, nil, req)
-	if err != nil {
-		return dto.UserPaginationResponse{}, dto.ErrGetAllUserWithPagination
-	}
-
-	var datas []dto.UserResponse
-	for _, user := range dataWithPaginate.Users {
-		data := dto.UserResponse{
-			ID:    user.ID,
-			Name:  user.Name,
-			Email: user.Email,
-		}
-
-		datas = append(datas, data)
-	}
-
-	return dto.UserPaginationResponse{
-		Data: datas,
-		PaginationResponse: dto.PaginationResponse{
-			Page:    dataWithPaginate.Page,
-			PerPage: dataWithPaginate.PerPage,
-			MaxPage: dataWithPaginate.MaxPage,
-			Count:   dataWithPaginate.Count,
+	return dto.UserResponse{
+		ID:          userReg.ID,
+		Name:        userReg.Name,
+		Email:       userReg.Email,
+		Password:    userReg.Password,
+		PhoneNumber: userReg.PhoneNumber,
+		Address:     userReg.Address,
+		Company: dto.CompanyResponse{
+			ID:      userReg.CompanyID,
+			Name:    userReg.Company.Name,
+			Address: userReg.Company.Address,
+		},
+		Role: dto.RoleResponse{
+			ID:   userReg.RoleID,
+			Name: userReg.Role.Name,
 		},
 	}, nil
 }
+func (us *UserService) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
+	if !helpers.IsValidEmail(req.Email) {
+		return dto.LoginResponse{}, dto.ErrInvalidEmail
+	}
 
-func (us *UserService) UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error) {
-	user, _, err := us.userRepo.GetUserByID(ctx, nil, req.ID)
+	if len(req.Password) < 8 {
+		return dto.LoginResponse{}, dto.ErrInvalidPassword
+	}
+
+	user, flag, err := us.userRepo.GetUserByEmail(ctx, nil, req.Email)
+	if !flag || err != nil {
+		return dto.LoginResponse{}, dto.ErrEmailNotFound
+	}
+
+	checkPassword, err := helpers.CheckPassword(user.Password, []byte(req.Password))
+	if err != nil || !checkPassword {
+		return dto.LoginResponse{}, dto.ErrPasswordNotMatch
+	}
+
+	if user.Role.Name != "user" {
+		return dto.LoginResponse{}, dto.ErrDeniedAccess
+	}
+
+	permissions, _, err := us.userRepo.GetPermissionsByRoleID(ctx, nil, user.RoleID.String())
 	if err != nil {
-		return dto.UserResponse{}, dto.ErrGetUserByID
+		return dto.LoginResponse{}, dto.ErrGetPermissionsByRoleID
 	}
 
-	if req.Name != "" {
-		if len(req.Name) < 5 {
-			return dto.UserResponse{}, dto.ErrInvalidName
-		}
-
-		user.Name = req.Name
-	}
-
-	if req.Email != "" {
-		if !helpers.IsValidEmail(req.Email) {
-			return dto.UserResponse{}, dto.ErrInvalidEmail
-		}
-
-		_, flag, err := us.userRepo.GetUserByEmail(ctx, nil, req.Email)
-		if flag || err == nil {
-			return dto.UserResponse{}, dto.ErrEmailAlreadyExists
-		}
-
-		user.Email = req.Email
-	}
-
-	if req.Password != "" {
-		if checkPassword, err := helpers.CheckPassword(user.Password, []byte(req.Password)); checkPassword || err == nil {
-			return dto.UserResponse{}, dto.ErrPasswordSame
-		}
-
-		hashP, err := helpers.HashPassword(req.Password)
-		if err != nil {
-			return dto.UserResponse{}, dto.ErrHashPassword
-		}
-
-		user.Password = hashP
-	}
-
-	err = us.userRepo.UpdateUser(ctx, nil, user)
+	accessToken, refreshToken, err := us.jwtService.GenerateToken(user.ID.String(), user.RoleID.String(), permissions)
 	if err != nil {
-		return dto.UserResponse{}, dto.ErrUpdateUser
+		return dto.LoginResponse{}, err
 	}
 
-	res := dto.UserResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-	}
-
-	return res, nil
-}
-
-func (us *UserService) DeleteUser(ctx context.Context, req dto.DeleteUserRequest) (dto.UserResponse, error) {
-	deletedUser, _, err := us.userRepo.GetUserByID(ctx, nil, req.UserID)
-	if err != nil {
-		return dto.UserResponse{}, dto.ErrGetUserByID
-	}
-
-	err = us.userRepo.DeleteUserByID(ctx, nil, req.UserID)
-	if err != nil {
-		return dto.UserResponse{}, dto.ErrDeleteUserByID
-	}
-
-	res := dto.UserResponse{
-		ID:    deletedUser.ID,
-		Name:  deletedUser.Name,
-		Email: deletedUser.Email,
-	}
-
-	return res, nil
+	return dto.LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
