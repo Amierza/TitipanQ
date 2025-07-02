@@ -1,0 +1,102 @@
+[
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000001",
+    "company_name": "PT Nusantara Logistik",
+    "company_address": "Jl. Merdeka No.10, Jakarta Pusat"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000002",
+    "company_name": "CV Solusi Digital Mandiri",
+    "company_address": "Jl. Diponegoro No.15, Surabaya"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000003",
+    "company_name": "PT Maju Terus Group",
+    "company_address": "Jl. Asia Afrika No.33, Bandung"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000004",
+    "company_name": "PT Satu Data Teknologi",
+    "company_address": "Jl. Slamet Riyadi No.1, Solo"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000005",
+    "company_name": "PT Cahaya Abadi Trans",
+    "company_address": "Jl. Pemuda No.21, Semarang"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000006",
+    "company_name": "CV Indo Kreatif Nusantara",
+    "company_address": "Jl. Cihampelas No.12, Bandung"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000007",
+    "company_name": "PT Global Niaga Bersama",
+    "company_address": "Jl. Dr. Sutomo No.9, Medan"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000008",
+    "company_name": "PT Cerdas Indonesia",
+    "company_address": "Jl. Kenanga No.17, Yogyakarta"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000009",
+    "company_name": "PT Prima Solusi Sejahtera",
+    "company_address": "Jl. Jendral Sudirman No.30, Jakarta Selatan"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000010",
+    "company_name": "CV Inovasi Mandala",
+    "company_address": "Jl. Imam Bonjol No.8, Malang"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000011",
+    "company_name": "PT Amanah Ekspres",
+    "company_address": "Jl. Hasanuddin No.14, Makassar"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000012",
+    "company_name": "PT Teknologi Hijau Indonesia",
+    "company_address": "Jl. Teuku Umar No.5, Denpasar"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000013",
+    "company_name": "CV Mega Distribusi",
+    "company_address": "Jl. Veteran No.7, Palembang"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000014",
+    "company_name": "PT Artha Jaya Utama",
+    "company_address": "Jl. MT Haryono No.18, Balikpapan"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000015",
+    "company_name": "PT Digital Solusi Internasional",
+    "company_address": "Jl. Ahmad Yani No.22, Bekasi"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000016",
+    "company_name": "PT Sentosa Mandiri Logistik",
+    "company_address": "Jl. Pahlawan No.16, Pontianak"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000017",
+    "company_name": "PT Berkah Digital Nusantara",
+    "company_address": "Jl. Sunan Kalijaga No.4, Malang"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000018",
+    "company_name": "CV Jaya Abadi Persada",
+    "company_address": "Jl. Kolonel Sugiono No.3, Madiun"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000019",
+    "company_name": "PT Mandiri Teknologi Sejahtera",
+    "company_address": "Jl. Dr. Wahidin No.20, Pekanbaru"
+  },
+  {
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000020",
+    "company_name": "PT TitipanQ Indonesia",
+    "company_address": "Jl. Gajah Mada No.1, Jakarta Barat"
+  }
+]

@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Amierza/go-boiler-plate/dto"
-	"github.com/Amierza/go-boiler-plate/service"
-	"github.com/Amierza/go-boiler-plate/utils"
+	"github.com/Amierza/TitipanQ/backend/dto"
+	"github.com/Amierza/TitipanQ/backend/service"
+	"github.com/Amierza/TitipanQ/backend/utils"
 	"github.com/gin-gonic/gin"
 )
 

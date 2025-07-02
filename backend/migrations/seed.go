@@ -1,15 +1,30 @@
 package migrations
 
 import (
-	"github.com/Amierza/go-boiler-plate/entity"
+	"github.com/Amierza/TitipanQ/backend/entity"
 	"gorm.io/gorm"
 )
 
 func Seed(db *gorm.DB) error {
-	err := SeedFromJSON[entity.User](db, "./migrations/json/users.json", entity.User{}, "Email")
+	err := SeedFromJSON[entity.Role](db, "./migrations/json/roles.json", entity.Role{}, "Name")
 	if err != nil {
 		return err
 	}
+
+	err = SeedFromJSON[entity.Company](db, "./migrations/json/companies.json", entity.Company{}, "Name", "Address")
+	if err != nil {
+		return err
+	}
+
+	err = SeedFromJSON[entity.User](db, "./migrations/json/users.json", entity.User{}, "Email")
+	if err != nil {
+		return err
+	}
+
+	// err = SeedFromJSON[entity.Permission](db, "./migrations/json/permissions.json", entity.Permission{}, "RoleID", "Endpoint")
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/Amierza/go-boiler-plate/dto"
-	"github.com/Amierza/go-boiler-plate/entity"
-	"github.com/Amierza/go-boiler-plate/helpers"
-	"github.com/Amierza/go-boiler-plate/repository"
+	"github.com/Amierza/TitipanQ/backend/dto"
+	"github.com/Amierza/TitipanQ/backend/entity"
+	"github.com/Amierza/TitipanQ/backend/helpers"
+	"github.com/Amierza/TitipanQ/backend/repository"
 	"github.com/google/uuid"
 )
 

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"github.com/Amierza/go-boiler-plate/handler"
-	"github.com/Amierza/go-boiler-plate/service"
+	"github.com/Amierza/TitipanQ/backend/handler"
+	"github.com/Amierza/TitipanQ/backend/service"
 	"github.com/gin-gonic/gin"
 )
 
