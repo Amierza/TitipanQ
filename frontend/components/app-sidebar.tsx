@@ -33,17 +33,17 @@ const menuItems = [
   },
   {
     title: "Paket Masuk",
-    href: "/dashboard/paket",
+    href: "/admin/paket",
     icon: Package,
   },
   {
     title: "Riwayat Pengambilan",
-    href: "/dashboard/riwayat",
+    href: "/admin/riwayat",
     icon: History,
   },
   {
     title: "Pengaturan",
-    href: "/dashboard/settings",
+    href: "/admin/settings",
     icon: Settings,
   },
 ];
