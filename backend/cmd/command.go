@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Amierza/go-boiler-plate/migrations"
+	"github.com/Amierza/TitipanQ/backend/migrations"
 	"gorm.io/gorm"
 )
 

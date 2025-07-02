@@ -4,13 +4,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/Amierza/go-boiler-plate/cmd"
-	"github.com/Amierza/go-boiler-plate/config/database"
-	"github.com/Amierza/go-boiler-plate/handler"
-	"github.com/Amierza/go-boiler-plate/middleware"
-	"github.com/Amierza/go-boiler-plate/repository"
-	"github.com/Amierza/go-boiler-plate/routes"
-	"github.com/Amierza/go-boiler-plate/service"
+	"github.com/Amierza/TitipanQ/backend/cmd"
+	"github.com/Amierza/TitipanQ/backend/config/database"
+	"github.com/Amierza/TitipanQ/backend/handler"
+	"github.com/Amierza/TitipanQ/backend/middleware"
+	"github.com/Amierza/TitipanQ/backend/repository"
+	"github.com/Amierza/TitipanQ/backend/routes"
+	"github.com/Amierza/TitipanQ/backend/service"
 	"github.com/gin-gonic/gin"
 )
 

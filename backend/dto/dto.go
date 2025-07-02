@@ -3,7 +3,7 @@ package dto
 import (
 	"errors"
 
-	"github.com/Amierza/go-boiler-plate/entity"
+	"github.com/Amierza/TitipanQ/backend/entity"
 	"github.com/google/uuid"
 )
 

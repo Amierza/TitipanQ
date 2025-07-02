@@ -1,50 +1,502 @@
 [
   {
-    "user_id": "d7f3e1c2-4e27-4d83-91d3-8cda0b1b68a1",
-    "user_name": "Michael",
-    "user_email": "michael01@gmail.com",
-    "user_password": "password123"
+    "user_id": "b34f5332-437d-445e-8caf-582bcab92ed8",
+    "user_name": "Fajar Permata",
+    "user_email": "fajar.permata@example.com",
+    "user_password": "AdminSecure123!",
+    "user_phone_number": "088519150568",
+    "user_address": "Jl. Contoh Alamat No.1, Indonesia",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000003"
   },
   {
-    "user_id": "9b6f1b48-fc88-43f0-b28e-56718efcf139",
-    "user_name": "Jessica",
-    "user_email": "jessica99@gmail.com",
-    "user_password": "securepass456"
+    "user_id": "eddd9d35-881a-472f-995f-b6bba5bd3259",
+    "user_name": "Hari Mahardika",
+    "user_email": "hari.mahardika@example.com",
+    "user_password": "AdminPower456@",
+    "user_phone_number": "084392409004",
+    "user_address": "Jl. Contoh Alamat No.2, Indonesia",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000007"
   },
   {
-    "user_id": "3a0e2d93-7723-4c25-b1cc-b6cce34f9023",
-    "user_name": "Raymond",
-    "user_email": "raymond33@gmail.com",
-    "user_password": "hunter2pass"
+    "user_id": "14c04b1b-eaf5-472a-a0ab-e19327272463",
+    "user_name": "Rian Wahyudi",
+    "user_email": "rian.wahyudi@example.com",
+    "user_password": "SuperAdmin789#",
+    "user_phone_number": "083297951703",
+    "user_address": "Jl. Contoh Alamat No.3, Indonesia",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000012"
   },
   {
-    "user_id": "b8c24547-9f59-40cb-8e63-0df261ce1991",
-    "user_name": "Natalie",
-    "user_email": "natalie@gmail.com",
-    "user_password": "natalie321"
+    "user_id": "9515fe66-3a91-458f-8cfb-19f54bfd2b2b",
+    "user_name": "Santi Prasetyo",
+    "user_email": "santi.prasetyo@example.com",
+    "user_password": "AdminControl321$",
+    "user_phone_number": "084781707996",
+    "user_address": "Jl. Contoh Alamat No.4, Indonesia",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000015"
   },
   {
-    "user_id": "0de18934-1760-4e28-9f91-e390a12fd50e",
-    "user_name": "Samuel",
-    "user_email": "samuel88@gmail.com",
-    "user_password": "samspassword"
+    "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
+    "user_name": "Putri Permata",
+    "user_email": "putri.permata@example.com",
+    "user_password": "UserPass101",
+    "user_phone_number": "084707952947",
+    "user_address": "Jl. Contoh Alamat No.5, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000001"
   },
   {
-    "user_id": "61b8c03a-95d6-4fa4-bd2b-3d8438a6b04a",
-    "user_name": "Rebecca",
-    "user_email": "rebecca@gmail.com",
-    "user_password": "rebpass789"
+    "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
+    "user_name": "Joko Lestari",
+    "user_email": "joko.lestari@example.com",
+    "user_password": "ClientAccess202",
+    "user_phone_number": "088814172199",
+    "user_address": "Jl. Contoh Alamat No.6, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000009"
   },
   {
-    "user_id": "f942df91-f6be-44cd-968c-0ed9056a9e19",
-    "user_name": "Thomas",
-    "user_email": "thomas12@gmail.com",
-    "user_password": "thomaspass"
+    "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
+    "user_name": "Budi Permata",
+    "user_email": "budi.permata@example.com",
+    "user_password": "MyPassword303",
+    "user_phone_number": "085581198392",
+    "user_address": "Jl. Contoh Alamat No.7, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000004"
   },
   {
-    "user_id": "27c8c7fa-476e-4d44-9c22-f383c0ac7b19",
-    "user_name": "Isabella",
-    "user_email": "isabella@gmail.com",
-    "user_password": "isa123456"
+    "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
+    "user_name": "Fajar Mahardika",
+    "user_email": "fajar.mahardika@example.com",
+    "user_password": "SecureLogin404",
+    "user_phone_number": "081386085038",
+    "user_address": "Jl. Contoh Alamat No.8, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000018"
+  },
+  {
+    "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
+    "user_name": "Fajar Mahardika",
+    "user_email": "fajar.mahardika2@example.com",
+    "user_password": "UserKey505",
+    "user_phone_number": "086290566075",
+    "user_address": "Jl. Contoh Alamat No.9, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000011"
+  },
+  {
+    "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
+    "user_name": "Andi Utami",
+    "user_email": "andi.utami@example.com",
+    "user_password": "AccessCode606",
+    "user_phone_number": "084334228516",
+    "user_address": "Jl. Contoh Alamat No.10, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000006"
+  },
+  {
+    "user_id": "23b6bac5-fc20-48af-afa9-0b95832bade7",
+    "user_name": "Citra Mahardika",
+    "user_email": "citra.mahardika@example.com",
+    "user_password": "LoginPass707",
+    "user_phone_number": "085781545694",
+    "user_address": "Jl. Contoh Alamat No.11, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000020"
+  },
+  {
+    "user_id": "d9e36b8f-0309-467f-a25f-d38edca234d6",
+    "user_name": "Putri Prasetyo",
+    "user_email": "putri.prasetyo@example.com",
+    "user_password": "ClientAuth808",
+    "user_phone_number": "081987023451",
+    "user_address": "Jl. Contoh Alamat No.12, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000002"
+  },
+  {
+    "user_id": "1c32ea31-039f-49d3-944b-686c5fe2979e",
+    "user_name": "Teguh Mahardika",
+    "user_email": "teguh.mahardika@example.com",
+    "user_password": "UserLogin909",
+    "user_phone_number": "082440666009",
+    "user_address": "Jl. Contoh Alamat No.13, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000014"
+  },
+  {
+    "user_id": "b35241d7-975b-475f-a2aa-9e4d1b29937c",
+    "user_name": "Mira Wahyudi",
+    "user_email": "mira.wahyudi@example.com",
+    "user_password": "PassSecure010",
+    "user_phone_number": "086193090027",
+    "user_address": "Jl. Contoh Alamat No.14, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000008"
+  },
+  {
+    "user_id": "6b092500-7c46-4f8d-b65b-0468c44925c5",
+    "user_name": "Qori Permata",
+    "user_email": "qori.permata@example.com",
+    "user_password": "MyAccess111",
+    "user_phone_number": "088450226171",
+    "user_address": "Jl. Contoh Alamat No.15, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000013"
+  },
+  {
+    "user_id": "67f04d3f-f57d-4da6-96d6-611881dc90d0",
+    "user_name": "Putri Aditya",
+    "user_email": "putri.aditya@example.com",
+    "user_password": "ClientKey212",
+    "user_phone_number": "083378934992",
+    "user_address": "Jl. Contoh Alamat No.16, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000005"
+  },
+  {
+    "user_id": "c3956e40-d6ed-4073-a3d0-244ac0faaa72",
+    "user_name": "Hari Wahyudi",
+    "user_email": "hari.wahyudi@example.com",
+    "user_password": "UserSafe313",
+    "user_phone_number": "087697172402",
+    "user_address": "Jl. Contoh Alamat No.17, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000017"
+  },
+  {
+    "user_id": "1d94694d-033a-45c2-a38f-000f54d55a16",
+    "user_name": "Gina Utami",
+    "user_email": "gina.utami@example.com",
+    "user_password": "LoginSecure414",
+    "user_phone_number": "087559140852",
+    "user_address": "Jl. Contoh Alamat No.18, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000010"
+  },
+  {
+    "user_id": "01f852a6-01af-46db-9510-1fcfa9492595",
+    "user_name": "Santi Prasetyo",
+    "user_email": "santi.prasetyo2@example.com",
+    "user_password": "AccessPass515",
+    "user_phone_number": "082480866602",
+    "user_address": "Jl. Contoh Alamat No.19, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000016"
+  },
+  {
+    "user_id": "cf51574d-f2db-4f68-9d31-d6fad901e4ab",
+    "user_name": "Citra Permata",
+    "user_email": "citra.permata@example.com",
+    "user_password": "ClientLogin616",
+    "user_phone_number": "081122650674",
+    "user_address": "Jl. Contoh Alamat No.20, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000019"
+  },
+  {
+    "user_id": "d7dfba6b-b3aa-461f-9c59-f5c18c2d3fcd",
+    "user_name": "Rian Utami",
+    "user_email": "rian.utami@example.com",
+    "user_password": "UserAuth717",
+    "user_phone_number": "081540379336",
+    "user_address": "Jl. Contoh Alamat No.21, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000003"
+  },
+  {
+    "user_id": "2b8310b5-4bd1-4e26-8a7b-accf040f353b",
+    "user_name": "Santi Permata",
+    "user_email": "santi.permata@example.com",
+    "user_password": "MyPassword818",
+    "user_phone_number": "089694288231",
+    "user_address": "Jl. Contoh Alamat No.22, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000001"
+  },
+  {
+    "user_id": "6d9b342b-8644-4904-b5d7-d3a44ae06a83",
+    "user_name": "Rian Lestari",
+    "user_email": "rian.lestari@example.com",
+    "user_password": "SecureAccess919",
+    "user_phone_number": "086087119173",
+    "user_address": "Jl. Contoh Alamat No.23, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000007"
+  },
+  {
+    "user_id": "8e60d916-2183-4ae0-9598-f5a225042d30",
+    "user_name": "Hari Mahardika",
+    "user_email": "hari.mahardika2@example.com",
+    "user_password": "ClientPass020",
+    "user_phone_number": "084868749024",
+    "user_address": "Jl. Contoh Alamat No.24, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000012"
+  },
+  {
+    "user_id": "eae088c2-9d47-46c4-9939-afa09b2321f1",
+    "user_name": "Citra Sari",
+    "user_email": "citra.sari@example.com",
+    "user_password": "UserKey121",
+    "user_phone_number": "084835629726",
+    "user_address": "Jl. Contoh Alamat No.25, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000004"
+  },
+  {
+    "user_id": "253b6029-3fd7-43c2-bf77-c4ce12cfdc52",
+    "user_name": "Hari Permata",
+    "user_email": "hari.permata@example.com",
+    "user_password": "LoginAuth222",
+    "user_phone_number": "088740118476",
+    "user_address": "Jl. Contoh Alamat No.26, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000009"
+  },
+  {
+    "user_id": "82df51c9-9ff3-49c8-9b7b-809897e21d7a",
+    "user_name": "Gina Saputra",
+    "user_email": "gina.saputra@example.com",
+    "user_password": "AccessKey323",
+    "user_phone_number": "082369325771",
+    "user_address": "Jl. Contoh Alamat No.27, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000015"
+  },
+  {
+    "user_id": "c850dc7e-5d34-4338-a98a-8a7199ca1755",
+    "user_name": "Mira Permata",
+    "user_email": "mira.permata@example.com",
+    "user_password": "ClientSecure424",
+    "user_phone_number": "081803711061",
+    "user_address": "Jl. Contoh Alamat No.28, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000006"
+  },
+  {
+    "user_id": "58839ba9-90c2-4751-8f2f-9330784b0d1c",
+    "user_name": "Teguh Sari",
+    "user_email": "teguh.sari@example.com",
+    "user_password": "UserPass525",
+    "user_phone_number": "089451829799",
+    "user_address": "Jl. Contoh Alamat No.29, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000020"
+  },
+  {
+    "user_id": "22bfbd9d-bd3c-4337-92e0-fc5ec5d7231b",
+    "user_name": "Hari Lestari",
+    "user_email": "hari.lestari@example.com",
+    "user_password": "MyLogin626",
+    "user_phone_number": "087581427101",
+    "user_address": "Jl. Contoh Alamat No.30, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000011"
+  },
+  {
+    "user_id": "f30cbeaa-4be3-4de6-b810-8779bd228bea",
+    "user_name": "Nina Utami",
+    "user_email": "nina.utami@example.com",
+    "user_password": "SecureLogin727",
+    "user_phone_number": "083605942902",
+    "user_address": "Jl. Contoh Alamat No.31, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000008"
+  },
+  {
+    "user_id": "0da24294-98a4-4020-9534-136e27be15e5",
+    "user_name": "Kiki Utami",
+    "user_email": "kiki.utami@example.com",
+    "user_password": "ClientAuth828",
+    "user_phone_number": "083895377301",
+    "user_address": "Jl. Contoh Alamat No.32, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000002"
+  },
+  {
+    "user_id": "aa3a082e-0bcf-4945-b906-013eae1a8537",
+    "user_name": "Lutfi Aditya",
+    "user_email": "lutfi.aditya@example.com",
+    "user_password": "AccessPass929",
+    "user_phone_number": "088991362798",
+    "user_address": "Jl. Contoh Alamat No.33, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000018"
+  },
+  {
+    "user_id": "09cb5bae-b25e-4f94-b98a-46df231c334d",
+    "user_name": "Lutfi Lestari",
+    "user_email": "lutfi.lestari@example.com",
+    "user_password": "UserSecure030",
+    "user_phone_number": "084561703590",
+    "user_address": "Jl. Contoh Alamat No.34, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000014"
+  },
+  {
+    "user_id": "a8e18fae-c126-415b-99b3-54a8a05d30fc",
+    "user_name": "Intan Utami",
+    "user_email": "intan.utami@example.com",
+    "user_password": "LoginKey131",
+    "user_phone_number": "081753962031",
+    "user_address": "Jl. Contoh Alamat No.35, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000005"
+  },
+  {
+    "user_id": "4e0f8289-dd4e-4056-81ed-3af0a9d8889e",
+    "user_name": "Teguh Wahyudi",
+    "user_email": "teguh.wahyudi@example.com",
+    "user_password": "ClientAccess232",
+    "user_phone_number": "088596253236",
+    "user_address": "Jl. Contoh Alamat No.36, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000017"
+  },
+  {
+    "user_id": "a4af4d54-943f-4e0b-bf7d-7de1bac1edf8",
+    "user_name": "Budi Sari",
+    "user_email": "budi.sari@example.com",
+    "user_password": "MySecure333",
+    "user_phone_number": "086662315234",
+    "user_address": "Jl. Contoh Alamat No.37, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000013"
+  },
+  {
+    "user_id": "5192b1c4-063e-48f9-bd11-b4643990c8d3",
+    "user_name": "Budi Prasetyo",
+    "user_email": "budi.prasetyo@example.com",
+    "user_password": "UserAuth434",
+    "user_phone_number": "084026022582",
+    "user_address": "Jl. Contoh Alamat No.38, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000010"
+  },
+  {
+    "user_id": "af122109-77a6-429b-8bba-634dbc16bcad",
+    "user_name": "Qori Saputra",
+    "user_email": "qori.saputra@example.com",
+    "user_password": "AccessLogin535",
+    "user_phone_number": "088436012343",
+    "user_address": "Jl. Contoh Alamat No.39, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000016"
+  },
+  {
+    "user_id": "978a232c-a41a-415e-b4b2-0554ccbe0d1b",
+    "user_name": "Gina Aditya",
+    "user_email": "gina.aditya@example.com",
+    "user_password": "ClientKey636",
+    "user_phone_number": "083866347741",
+    "user_address": "Jl. Contoh Alamat No.40, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000019"
+  },
+  {
+    "user_id": "08ccd436-6922-4993-9980-09ed172aa8ff",
+    "user_name": "Mira Wijaya",
+    "user_email": "mira.wijaya@example.com",
+    "user_password": "UserPass737",
+    "user_phone_number": "088244571085",
+    "user_address": "Jl. Contoh Alamat No.41, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000001"
+  },
+  {
+    "user_id": "499c4cfd-aad4-4c94-9086-6365263272fe",
+    "user_name": "Mira Utami",
+    "user_email": "mira.utami@example.com",
+    "user_password": "MiraUtami12",
+    "user_phone_number": "087328742044",
+    "user_address": "Jl. Contoh Alamat No.42, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000007"
+  },
+  {
+    "user_id": "a9b27653-97e4-4a4e-b28d-dfc1f731fb64",
+    "user_name": "Putri Santoso",
+    "user_phone_number": "087654321001",
+    "user_address": "Jl. Contoh Alamat No.43, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000010",
+    "user_email": "putri.santoso@example.com",
+    "user_password": "Lock691"
+  },
+  {
+    "user_id": "b8324352-0a38-4d71-9d90-d5b50f4b2284",
+    "user_name": "Rian Wijaya",
+    "user_phone_number": "082134567890",
+    "user_address": "Jl. Contoh Alamat No.44, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000005",
+    "user_email": "rian.wijaya@example.com",
+    "user_password": "Key250"
+  },
+  {
+    "user_id": "f8fc44fa-0414-43a2-9630-bfd6ddcbd82e",
+    "user_name": "Santi Mahardika",
+    "user_phone_number": "081234567891",
+    "user_address": "Jl. Contoh Alamat No.45, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000016",
+    "user_email": "santi.mahardika@example.com",
+    "user_password": "Key983"
+  },
+  {
+    "user_id": "ee0a28d7-95d3-41f1-b7aa-b2cf3fc9d97e",
+    "user_name": "Joko Permata",
+    "user_phone_number": "088812345678",
+    "user_address": "Jl. Contoh Alamat No.46, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000013",
+    "user_email": "joko.permata@example.com",
+    "user_password": "Secure723"
+  },
+  {
+    "user_id": "db45c6e1-9a6c-4566-8ee5-d94d05df202b",
+    "user_name": "Kiki Saputra",
+    "user_phone_number": "081298765432",
+    "user_address": "Jl. Contoh Alamat No.47, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000003",
+    "user_email": "kiki.saputra@example.com",
+    "user_password": "Secure706"
+  },
+  {
+    "user_id": "156fb7a6-9a38-4ff3-b71e-f328a27c45a4",
+    "user_name": "Dewi Suryono",
+    "user_phone_number": "082298734561",
+    "user_address": "Jl. Contoh Alamat No.48, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000019",
+    "user_email": "dewi.suryono@example.com",
+    "user_password": "Key904"
+  },
+  {
+    "user_id": "90f1b330-21e0-489b-82d6-b059e8082443",
+    "user_name": "Hari Wahyudi",
+    "user_phone_number": "085612345678",
+    "user_address": "Jl. Contoh Alamat No.49, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000018",
+    "user_email": "hari.wahyudi@example.com",
+    "user_password": "Key465"
+  },
+  {
+    "user_id": "c5d3b0e9-5d0d-4b3f-bc3f-7ae9d3787b7e",
+    "user_name": "Lutfi Lestari",
+    "user_phone_number": "082198765432",
+    "user_address": "Jl. Contoh Alamat No.50, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000014",
+    "user_email": "lutfi.lestari@example.com",
+    "user_password": "Safe331"
   }
 ]

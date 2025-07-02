@@ -5,8 +5,8 @@ import (
 	"math"
 	"strings"
 
-	"github.com/Amierza/go-boiler-plate/dto"
-	"github.com/Amierza/go-boiler-plate/entity"
+	"github.com/Amierza/TitipanQ/backend/dto"
+	"github.com/Amierza/TitipanQ/backend/entity"
 	"gorm.io/gorm"
 )
 

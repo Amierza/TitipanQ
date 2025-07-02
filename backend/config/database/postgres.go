@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Amierza/go-boiler-plate/constants"
+	"github.com/Amierza/TitipanQ/backend/constants"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

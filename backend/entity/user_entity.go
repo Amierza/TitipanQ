@@ -7,10 +7,19 @@ import (
 )
 
 type User struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey" json:"user_id"`
-	Name     string    `json:"user_name"`
-	Email    string    `gorm:"unique; not null" json:"user_email"`
-	Password string    `json:"user_password"`
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"user_id"`
+	Name        string    `gorm:"not null" json:"user_name"`
+	Email       string    `gorm:"unique;not null" json:"user_email"`
+	Password    string    `gorm:"not null" json:"user_password"`
+	PhoneNumber string    `gorm:"not null" json:"user_phone_number"`
+	Address     string    `gorm:"type:text" json:"user_address"`
+
+	Packages []Package `gorm:"foreignKey:UserID"`
+
+	CompanyID *uuid.UUID `gorm:"type:uuid" json:"company_id"`
+	Company   Company    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	RoleID    *uuid.UUID `gorm:"type:uuid" json:"role_id"`
+	Role      Role       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	TimeStamp
 }
