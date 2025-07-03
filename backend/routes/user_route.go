@@ -12,5 +12,6 @@ func User(route *gin.Engine, userHandler handler.IUserHandler, jwtService servic
 		// Authentiation
 		routes.POST("/register", userHandler.Register)
 		routes.POST("/login", userHandler.Login)
+		routes.POST("/refresh-token", userHandler.RefreshToken)
 	}
 }

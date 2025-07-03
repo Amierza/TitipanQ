@@ -14,6 +14,7 @@ type (
 	IAdminService interface {
 		// Authentication
 		Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error)
+		RefreshToken(ctx context.Context, req dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error)
 
 		// User
 		CreateUser(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error)
@@ -74,6 +75,43 @@ func (as *AdminService) Login(ctx context.Context, req dto.LoginRequest) (dto.Lo
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+func (as *AdminService) RefreshToken(ctx context.Context, req dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error) {
+	_, err := as.jwtService.ValidateToken(req.RefreshToken)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, dto.ErrValidateToken
+	}
+
+	userID, err := as.jwtService.GetUserIDByToken(req.RefreshToken)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, dto.ErrGetUserIDFromToken
+	}
+
+	roleID, err := as.jwtService.GetRoleIDByToken(req.RefreshToken)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, dto.ErrGetRoleFromToken
+	}
+
+	role, err := as.adminRepo.GetRoleByID(ctx, nil, roleID)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, dto.ErrGetRoleFromID
+	}
+
+	if role.Name != "admin" {
+		return dto.RefreshTokenResponse{}, dto.ErrDeniedAccess
+	}
+
+	permissions, flag, err := as.adminRepo.GetPermissionsByRoleID(ctx, nil, roleID)
+	if err != nil || !flag {
+		return dto.RefreshTokenResponse{}, dto.ErrGetPermissionsByRoleID
+	}
+
+	accessToken, _, err := as.jwtService.GenerateToken(userID, roleID, permissions)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, dto.ErrGenerateAccessToken
+	}
+
+	return dto.RefreshTokenResponse{AccessToken: accessToken}, nil
 }
 
 // User
