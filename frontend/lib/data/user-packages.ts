@@ -17,6 +17,20 @@ export const userPackages: UserPackage[] = [
     status: "Menunggu diambil",
   },
   {
+    id: 1007,
+    sender: "PT. JNE Express",
+    received_date: "2025-07-01",
+    photo_url: "/assets/paket1.jpg",
+    status: "Menunggu diambil",
+  },
+  {
+    id: 1008,
+    sender: "PT. JNE Express",
+    received_date: "2025-07-01",
+    photo_url: "/assets/paket1.jpg",
+    status: "Menunggu diambil",
+  },
+  {
     id: 1002,
     sender: "Shopee Indonesia",
     received_date: "2025-06-30",
