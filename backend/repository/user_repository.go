@@ -39,7 +39,7 @@ func (ur *UserRepository) GetRoleByName(ctx context.Context, tx *gorm.DB, roleNa
 	}
 
 	var role entity.Role
-	if err := tx.WithContext(ctx).Preload("Company").Preload("Role").Where("name = ?", roleName).Take(&role).Error; err != nil {
+	if err := tx.WithContext(ctx).Where("name = ?", roleName).Take(&role).Error; err != nil {
 		return entity.Role{}, false, err
 	}
 
