@@ -12,10 +12,11 @@ type (
 	IUserRepository interface {
 		// Get
 		GetRoleByName(ctx context.Context, tx *gorm.DB, roleName string) (entity.Role, bool, error)
+		GetRoleByID(ctx context.Context, tx *gorm.DB, roleID string) (entity.Role, bool, error)
+		GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error)
 		GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error)
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, error)
-		GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error)
 
 		// Create
 		Register(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
@@ -44,6 +45,30 @@ func (ur *UserRepository) GetRoleByName(ctx context.Context, tx *gorm.DB, roleNa
 	}
 
 	return role, true, nil
+}
+func (ur *UserRepository) GetRoleByID(ctx context.Context, tx *gorm.DB, roleID string) (entity.Role, bool, error) {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	var role entity.Role
+	if err := tx.WithContext(ctx).Where("id = ?", roleID).Take(&role).Error; err != nil {
+		return entity.Role{}, false, err
+	}
+
+	return role, true, nil
+}
+func (ur *UserRepository) GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error) {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	var endpoints []string
+	if err := tx.WithContext(ctx).Table("permissions").Where("role_id = ?", roleID).Pluck("endpoint", &endpoints).Error; err != nil {
+		return []string{}, false, err
+	}
+
+	return endpoints, true, nil
 }
 func (ur *UserRepository) GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error) {
 	if tx == nil {
@@ -80,18 +105,6 @@ func (ur *UserRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, compa
 	}
 
 	return company, nil
-}
-func (ur *UserRepository) GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error) {
-	if tx == nil {
-		tx = ur.db
-	}
-
-	var endpoints []string
-	if err := tx.WithContext(ctx).Table("permissions").Where("role_id = ?", roleID).Pluck("endpoint", &endpoints).Error; err != nil {
-		return []string{}, false, err
-	}
-
-	return endpoints, true, nil
 }
 
 // Create

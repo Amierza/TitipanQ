@@ -15,11 +15,12 @@ type (
 	IAdminRepository interface {
 		// Get
 		GetRoleByName(ctx context.Context, tx *gorm.DB, roleName string) (entity.Role, bool, error)
+		GetRoleByID(ctx context.Context, tx *gorm.DB, roleID string) (entity.Role, error)
+		GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error)
 		GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error)
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, error)
 		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.UserPaginationRequest) (dto.UserPaginationRepositoryResponse, error)
-		GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error)
 
 		// Create
 		CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -54,6 +55,30 @@ func (ur *AdminRepository) GetRoleByName(ctx context.Context, tx *gorm.DB, roleN
 	}
 
 	return role, true, nil
+}
+func (ar *AdminRepository) GetRoleByID(ctx context.Context, tx *gorm.DB, roleID string) (entity.Role, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var role entity.Role
+	if err := tx.WithContext(ctx).Where("id = ?", roleID).Take(&role).Error; err != nil {
+		return entity.Role{}, err
+	}
+
+	return role, nil
+}
+func (ar *AdminRepository) GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var endpoints []string
+	if err := tx.WithContext(ctx).Table("permissions").Where("role_id = ?", roleID).Pluck("endpoint", &endpoints).Error; err != nil {
+		return []string{}, false, err
+	}
+
+	return endpoints, true, nil
 }
 func (ar *AdminRepository) GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error) {
 	if tx == nil {
@@ -145,18 +170,6 @@ func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gor
 			Count:   count,
 		},
 	}, err
-}
-func (ar *AdminRepository) GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error) {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	var endpoints []string
-	if err := tx.WithContext(ctx).Table("permissions").Where("role_id = ?", roleID).Pluck("endpoint", &endpoints).Error; err != nil {
-		return []string{}, false, err
-	}
-
-	return endpoints, true, nil
 }
 
 // Create

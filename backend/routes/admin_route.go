@@ -12,6 +12,7 @@ func Admin(route *gin.Engine, adminHandler handler.IAdminHandler, jwtService ser
 	{
 		// Authentication
 		routes.POST("/login", adminHandler.Login)
+		routes.POST("/refresh-token", adminHandler.RefreshToken)
 
 		routes.Use(middleware.Authentication(jwtService), middleware.RouteAccessControl(jwtService))
 		{

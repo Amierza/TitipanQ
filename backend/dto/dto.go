@@ -13,6 +13,7 @@ const (
 	// Authentication
 	MESSAGE_FAILED_REGISTER_USER = "failed register user"
 	MESSAGE_FAILED_LOGIN_USER    = "failed login user"
+	MESSAGE_FAILED_REFRESH_TOKEN = "failed refresh token"
 	// Middleware
 	MESSAGE_FAILED_PROSES_REQUEST             = "failed proses request"
 	MESSAGE_FAILED_ACCESS_DENIED              = "failed access denied"
@@ -32,6 +33,7 @@ const (
 	// Authentication
 	MESSAGE_SUCCESS_REGISTER_USER = "success register user"
 	MESSAGE_SUCCESS_LOGIN_USER    = "success login user"
+	MESSAGE_SUCCESS_REFRESH_TOKEN = "success refresh token"
 	// User
 	MESSAGE_SUCCESS_CREATE_USER     = "success create user"
 	MESSAGE_SUCCESS_GET_DETAIL_USER = "success get detail user"
@@ -71,10 +73,13 @@ var (
 	ErrPasswordSame             = errors.New("failed new password same as old password")
 	ErrHashPassword             = errors.New("failed hash password")
 	ErrDeleteUserByID           = errors.New("failed delete user by id")
+	ErrGetUserIDFromToken       = errors.New("failed get user id from token")
 	// Company
 	ErrGetCompanyByID = errors.New("failed get company by id")
 	// Role
-	ErrGetRoleFromName = errors.New("failed get role by name")
+	ErrGetRoleFromName  = errors.New("failed get role by name")
+	ErrGetRoleFromToken = errors.New("failed get role from token")
+	ErrGetRoleFromID    = errors.New("failed get role by role id")
 )
 
 type (
@@ -94,6 +99,12 @@ type (
 	LoginResponse struct {
 		AccessToken  string `json:"access_token"`
 		RefreshToken string `json:"refresh_token"`
+	}
+	RefreshTokenRequest struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+	RefreshTokenResponse struct {
+		AccessToken string `json:"access_token"`
 	}
 
 	// Role
