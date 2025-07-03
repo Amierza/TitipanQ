@@ -1,60 +1,71 @@
-// app/dashboard/page.tsx
-
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+} from "@/components/ui/sidebar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function Page() {
   // Dummy data
   const stats = {
-    diterima: 12,
-    diambil: 8,
-    kadaluarsa: 2,
-  }
+    received: 12,
+    pickedUp: 8,
+    expired: 2,
+  };
 
-  const paketList = [
+  const packageList = [
     {
-      nama: "Budi Santoso",
-      perusahaan: "PT. Maju Terus",
-      jenis: "Barang",
-      status: "Diterima",
+      name: "Budi Santoso",
+      company: "Maju Terus Inc.",
+      type: "Item",
+      status: "Received",
     },
     {
-      nama: "Siti Aminah",
-      perusahaan: "PT. Amanah",
-      jenis: "Surat",
-      status: "Diambil",
+      name: "Siti Aminah",
+      company: "Amanah Ltd.",
+      type: "Letter",
+      status: "Picked Up",
     },
     {
-      nama: "Rudi Hartono",
-      perusahaan: "PT. Lampu Terang",
-      jenis: "Barang",
-      status: "Kadaluarsa",
+      name: "Rudi Hartono",
+      company: "Bright Light Corp.",
+      type: "Item",
+      status: "Expired",
     },
-  ]
+  ];
 
-const getStatusBadge = (status: string) => {
-  const variant =
-    status === "Diterima"
-      ? "default"
-      : status === "Diambil"
-      ? "secondary" 
-      : "destructive"
-  return <Badge variant={variant}>{status}</Badge>
-}
+  const getStatusBadge = (status: string) => {
+    const variant =
+      status === "Received"
+        ? "default"
+        : status === "Picked Up"
+        ? "secondary"
+        : "destructive";
+    return <Badge variant={variant}>{status}</Badge>;
+  };
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -81,54 +92,54 @@ const getStatusBadge = (status: string) => {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader>
-                <CardTitle>Paket Diterima</CardTitle>
+                <CardTitle>Received Packages</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">
-                {stats.diterima}
+                {stats.received}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Paket Diambil</CardTitle>
+                <CardTitle>Picked Up Packages</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold text-green-600">
-                {stats.diambil}
+                {stats.pickedUp}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Paket Kadaluarsa</CardTitle>
+                <CardTitle>Expired Packages</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold text-red-600">
-                {stats.kadaluarsa}
+                {stats.expired}
               </CardContent>
             </Card>
           </div>
 
-          {/* Table */}
+          {/* Package Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Daftar Paket</CardTitle>
+              <CardTitle>Package List</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>No</TableHead>
-                    <TableHead>Nama Penerima</TableHead>
-                    <TableHead>Perusahaan</TableHead>
-                    <TableHead>Jenis</TableHead>
+                    <TableHead>Recipient Name</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paketList.map((paket, index) => (
+                  {packageList.map((pkg, index) => (
                     <TableRow key={index}>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell>{paket.nama}</TableCell>
-                      <TableCell>{paket.perusahaan}</TableCell>
-                      <TableCell>{paket.jenis}</TableCell>
-                      <TableCell>{getStatusBadge(paket.status)}</TableCell>
+                      <TableCell>{pkg.name}</TableCell>
+                      <TableCell>{pkg.company}</TableCell>
+                      <TableCell>{pkg.type}</TableCell>
+                      <TableCell>{getStatusBadge(pkg.status)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -138,5 +149,5 @@ const getStatusBadge = (status: string) => {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

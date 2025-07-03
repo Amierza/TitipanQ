@@ -40,7 +40,7 @@ export function UserSidebar() {
   ];
 
   const bottomMenu = [
-    { name: "Pengaturan Akun", href: "/dashboard/settings", icon: Settings },
+    { name: "Pengaturan Akun", href: "/dashboard/edit-account", icon: Settings },
   ];
 
   const handleLogout = () => {

@@ -6,8 +6,9 @@ import { usePathname } from "next/navigation";
 import {
   Package,
   History,
-  Settings,
   LayoutDashboard,
+  User,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -28,23 +29,28 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const menuItems = [
   {
     title: "Dashboard",
-    href: "/dashboard",
+    href: "/admin",
     icon: LayoutDashboard,
   },
   {
-    title: "Paket Masuk",
-    href: "/admin/paket",
+    title: "Add Packages",
+    href: "/admin/package",
     icon: Package,
   },
   {
-    title: "Riwayat Pengambilan",
-    href: "/admin/riwayat",
+    title: "Pickup History",
+    href: "/admin/history",
     icon: History,
   },
   {
-    title: "Pengaturan",
-    href: "/admin/settings",
-    icon: Settings,
+    title: "User Account Settings",
+    href: "/admin/user-settings",
+    icon: User,
+  },
+  {
+    title: "Logout",
+    href: "/login",
+    icon: LogOut,
   },
 ];
 
