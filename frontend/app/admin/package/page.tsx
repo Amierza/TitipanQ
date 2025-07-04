@@ -1,7 +1,7 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { UploadPackagePhoto } from "@/components/upload-package-photo";
-import { PackageForm } from "@/components/package-form";
+import { PackageForm } from "@/components/package/package-form";
 
 export default function AddPackagePage() {
   return (

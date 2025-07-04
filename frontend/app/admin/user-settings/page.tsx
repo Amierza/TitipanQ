@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { UserData, dummyUsers } from "@/lib/data/dummy-user";
 import { Button } from "@/components/ui/button";
-import { UserForm } from "@/components/user-form";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
-import { UserTable } from "@/components/user-table";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { UserTable } from "@/components/user/user-table";
+import { UserForm } from "@/components/user/user-form";
 
 export default function AccountSettingsPage() {
   const [users, setUsers] = useState<UserData[]>(dummyUsers);

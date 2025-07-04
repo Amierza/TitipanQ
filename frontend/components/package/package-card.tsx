@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Calendar, User } from "lucide-react";
 import Image from "next/image";
 import { ReactNode } from "react";
-import { StatusBadge } from "./status-badge";
+import { StatusBadge } from "../status-badge";
 
 interface PackageItem {
   id: number;
