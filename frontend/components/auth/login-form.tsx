@@ -115,7 +115,7 @@ export function LoginForm({
                 name="user_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input

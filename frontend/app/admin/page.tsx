@@ -89,7 +89,7 @@ export default function Page() {
         {/* Main content */}
         <div className="flex flex-1 flex-col gap-4 p-4">
           {/* Stat Cards */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader>
                 <CardTitle>Received Packages</CardTitle>
@@ -100,7 +100,15 @@ export default function Page() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Picked Up Packages</CardTitle>
+                <CardTitle>Delivered Packages</CardTitle>
+              </CardHeader>
+              <CardContent className="text-3xl font-bold text-amber-400">
+                {stats.received}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Complete Packages</CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold text-green-600">
                 {stats.pickedUp}
