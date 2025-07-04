@@ -17,6 +17,9 @@ export const loginAdminService = async (
     });
 
     if (response.status === 200) {
+      const successResponse = response.data as LoginResponse;
+      localStorage.setItem("access_token", successResponse.data.access_token);
+      localStorage.setItem("refresh_token", successResponse.data.refresh_token);
       return response.data as LoginResponse;
     } else {
       return response.data as ErrorResponse;
