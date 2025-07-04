@@ -29,10 +29,10 @@ const (
 	Expired    Status = "expired"
 )
 
-func isValidType(t Type) bool {
+func IsValidType(t Type) bool {
 	return t == Document || t == Item || t == Other
 }
 
-func isValidStatus(s Status) bool {
+func IsValidStatus(s Status) bool {
 	return s == Received || s == Processing || s == Delivered || s == Completed || s == Expired
 }

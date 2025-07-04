@@ -23,5 +23,30 @@
     "permission_id": "d06765de-127e-4a3a-a0fa-5f8e286ac165",
     "permission_endpoint": "/api/v1/admin/delete-user/:id",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "729c18e4-edcc-4084-93e2-a62815d42be9",
+    "permission_endpoint": "/api/v1/admin/create-package",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "817114c8-1f66-401e-ab55-7e00275f2ec4",
+    "permission_endpoint": "/api/v1/admin/get-all-package",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "80a36b6d-7b6b-444f-8f4b-eba0db9ab462",
+    "permission_endpoint": "/api/v1/admin/get-detail-package/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "b2dfc84a-1afe-443a-90c9-a8b49b9d1d37",
+    "permission_endpoint": "/api/v1/admin/update-package/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "fba540ca-f6b1-4073-8048-62165e737857",
+    "permission_endpoint": "/api/v1/admin/delete-package/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   }
 ]

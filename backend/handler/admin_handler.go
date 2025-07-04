@@ -4,9 +4,11 @@ import (
 	"net/http"
 
 	"github.com/Amierza/TitipanQ/backend/dto"
+	"github.com/Amierza/TitipanQ/backend/entity"
 	"github.com/Amierza/TitipanQ/backend/service"
 	"github.com/Amierza/TitipanQ/backend/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type (
@@ -21,6 +23,13 @@ type (
 		GetDetailUser(ctx *gin.Context)
 		UpdateUser(ctx *gin.Context)
 		DeleteUser(ctx *gin.Context)
+
+		// Package & Package History
+		CreatePackage(ctx *gin.Context)
+		ReadAllPackage(ctx *gin.Context)
+		GetDetailPackage(ctx *gin.Context)
+		UpdatePackage(ctx *gin.Context)
+		DeletePackage(ctx *gin.Context)
 	}
 
 	AdminHandler struct {
@@ -92,7 +101,7 @@ func (ah *AdminHandler) CreateUser(ctx *gin.Context) {
 	ctx.AbortWithStatusJSON(http.StatusOK, res)
 }
 func (ah *AdminHandler) ReadAllUser(ctx *gin.Context) {
-	var payload dto.UserPaginationRequest
+	var payload dto.PaginationRequest
 	if err := ctx.ShouldBind(&payload); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -166,5 +175,136 @@ func (ah *AdminHandler) DeleteUser(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_DELETE_USER, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+// Package
+func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
+	var payload dto.CreatePackageRequest
+	fileHeader, err := ctx.FormFile("package_image")
+	if err == nil {
+		file, err := fileHeader.Open()
+		if err != nil {
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_OPEN_PHOTO, err.Error(), nil)
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, res)
+			return
+		}
+		defer file.Close()
+
+		payload.FileHeader = fileHeader
+		payload.FileReader = file
+	}
+
+	payload.Description = ctx.PostForm("package_description")
+	payload.Type = entity.Type(ctx.PostForm("package_type"))
+
+	userIDStr := ctx.PostForm("user_id")
+	payload.UserID, err = uuid.Parse(userIDStr)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_UUID, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := ah.adminService.CreatePackage(ctx, payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_PACKAGE, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_PACKAGE, result)
+	ctx.JSON(http.StatusOK, res)
+}
+func (ah *AdminHandler) ReadAllPackage(ctx *gin.Context) {
+	var payload dto.PaginationRequest
+	if err := ctx.ShouldBind(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := ah.adminService.ReadAllPackageWithPagination(ctx.Request.Context(), payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.Response{
+		Status:   true,
+		Messsage: dto.MESSAGE_SUCCESS_GET_LIST_PACKAGE,
+		Data:     result.Data,
+		Meta:     result.PaginationResponse,
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+func (ah *AdminHandler) GetDetailPackage(ctx *gin.Context) {
+	pkgID := ctx.Param("id")
+	result, err := ah.adminService.GetDetailPackage(ctx, pkgID)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DETAIL_PACKAGE, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_PACKAGE, result)
+	ctx.JSON(http.StatusOK, res)
+}
+func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
+	var payload dto.UpdatePackageRequest
+	fileHeader, err := ctx.FormFile("package_image")
+	if err == nil {
+		file, err := fileHeader.Open()
+		if err != nil {
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_OPEN_PHOTO, err.Error(), nil)
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, res)
+			return
+		}
+		defer file.Close()
+
+		payload.FileHeader = fileHeader
+		payload.FileReader = file
+	}
+	payload.Description = ctx.PostForm("package_description")
+	payload.Type = entity.Type(ctx.PostForm("package_type"))
+
+	pkgIdStr := ctx.Param("id")
+	payload.ID = pkgIdStr
+	if err := ctx.ShouldBind(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := ah.adminService.UpdatePackage(ctx, payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATE_PACKAGE, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_PACKAGE, result)
+	ctx.JSON(http.StatusOK, res)
+}
+func (ah *AdminHandler) DeletePackage(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	var payload dto.DeletePackageRequest
+	payload.PackageID = idStr
+	if err := ctx.ShouldBind(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := ah.adminService.DeletePackage(ctx.Request.Context(), payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_DELETE_PACKAGE, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_DELETE_PACKAGE, result)
 	ctx.JSON(http.StatusOK, res)
 }

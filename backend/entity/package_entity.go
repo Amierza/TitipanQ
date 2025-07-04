@@ -11,7 +11,7 @@ import (
 type Package struct {
 	ID          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"package_id"`
 	Description string     `gorm:"type:text" json:"package_description"`
-	PhotoURL    string     `gorm:"type:text" json:"package_photo"`
+	Image       string     `gorm:"type:text" json:"package_image"`
 	Type        Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
 	Status      Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
 	ReceivedAt  time.Time  `json:"package_received_at"`
@@ -27,7 +27,7 @@ type Package struct {
 }
 
 func (p *Package) BeforeCreate(tx *gorm.DB) error {
-	if !isValidType(p.Type) || !isValidStatus(p.Status) {
+	if !IsValidType(p.Type) || !IsValidStatus(p.Status) {
 		return errors.New("invalid type or status")
 	}
 	return nil

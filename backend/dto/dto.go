@@ -2,6 +2,8 @@ package dto
 
 import (
 	"errors"
+	"mime/multipart"
+	"time"
 
 	"github.com/Amierza/TitipanQ/backend/entity"
 	"github.com/google/uuid"
@@ -10,6 +12,11 @@ import (
 const (
 	// ====================================== Failed ======================================
 	MESSAGE_FAILED_GET_DATA_FROM_BODY = "failed get data from body"
+	// File
+	MESSAGE_FAILED_READ_PHOTO = "failed read photo"
+	MESSAGE_FAILED_OPEN_PHOTO = "failed open photo"
+	// PARSE
+	MESSAGE_FAILED_PARSE_UUID = "failed parse string to uuid"
 	// Authentication
 	MESSAGE_FAILED_REGISTER_USER = "failed register user"
 	MESSAGE_FAILED_LOGIN_USER    = "failed login user"
@@ -28,6 +35,12 @@ const (
 	MESSAGE_FAILED_GET_LIST_USER   = "failed get list user"
 	MESSAGE_FAILED_UPDATE_USER     = "failed update user"
 	MESSAGE_FAILED_DELETE_USER     = "failed delete user"
+	// Package
+	MESSAGE_FAILED_CREATE_PACKAGE     = "failed create package"
+	MESSAGE_FAILED_GET_DETAIL_PACKAGE = "failed get detail package"
+	MESSAGE_FAILED_GET_LIST_PACKAGE   = "failed get list package"
+	MESSAGE_FAILED_UPDATE_PACKAGE     = "failed update package"
+	MESSAGE_FAILED_DELETE_PACKAGE     = "failed delete package"
 
 	// ====================================== Success ======================================
 	// Authentication
@@ -40,6 +53,12 @@ const (
 	MESSAGE_SUCCESS_GET_LIST_USER   = "success get list user"
 	MESSAGE_SUCCESS_UPDATE_USER     = "success update user"
 	MESSAGE_SUCCESS_DELETE_USER     = "success delete user"
+	// Package
+	MESSAGE_SUCCESS_CREATE_PACKAGE     = "success create package"
+	MESSAGE_SUCCESS_GET_DETAIL_PACKAGE = "success get detail package"
+	MESSAGE_SUCCESS_GET_LIST_PACKAGE   = "success get list package"
+	MESSAGE_SUCCESS_UPDATE_PACKAGE     = "success update package"
+	MESSAGE_SUCCESS_DELETE_PACKAGE     = "success delete package"
 )
 
 var (
@@ -50,14 +69,22 @@ var (
 	ErrDecryptToken            = errors.New("failed to decrypt token")
 	ErrTokenInvalid            = errors.New("token invalid")
 	ErrValidateToken           = errors.New("failed to validate token")
+	// File
+	ErrInvalidExtensionPhoto = errors.New("only jpg/jpeg/png allowed")
+	ErrCreateFile            = errors.New("failed create file")
+	ErrSaveFile              = errors.New("failed save file")
+	// Parse
+	ErrParseUUID = errors.New("failed parse uuid")
 	// Middleware
 	ErrDeniedAccess           = errors.New("denied access")
 	ErrGetPermissionsByRoleID = errors.New("failed get all permission by role id")
 	// Input Validation
-	ErrInvalidName       = errors.New("failed invalid name")
-	ErrInvalidEmail      = errors.New("failed invalid email")
-	ErrInvalidPassword   = errors.New("failed invalid password")
-	ErrFormatPhoneNumber = errors.New("failed standarize phone number input")
+	ErrInvalidName               = errors.New("failed invalid name")
+	ErrInvalidEmail              = errors.New("failed invalid email")
+	ErrInvalidPassword           = errors.New("failed invalid password")
+	ErrFormatPhoneNumber         = errors.New("failed standarize phone number input")
+	ErrMissingRequiredField      = errors.New("failed missing required field")
+	ErrDescriptionPackageToShort = errors.New("failed description package to short (min 5 word)")
 	// Email
 	ErrEmailAlreadyExists = errors.New("email already exists")
 	ErrEmailNotFound      = errors.New("email not found")
@@ -74,6 +101,14 @@ var (
 	ErrHashPassword             = errors.New("failed hash password")
 	ErrDeleteUserByID           = errors.New("failed delete user by id")
 	ErrGetUserIDFromToken       = errors.New("failed get user id from token")
+	// Package & Package History
+	ErrCreatePackage               = errors.New("failed create package")
+	ErrCreatePackageHistory        = errors.New("failed create package history")
+	ErrGetAllPackageWithPagination = errors.New("failed get list package with pagination")
+	ErrPackageNotFound             = errors.New("failed package not found")
+	ErrInvalidPackageType          = errors.New("failed invalid package type")
+	ErrInvalidPackageStatus        = errors.New("failed invalid package status")
+	ErrUpdatePackage               = errors.New("failed update package")
 	// Company
 	ErrGetCompanyByID = errors.New("failed get company by id")
 	// Role
@@ -131,10 +166,6 @@ type (
 		Company     CompanyResponse `json:"company"`
 		Role        RoleResponse    `json:"role"`
 	}
-	AllUserRepositoryResponse struct {
-		PaginationResponse
-		Users []entity.User
-	}
 	CreateUserRequest struct {
 		Name        string    `json:"user_name" form:"name"`
 		Email       string    `json:"user_email" form:"email"`
@@ -155,10 +186,6 @@ type (
 	DeleteUserRequest struct {
 		UserID string `json:"-"`
 	}
-	UserPaginationRequest struct {
-		PaginationRequest
-		UserID string `form:"user_id"`
-	}
 	UserPaginationResponse struct {
 		PaginationResponse
 		Data []UserResponse `json:"data"`
@@ -166,5 +193,66 @@ type (
 	UserPaginationRepositoryResponse struct {
 		PaginationResponse
 		Users []entity.User
+	}
+
+	// Package
+	CreatePackageRequest struct {
+		Description string                `json:"package_description" form:"package_description"`
+		Image       string                `json:"package_image" form:"package_image"`
+		Type        entity.Type           `json:"package_type" form:"package_type"`
+		UserID      uuid.UUID             `json:"user_id" form:"user_id"`
+		FileHeader  *multipart.FileHeader `json:"fileheader,omitempty"`
+		FileReader  multipart.File        `json:"filereader,omitempty"`
+	}
+	PackageResponse struct {
+		ID          uuid.UUID     `json:"package_id"`
+		Description string        `json:"package_description"`
+		Image       string        `json:"package_image"`
+		Type        entity.Type   `json:"package_type"`
+		Status      entity.Status `json:"package_status"`
+		ReceivedAt  time.Time     `json:"package_received_at"`
+		DeliveredAt *time.Time    `json:"package_delivered_at"`
+		ExpiredAt   *time.Time    `json:"package_expired_at"`
+		UserID      uuid.UUID     `json:"user_id"`
+	}
+	PackagePaginationResponse struct {
+		PaginationResponse
+		Data []PackageResponse `json:"data"`
+	}
+	PackagePaginationRepositoryResponse struct {
+		PaginationResponse
+		Packages []entity.Package
+	}
+	UpdatePackageRequest struct {
+		ID          string                `json:"-"`
+		Description string                `json:"package_description,omitempty" form:"package_description"`
+		Image       string                `json:"package_image,omitempty" form:"package_image"`
+		Type        entity.Type           `json:"package_type,omitempty" form:"package_type"`
+		Status      entity.Status         `json:"package_status,omitempty" form:"package_status"`
+		DeliveredAt *time.Time            `json:"package_delivered_at,omitempty" form:"package_delivered_at"`
+		FileHeader  *multipart.FileHeader `json:"fileheader,omitempty"`
+		FileReader  multipart.File        `json:"filereader,omitempty"`
+	}
+	PackageHistoryResponse struct {
+		ID        uuid.UUID     `json:"history_id"`
+		Status    entity.Status `json:"history_status"`
+		ChangedAt time.Time     `json:"history_changed_at"`
+		PackageID uuid.UUID     `json:"package_id"`
+		ChangedBy uuid.UUID     `json:"changed_by"`
+	}
+	UpdatePackageResponse struct {
+		ID          uuid.UUID     `json:"package_id"`
+		Description string        `json:"package_description"`
+		Image       string        `json:"package_image"`
+		Type        entity.Type   `json:"package_type"`
+		Status      entity.Status `json:"package_status"`
+		ReceivedAt  time.Time     `json:"package_received_at"`
+		DeliveredAt *time.Time    `json:"package_delivered_at"`
+		ExpiredAt   *time.Time    `json:"package_expired_at"`
+		UserID      uuid.UUID     `json:"user_id"`
+		ChangedBy   uuid.UUID     `json:"change_by"`
+	}
+	DeletePackageRequest struct {
+		PackageID string `json:"-"`
 	}
 )
