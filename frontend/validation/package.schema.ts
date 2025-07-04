@@ -6,7 +6,7 @@ export enum PackageType {
   Other = "other",
 }
 
-export const CreatePackageSchema = z.object({
+export const PackageSchema = z.object({
   package_description: z
     .string()
     .min(1, { message: "Deskripsi paket tidak boleh kosong" }),
