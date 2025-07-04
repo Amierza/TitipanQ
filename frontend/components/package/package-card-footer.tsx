@@ -14,7 +14,7 @@ export function PackageCardFooter({ status }: { status: string }) {
         <div className="bg-red-50 border border-red-200 rounded-md p-2">
           <p className="text-xs text-red-700 flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            Paket tidak diambil dalam batas waktu
+            Package not picked up within the time limit
           </p>
         </div>
       </>

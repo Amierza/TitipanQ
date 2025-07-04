@@ -49,12 +49,12 @@ export function PackageCard({ item, topRightBadge, cardClassName = "", footer }:
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium">Pengirim:</span>
+            <span className="font-medium">Sender:</span>
             <span>{item.sender}</span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium">Diterima:</span>
+            <span className="font-medium">Receive Date:</span>
             <span>{item.received_date}</span>
           </div>
         </div>
