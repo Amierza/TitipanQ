@@ -42,6 +42,16 @@ const (
 	MESSAGE_FAILED_UPDATE_PACKAGE     = "failed update package"
 	MESSAGE_FAILED_DELETE_PACKAGE     = "failed delete package"
 
+	// Company
+	MESSAGE_FAILED_CREATE_COMPANY      = "failed create company"
+	MESSAGE_FAILED_GET_DETAIL_COMPANY  = "failed get detail company"
+	MESSAGE_FAILED_GET_LIST_COMPANY    = "failed get list company"
+	MESSAGE_FAILED_UPDATE_COMPANY      = "failed update company"
+	MESSAGE_FAILED_DELETE_COMPANY      = "failed delete company"
+	MESSAGE_INVALID_COMPANY_NAME       = "failed company name must be at least 3 characters"
+	MESSAGE_INVALID_COMPANY_ADDRESS    = "failed company address must be at least 5 characters"
+	MESSAGE_FAILED_GET_DATA_FROM_QUERY = "failed get data from query"
+
 	// ====================================== Success ======================================
 	// Authentication
 	MESSAGE_SUCCESS_REGISTER_USER = "success register user"
@@ -59,6 +69,13 @@ const (
 	MESSAGE_SUCCESS_GET_LIST_PACKAGE   = "success get list package"
 	MESSAGE_SUCCESS_UPDATE_PACKAGE     = "success update package"
 	MESSAGE_SUCCESS_DELETE_PACKAGE     = "success delete package"
+
+	// Company
+	MESSAGE_SUCCESS_CREATE_COMPANY     = "success create company"
+	MESSAGE_SUCCESS_GET_DETAIL_COMPANY = "success get detail company"
+	MESSAGE_SUCCESS_GET_LIST_COMPANY   = "success get list company"
+	MESSAGE_SUCCESS_UPDATE_COMPANY     = "success update company"
+	MESSAGE_SUCCESS_DELETE_COMPANY     = "success delete company"
 )
 
 var (
@@ -110,7 +127,16 @@ var (
 	ErrInvalidPackageStatus        = errors.New("failed invalid package status")
 	ErrUpdatePackage               = errors.New("failed update package")
 	// Company
-	ErrGetCompanyByID = errors.New("failed get company by id")
+	ErrGetCompanyByID              = errors.New("failed get company by id")
+	ErrCreateCompany               = errors.New("failed to create company")
+	ErrCompanyNotFound             = errors.New("company not found")
+	ErrGetAllCompanyWithPagination = errors.New("failed to get list company with pagination")
+	ErrUpdateCompany               = errors.New("failed to update company")
+	ErrDeleteCompany               = errors.New("failed to delete company")
+	ErrCompanyIDRequired           = errors.New("company ID is required")
+	ErrInvalidCompanyName          = errors.New("failed invalid company name")
+	ErrInvalidCompanyAddress       = errors.New("failed invalid company address")
+
 	// Role
 	ErrGetRoleFromName  = errors.New("failed get role by name")
 	ErrGetRoleFromToken = errors.New("failed get role from token")
@@ -146,13 +172,6 @@ type (
 	RoleResponse struct {
 		ID   *uuid.UUID `json:"role_id"`
 		Name string     `json:"role_name"`
-	}
-
-	// Company
-	CompanyResponse struct {
-		ID      *uuid.UUID `json:"company_id"`
-		Name    string     `json:"company_name"`
-		Address string     `json:"company_address"`
 	}
 
 	// User
@@ -254,5 +273,37 @@ type (
 	}
 	DeletePackageRequest struct {
 		PackageID string `json:"-"`
+	}
+
+	// Company
+	CreateCompanyRequest struct {
+		Name    string `json:"company_name" binding:"required"`
+		Address string `json:"company_address" binding:"required"`
+	}
+
+	CompanyResponse struct {
+		ID      *uuid.UUID `json:"company_id"`
+		Name    string     `json:"company_name"`
+		Address string     `json:"company_address"`
+	}
+	CompanyPaginationResponse struct {
+		PaginationResponse
+		Data []CompanyResponse `json:"data"`
+	}
+	CompanyPaginationRepositoryResponse struct {
+		PaginationResponse
+		Companies []entity.Company
+	}
+
+	UpdateCompanyRequest struct {
+		ID      string `json:"-"`
+		Name    string `json:"company_name,omitempty"`
+		Address string `json:"company_address,omitempty"`
+	}
+
+	UpdateCompanyResponse struct {
+		ID      *uuid.UUID `json:"company_id"`
+		Name    string     `json:"company_name"`
+		Address string     `json:"company_address"`
 	}
 )

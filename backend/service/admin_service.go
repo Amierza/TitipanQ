@@ -35,6 +35,13 @@ type (
 		GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error)
 		UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error)
 		DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error)
+
+		// Company
+		CreateCompany(ctx context.Context, req dto.CreateCompanyRequest) (dto.CompanyResponse, error)
+		ReadAllCompanyWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.CompanyPaginationResponse, error)
+		GetDetailCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error)
+		UpdateCompany(ctx context.Context, req dto.UpdateCompanyRequest) (dto.UpdateCompanyResponse, error)
+		DeleteCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error)
 	}
 
 	AdminService struct {
@@ -650,6 +657,139 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		DeliveredAt: deletedPackage.DeliveredAt,
 		ExpiredAt:   deletedPackage.ExpiredAt,
 		UserID:      *deletedPackage.UserID,
+	}
+
+	return res, nil
+}
+
+// Company
+func (as *AdminService) CreateCompany(ctx context.Context, req dto.CreateCompanyRequest) (dto.CompanyResponse, error) {
+	token, err := helpers.ExtractTokenFromContext(ctx)
+	if err != nil {
+		return dto.CompanyResponse{}, dto.ErrValidateToken
+	}
+	_, err = as.jwtService.GetUserIDByToken(token)
+	if err != nil {
+		return dto.CompanyResponse{}, dto.ErrGetUserIDFromToken
+	}
+
+	if len(req.Name) < 3 {
+		return dto.CompanyResponse{}, dto.ErrInvalidCompanyName
+	}
+	if len(req.Address) < 5 {
+		return dto.CompanyResponse{}, dto.ErrInvalidCompanyAddress
+	}
+	company := entity.Company{
+		ID:      uuid.New(),
+		Name:    req.Name,
+		Address: req.Address,
+	}
+
+	if err := as.adminRepo.CreateCompany(ctx, nil, company); err != nil {
+		return dto.CompanyResponse{}, dto.ErrCreateCompany
+	}
+
+	return dto.CompanyResponse{
+		ID:      &company.ID,
+		Name:    company.Name,
+		Address: company.Address,
+	}, nil
+}
+
+
+
+func (as *AdminService) ReadAllCompanyWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.CompanyPaginationResponse, error) {
+	dataWithPaginate, err := as.adminRepo.GetAllCompanyWithPagination(ctx, nil, req)
+	if err != nil {
+		return dto.CompanyPaginationResponse{}, dto.ErrGetAllCompanyWithPagination
+	}
+
+	var datas []dto.CompanyResponse
+	for _, company := range dataWithPaginate.Companies {
+		datas = append(datas, dto.CompanyResponse{
+			ID:      &company.ID,
+			Name:    company.Name,
+			Address: company.Address,
+		})
+	}
+
+	return dto.CompanyPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    dataWithPaginate.Page,
+			PerPage: dataWithPaginate.PerPage,
+			MaxPage: dataWithPaginate.MaxPage,
+			Count:   dataWithPaginate.Count,
+		},
+	}, nil
+}
+
+func (as *AdminService) GetDetailCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error) {
+	company, err := as.adminRepo.GetCompanyByID(ctx, nil, companyID)
+	if err != nil {
+		return dto.CompanyResponse{}, dto.ErrCompanyNotFound
+	}
+
+	return dto.CompanyResponse{
+		ID:      &company.ID,
+		Name:    company.Name,
+		Address: company.Address,
+	}, nil
+}
+
+func (as *AdminService) UpdateCompany(ctx context.Context, req dto.UpdateCompanyRequest) (dto.UpdateCompanyResponse, error) {
+	token := ctx.Value("Authorization").(string)
+
+	userId, err := as.jwtService.GetUserIDByToken(token)
+	if err != nil {
+		return dto.UpdateCompanyResponse{}, dto.ErrGetUserIDFromToken
+	}
+	_, err = uuid.Parse(userId)
+	if err != nil {
+		return dto.UpdateCompanyResponse{}, dto.ErrParseUUID
+	}
+
+	company, err := as.adminRepo.GetCompanyByID(ctx, nil, req.ID)
+	if err != nil {
+		return dto.UpdateCompanyResponse{}, dto.ErrCompanyNotFound
+	}
+	if req.Name != "" {
+		if len(req.Name) < 3 {
+			return dto.UpdateCompanyResponse{}, dto.ErrInvalidCompanyName
+		}
+		company.Name = req.Name
+	}
+
+	if req.Address != "" {
+		if len(req.Address) < 5 {
+			return dto.UpdateCompanyResponse{}, dto.ErrInvalidCompanyAddress
+		}
+		company.Address = req.Address
+	}
+
+	if err := as.adminRepo.UpdateCompany(ctx, nil, company); err != nil {
+		return dto.UpdateCompanyResponse{}, dto.ErrUpdateCompany
+	}
+	return dto.UpdateCompanyResponse{
+		ID:      &company.ID,
+		Name:    company.Name,
+		Address: company.Address,
+	}, nil
+}
+
+func (as *AdminService) DeleteCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error) {
+	deletedCompany, err := as.adminRepo.GetCompanyByID(ctx, nil, companyID)
+	if err != nil {
+		return dto.CompanyResponse{}, dto.ErrCompanyNotFound
+	}
+	err = as.adminRepo.DeleteCompanyByID(ctx, nil, companyID)
+	if err != nil {
+		return dto.CompanyResponse{}, dto.ErrDeleteCompany
+	}
+	res := dto.CompanyResponse{
+		ID:      &deletedCompany.ID,
+		Name:    deletedCompany.Name,
+		Address: deletedCompany.Address,
 	}
 
 	return res, nil
