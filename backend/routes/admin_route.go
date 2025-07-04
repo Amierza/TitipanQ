@@ -22,6 +22,13 @@ func Admin(route *gin.Engine, adminHandler handler.IAdminHandler, jwtService ser
 			routes.GET("/get-detail-user/:id", adminHandler.GetDetailUser)
 			routes.PATCH("/update-user/:id", adminHandler.UpdateUser)
 			routes.DELETE("/delete-user/:id", adminHandler.DeleteUser)
+
+			// Package & Package History
+			routes.POST("/create-package", adminHandler.CreatePackage)
+			routes.GET("/get-all-package", adminHandler.ReadAllPackage)
+			routes.GET("/get-detail-package/:id", adminHandler.GetDetailPackage)
+			routes.PATCH("/update-package/:id", adminHandler.UpdatePackage)
+			routes.DELETE("/delete-package/:id", adminHandler.DeletePackage)
 		}
 	}
 }

@@ -20,16 +20,22 @@ type (
 		GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error)
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, error)
-		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.UserPaginationRequest) (dto.UserPaginationRepositoryResponse, error)
+		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error)
+		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
+		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.PackagePaginationRepositoryResponse, error)
 
 		// Create
 		CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
+		CreatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
+		CreatePackageHistory(ctx context.Context, tx *gorm.DB, history entity.PackageHistory) error
 
 		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
+		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 
 		// Delete
 		DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error
+		DeletePackageByID(ctx context.Context, tx *gorm.DB, pkgID string) error
 	}
 
 	AdminRepository struct {
@@ -116,7 +122,7 @@ func (ar *AdminRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, comp
 
 	return company, nil
 }
-func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.UserPaginationRequest) (dto.UserPaginationRepositoryResponse, error) {
+func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = ar.db
 	}
@@ -125,12 +131,12 @@ func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gor
 	var err error
 	var count int64
 
-	if req.PaginationRequest.PerPage == 0 {
-		req.PaginationRequest.PerPage = 10
+	if req.PerPage == 0 {
+		req.PerPage = 10
 	}
 
-	if req.PaginationRequest.Page == 0 {
-		req.PaginationRequest.Page = 1
+	if req.Page == 0 {
+		req.Page = 1
 	}
 
 	var adminIDs []uuid.UUID
@@ -140,13 +146,9 @@ func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gor
 
 	query := tx.WithContext(ctx).Model(&entity.User{}).Where("role_id IN (?)", adminIDs)
 
-	if req.PaginationRequest.Search != "" {
-		searchValue := "%" + strings.ToLower(req.PaginationRequest.Search) + "%"
+	if req.Search != "" {
+		searchValue := "%" + strings.ToLower(req.Search) + "%"
 		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ?", searchValue, searchValue)
-	}
-
-	if req.UserID != "" {
-		query = query.Where("id = ?", req.UserID)
 	}
 
 	query = query.Preload("Company").Preload("Role")
@@ -155,17 +157,73 @@ func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gor
 		return dto.UserPaginationRepositoryResponse{}, err
 	}
 
-	if err := query.Order("created_at DESC").Scopes(Paginate(req.PaginationRequest.Page, req.PaginationRequest.PerPage)).Find(&users).Error; err != nil {
+	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&users).Error; err != nil {
 		return dto.UserPaginationRepositoryResponse{}, err
 	}
 
-	totalPage := int64(math.Ceil(float64(count) / float64(req.PaginationRequest.PerPage)))
+	totalPage := int64(math.Ceil(float64(count) / float64(req.PerPage)))
 
 	return dto.UserPaginationRepositoryResponse{
 		Users: users,
 		PaginationResponse: dto.PaginationResponse{
-			Page:    req.PaginationRequest.Page,
-			PerPage: req.PaginationRequest.PerPage,
+			Page:    req.Page,
+			PerPage: req.PerPage,
+			MaxPage: totalPage,
+			Count:   count,
+		},
+	}, err
+}
+func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var user entity.Package
+	if err := tx.WithContext(ctx).Where("id = ?", pkgID).Take(&user).Error; err != nil {
+		return entity.Package{}, false, err
+	}
+
+	return user, true, nil
+}
+func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.PackagePaginationRepositoryResponse, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var packages []entity.Package
+	var err error
+	var count int64
+
+	if req.PerPage == 0 {
+		req.PerPage = 10
+	}
+
+	if req.Page == 0 {
+		req.Page = 1
+	}
+
+	query := tx.WithContext(ctx).Model(&entity.Package{})
+
+	if req.Search != "" {
+		searchValue := "%" + strings.ToLower(req.Search) + "%"
+		query = query.Where("LOWER(description) LIKE ? ", searchValue)
+	}
+
+	if err := query.Count(&count).Error; err != nil {
+		return dto.PackagePaginationRepositoryResponse{}, err
+	}
+
+	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&packages).Error; err != nil {
+		return dto.PackagePaginationRepositoryResponse{}, err
+	}
+
+	totalPage := int64(math.Ceil(float64(count) / float64(req.PerPage)))
+
+	return dto.PackagePaginationRepositoryResponse{
+		Packages: packages,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    req.Page,
+			PerPage: req.PerPage,
 			MaxPage: totalPage,
 			Count:   count,
 		},
@@ -180,6 +238,20 @@ func (ar *AdminRepository) CreateUser(ctx context.Context, tx *gorm.DB, user ent
 
 	return tx.WithContext(ctx).Create(&user).Error
 }
+func (ar *AdminRepository) CreatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Create(&pkg).Error
+}
+func (ar *AdminRepository) CreatePackageHistory(ctx context.Context, tx *gorm.DB, history entity.PackageHistory) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Create(&history).Error
+}
 
 // Update
 func (ar *AdminRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error {
@@ -189,6 +261,13 @@ func (ar *AdminRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user ent
 
 	return tx.WithContext(ctx).Where("id = ?", user.ID).Updates(&user).Error
 }
+func (ar *AdminRepository) UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Where("id = ?", pkg.ID).Updates(&pkg).Error
+}
 
 // Delete
 func (ar *AdminRepository) DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error {
@@ -197,4 +276,11 @@ func (ar *AdminRepository) DeleteUserByID(ctx context.Context, tx *gorm.DB, user
 	}
 
 	return tx.WithContext(ctx).Where("id = ?", userID).Delete(&entity.User{}).Error
+}
+func (ar *AdminRepository) DeletePackageByID(ctx context.Context, tx *gorm.DB, pkgID string) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Where("id = ?", pkgID).Delete(&entity.Package{}).Error
 }
