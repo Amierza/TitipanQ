@@ -1,15 +1,15 @@
 // components/UserTable.tsx
-"use client"
+"use client";
 
-import { UserData } from "../lib/data/dummy-user"
-import { Pencil, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { UserStatusBadge } from "./user-status-badge"
+import { Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { UserStatusBadge } from "./user-status-badge";
+import { UserData } from "@/lib/data/dummy-user";
 
 interface Props {
-  users: UserData[]
-  onEdit: (user: UserData) => void
-  onDelete: (user: UserData) => void
+  users: UserData[];
+  onEdit: (user: UserData) => void;
+  onDelete: (user: UserData) => void;
 }
 
 export function UserTable({ users, onEdit, onDelete }: Props) {
@@ -37,10 +37,18 @@ export function UserTable({ users, onEdit, onDelete }: Props) {
                 <UserStatusBadge isActive={user.active} />
               </td>
               <td className="p-3 space-x-2">
-                <Button variant="outline" size="icon" onClick={() => onEdit(user)}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onEdit(user)}
+                >
                   <Pencil className="w-4 h-4" />
                 </Button>
-                <Button variant="destructive" size="icon" onClick={() => onDelete(user)}>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => onDelete(user)}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </td>
@@ -49,5 +57,5 @@ export function UserTable({ users, onEdit, onDelete }: Props) {
         </tbody>
       </table>
     </div>
-  )
+  );
 }

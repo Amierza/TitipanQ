@@ -1,20 +1,24 @@
 import { userPackages } from "@/lib/data/user-packages";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Package } from "lucide-react";
-import { PackageSection } from "@/components/package-section";
+import { PackageSection } from "@/components/package/package-section";
 
 export default function UserDashboardPage() {
-  const pendingPackages = userPackages.filter((p) => p.status === "Menunggu diambil");
-  const completedPackages = userPackages.filter((p) => p.status === "Sudah diambil");
+  const pendingPackages = userPackages.filter(
+    (p) => p.status === "Menunggu diambil"
+  );
+  const completedPackages = userPackages.filter(
+    (p) => p.status === "Sudah diambil"
+  );
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Paket Saya</h1>
+          <h1 className="text-2xl font-bold">My Package</h1>
           <p className="text-muted-foreground">
-            {pendingPackages.length} paket menunggu diambil
+            {pendingPackages.length} Waiting to be picked up
           </p>
         </div>
         <div className="flex gap-2">
@@ -24,7 +28,7 @@ export default function UserDashboardPage() {
           </Badge>
           <Badge variant="secondary" className="flex items-center gap-1">
             <Package className="w-3 h-3" />
-            {completedPackages.length} Selesai
+            {completedPackages.length} Done
           </Badge>
         </div>
       </div>
@@ -51,9 +55,9 @@ export default function UserDashboardPage() {
       {userPackages.length === 0 && (
         <div className="text-center py-12">
           <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Belum ada paket</h3>
+          <h3 className="text-lg font-semibold mb-2">No package yet</h3>
           <p className="text-muted-foreground">
-            Paket yang diterima akan muncul di sini
+            The received packages will appear here
           </p>
         </div>
       )}

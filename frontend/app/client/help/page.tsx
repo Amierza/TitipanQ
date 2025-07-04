@@ -8,5 +8,5 @@ export default function HelpPage() {
     window.location.href = "https://wa.me/6281234567890"
   }, [])
 
-  return <p>Mengarahkan ke WhatsApp Admin...</p>
+  return <p>Redirecting to Admin WhatsApp...</p>
 }

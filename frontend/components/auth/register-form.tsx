@@ -167,7 +167,7 @@ export function RegisterForm({
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 Sudah punya akun?{" "}
-                <Link href="/login" className="underline underline-offset-4">
+                <Link href="/login" className="underline underline-offset-4 hover:font-semibold hover:text-black">
                   Login
                 </Link>
               </p>
