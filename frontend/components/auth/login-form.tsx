@@ -45,7 +45,7 @@ export function LoginForm({
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        router.push("/dashboard/paket");
+        router.push("/client/package");
       } else {
         loginAdmin(form.getValues());
       }
@@ -61,7 +61,7 @@ export function LoginForm({
       if (result.status) {
         console.log("Login admin berhasil")
         toast.success(result.message);
-        router.push("/");
+        router.push("/admin");
       } else {
         toast.error(result.message);
       }

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { PackageHistory } from "../lib/data/dummy-history";
-import { PackageStatusBadge } from "./package-status-badge";
-import { UserInfo } from "./user-info";
+import { UserInfo } from "./user/user-info";
+import { PackageStatusBadge } from "./package/package-status-badge";
 
 interface HistoryTableProps {
   data: PackageHistory[];
