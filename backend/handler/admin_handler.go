@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"context"
 	"net/http"
+	"strings"
 
 	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
@@ -24,12 +26,17 @@ type (
 		UpdateUser(ctx *gin.Context)
 		DeleteUser(ctx *gin.Context)
 
-		// Package & Package History
+		// Package & Package History & Company
 		CreatePackage(ctx *gin.Context)
 		ReadAllPackage(ctx *gin.Context)
 		GetDetailPackage(ctx *gin.Context)
 		UpdatePackage(ctx *gin.Context)
 		DeletePackage(ctx *gin.Context)
+		CreateCompany(ctx *gin.Context)
+		ReadAllCompany(ctx *gin.Context)
+		GetDetailCompany(ctx *gin.Context)
+		UpdateCompany(ctx *gin.Context)
+		DeleteCompany(ctx *gin.Context)
 	}
 
 	AdminHandler struct {
@@ -306,5 +313,110 @@ func (ah *AdminHandler) DeletePackage(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_DELETE_PACKAGE, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+
+// Company 
+func (ah *AdminHandler) CreateCompany(ctx *gin.Context) {
+	var payload dto.CreateCompanyRequest
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	token := ctx.GetHeader("Authorization")
+	if token == "" {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_COMPANY, "authorization token is missing", nil)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
+		return
+	}
+
+	token = strings.TrimPrefix(token, "Bearer ")
+	ctxWithToken := context.WithValue(ctx.Request.Context(), "Authorization", token)
+
+	result, err := ah.adminService.CreateCompany(ctxWithToken, payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_COMPANY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_COMPANY, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+
+
+func (ah *AdminHandler) ReadAllCompany(ctx *gin.Context) {
+	var payload dto.PaginationRequest
+	if err := ctx.ShouldBindQuery(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_QUERY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := ah.adminService.ReadAllCompanyWithPagination(ctx.Request.Context(), payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_COMPANY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.Response{
+		Status:   true,
+		Messsage: dto.MESSAGE_SUCCESS_GET_LIST_COMPANY,
+		Data:     result.Data,
+		Meta:     result.PaginationResponse,
+	}
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (ah *AdminHandler) GetDetailCompany(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	result, err := ah.adminService.GetDetailCompany(ctx.Request.Context(), idStr)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DETAIL_COMPANY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_COMPANY, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (ah *AdminHandler) UpdateCompany(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	var payload dto.UpdateCompanyRequest
+	payload.ID = idStr
+
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := ah.adminService.UpdateCompany(ctx, payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATE_COMPANY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_COMPANY, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (ah *AdminHandler) DeleteCompany(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	result, err := ah.adminService.DeleteCompany(ctx.Request.Context(), idStr)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_DELETE_COMPANY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_DELETE_COMPANY, result)
 	ctx.JSON(http.StatusOK, res)
 }
