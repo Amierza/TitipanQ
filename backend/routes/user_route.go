@@ -26,6 +26,7 @@ func User(route *gin.Engine, userHandler handler.IUserHandler, jwtService servic
 			// Package
 			routes.GET("/get-all-package", userHandler.ReadAllPackage)
 			routes.GET("/get-detail-package/:id", userHandler.GetDetailPackage)
+			routes.GET("/get-all-package-history/:id", userHandler.GetAllPackageHistory)
 		}
 	}
 }
