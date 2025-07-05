@@ -27,6 +27,7 @@ type (
 		// Package
 		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.PackagePaginationResponse, error)
 		GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error)
+		ReadAllPackageHistoryWithPagination(ctx context.Context, req dto.PaginationRequest, pkgIDStr string) (dto.PackageHistoryPaginationResponse, error)
 	}
 
 	UserService struct {
@@ -411,6 +412,38 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 			CreatedAt: pkg.CreatedAt,
 			UpdatedAt: pkg.UpdatedAt,
 			DeletedAt: pkg.DeletedAt,
+		},
+	}, nil
+}
+func (us *UserService) ReadAllPackageHistoryWithPagination(ctx context.Context, req dto.PaginationRequest, pkgIDStr string) (dto.PackageHistoryPaginationResponse, error) {
+	pkgID, err := uuid.Parse(pkgIDStr)
+	if err != nil {
+		return dto.PackageHistoryPaginationResponse{}, dto.ErrParseUUID
+	}
+
+	dataWithPaginate, err := us.userRepo.GetAllPackageHistoryWithPagination(ctx, nil, req, pkgID)
+	if err != nil {
+		return dto.PackageHistoryPaginationResponse{}, dto.ErrGetAllPackageHistoryWithPagination
+	}
+
+	var datas []dto.PackageHistoryResponse
+	for _, pkgH := range dataWithPaginate.PackageHistories {
+		data := dto.PackageHistoryResponse{
+			ID:        pkgH.ID,
+			Status:    pkgH.Status,
+			ChangedBy: *pkgH.ChangedBy,
+			CreatedAt: pkgH.CreatedAt,
+		}
+		datas = append(datas, data)
+	}
+
+	return dto.PackageHistoryPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    dataWithPaginate.Page,
+			PerPage: dataWithPaginate.PerPage,
+			MaxPage: dataWithPaginate.MaxPage,
+			Count:   dataWithPaginate.Count,
 		},
 	}, nil
 }
