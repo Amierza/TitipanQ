@@ -8,8 +8,9 @@ import (
 )
 
 type PackageHistory struct {
-	ID     uuid.UUID `gorm:"type:uuid;primaryKey" json:"history_id"`
-	Status Status    `gorm:"type:varchar(20);not null" json:"history_status"`
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"history_id"`
+	Status      Status    `gorm:"type:varchar(20);not null" json:"history_status"`
+	Description string    `gorm:"type:varchar(255);not null" json:"history_description"`
 
 	PackageID     *uuid.UUID `gorm:"type:uuid;not null" json:"package_id"`
 	Package       Package    `gorm:"foreignKey:PackageID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`

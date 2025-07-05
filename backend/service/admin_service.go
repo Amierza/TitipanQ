@@ -31,8 +31,9 @@ type (
 
 		// Package
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
-		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.PackagePaginationResponse, error)
+		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userIDStr string) (dto.PackagePaginationResponse, error)
 		GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error)
+		ReadAllPackageHistoryWithPagination(ctx context.Context, req dto.PaginationRequest, pkgIDStr string) (dto.PackageHistoryPaginationResponse, error)
 		UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error)
 		DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error)
 
@@ -461,10 +462,11 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 	}
 
 	history := entity.PackageHistory{
-		ID:        uuid.New(),
-		Status:    entity.Received,
-		PackageID: &pkg.ID,
-		ChangedBy: &IDChanger,
+		ID:          uuid.New(),
+		Status:      entity.Received,
+		Description: "package received",
+		PackageID:   &pkg.ID,
+		ChangedBy:   &IDChanger,
 	}
 
 	if err := as.adminRepo.CreatePackageHistory(ctx, nil, history); err != nil {
@@ -480,10 +482,14 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		DeliveredAt: pkg.DeliveredAt,
 		ExpiredAt:   pkg.ExpiredAt,
 		UserID:      *pkg.UserID,
+		TimeStamp: entity.TimeStamp{
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
 	}, nil
 }
-func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.PackagePaginationResponse, error) {
-	dataWithPaginate, err := as.adminRepo.GetAllPackageWithPagination(ctx, nil, req)
+func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userID string) (dto.PackagePaginationResponse, error) {
+	dataWithPaginate, err := as.adminRepo.GetAllPackageWithPagination(ctx, nil, req, userID)
 	if err != nil {
 		return dto.PackagePaginationResponse{}, dto.ErrGetAllPackageWithPagination
 	}
@@ -499,6 +505,11 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 			DeliveredAt: pkg.DeliveredAt,
 			ExpiredAt:   pkg.ExpiredAt,
 			UserID:      *pkg.UserID,
+			TimeStamp: entity.TimeStamp{
+				CreatedAt: pkg.CreatedAt,
+				UpdatedAt: pkg.UpdatedAt,
+				DeletedAt: pkg.DeletedAt,
+			},
 		}
 		datas = append(datas, data)
 	}
@@ -528,6 +539,43 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, pkgID string) (dto
 		DeliveredAt: pkg.DeliveredAt,
 		ExpiredAt:   pkg.ExpiredAt,
 		UserID:      *pkg.UserID,
+		TimeStamp: entity.TimeStamp{
+			CreatedAt: pkg.CreatedAt,
+			UpdatedAt: pkg.UpdatedAt,
+			DeletedAt: pkg.DeletedAt,
+		},
+	}, nil
+}
+func (as *AdminService) ReadAllPackageHistoryWithPagination(ctx context.Context, req dto.PaginationRequest, pkgIDStr string) (dto.PackageHistoryPaginationResponse, error) {
+	pkgID, err := uuid.Parse(pkgIDStr)
+	if err != nil {
+		return dto.PackageHistoryPaginationResponse{}, dto.ErrParseUUID
+	}
+
+	dataWithPaginate, err := as.adminRepo.GetAllPackageHistoryWithPagination(ctx, nil, req, pkgID)
+	if err != nil {
+		return dto.PackageHistoryPaginationResponse{}, dto.ErrGetAllPackageHistoryWithPagination
+	}
+
+	var datas []dto.PackageHistoryResponse
+	for _, pkgH := range dataWithPaginate.PackageHistories {
+		data := dto.PackageHistoryResponse{
+			ID:        pkgH.ID,
+			Status:    pkgH.Status,
+			ChangedBy: *pkgH.ChangedBy,
+			CreatedAt: pkgH.CreatedAt,
+		}
+		datas = append(datas, data)
+	}
+
+	return dto.PackageHistoryPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    dataWithPaginate.Page,
+			PerPage: dataWithPaginate.PerPage,
+			MaxPage: dataWithPaginate.MaxPage,
+			Count:   dataWithPaginate.Count,
+		},
 	}, nil
 }
 func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error) {
@@ -549,13 +597,17 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	}
 
 	now := time.Now()
+	var descriptionChanges []string
 
 	if req.Description != "" {
 		if len(req.Description) < 5 {
 			return dto.UpdatePackageResponse{}, dto.ErrDescriptionPackageToShort
 		}
 
-		p.Description = req.Description
+		if p.Description != req.Description {
+			descriptionChanges = append(descriptionChanges, "package description changed")
+			p.Description = req.Description
+		}
 	}
 
 	if req.FileReader != nil && req.FileHeader != nil {
@@ -580,7 +632,10 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 			return dto.UpdatePackageResponse{}, dto.ErrSaveFile
 		}
 
-		p.Image = fileName
+		if p.Image != fileName {
+			descriptionChanges = append(descriptionChanges, "package image changed")
+			p.Image = fileName
+		}
 	}
 
 	if req.Type != "" {
@@ -588,7 +643,10 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 			return dto.UpdatePackageResponse{}, dto.ErrInvalidPackageType
 		}
 
-		p.Type = req.Type
+		if p.Type != req.Type {
+			descriptionChanges = append(descriptionChanges, "package type changed")
+			p.Type = req.Type
+		}
 	}
 
 	if req.Status != "" {
@@ -596,14 +654,17 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 			return dto.UpdatePackageResponse{}, dto.ErrInvalidPackageStatus
 		}
 
-		if req.Status == "delivered" {
-			p.DeliveredAt = &now
+		if p.Status != req.Status {
+			descriptionChanges = append(descriptionChanges, "package status changed")
+			if req.Status == "delivered" {
+				p.DeliveredAt = &now
+			}
+			p.Status = req.Status
 		}
-
-		p.Status = req.Status
 	}
 
-	if req.DeliveredAt != nil {
+	if req.DeliveredAt != nil && (p.DeliveredAt == nil || !p.DeliveredAt.Equal(*req.DeliveredAt)) {
+		descriptionChanges = append(descriptionChanges, "package delivered_at changed")
 		p.DeliveredAt = req.DeliveredAt
 	}
 
@@ -611,11 +672,14 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		return dto.UpdatePackageResponse{}, dto.ErrUpdatePackage
 	}
 
+	descriptionPkgH := strings.Join(descriptionChanges, ", ")
+
 	history := entity.PackageHistory{
-		ID:        uuid.New(),
-		Status:    p.Status,
-		PackageID: &p.ID,
-		ChangedBy: &IDChanger,
+		ID:          uuid.New(),
+		Status:      p.Status,
+		Description: descriptionPkgH,
+		PackageID:   &p.ID,
+		ChangedBy:   &IDChanger,
 	}
 
 	if err := as.adminRepo.CreatePackageHistory(ctx, nil, history); err != nil {
@@ -632,6 +696,11 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		ExpiredAt:   p.ExpiredAt,
 		UserID:      *p.UserID,
 		ChangedBy:   *history.ChangedBy,
+		TimeStamp: entity.TimeStamp{
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: p.UpdatedAt,
+			DeletedAt: p.DeletedAt,
+		},
 	}, nil
 }
 func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error) {
@@ -654,6 +723,11 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		DeliveredAt: deletedPackage.DeliveredAt,
 		ExpiredAt:   deletedPackage.ExpiredAt,
 		UserID:      *deletedPackage.UserID,
+		TimeStamp: entity.TimeStamp{
+			CreatedAt: deletedPackage.CreatedAt,
+			UpdatedAt: deletedPackage.UpdatedAt,
+			DeletedAt: deletedPackage.DeletedAt,
+		},
 	}
 
 	return res, nil
