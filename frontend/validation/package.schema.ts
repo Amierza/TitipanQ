@@ -11,8 +11,13 @@ export const PackageSchema = z.object({
     .string()
     .min(1, { message: "Deskripsi paket tidak boleh kosong" }),
   package_image: z
-    .string()
-    .url({ message: "Gambar paket harus berupa URL yang valid" }),
+    .instanceof(File)
+    .refine((file) => file.size > 0, {
+      message: "Gambar tidak boleh kosong",
+    })
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: "Ukuran gambar maksimal 5MB",
+    }),
   package_type: z.nativeEnum(PackageType, {
     required_error: "Tipe paket harus diisi",
   }),

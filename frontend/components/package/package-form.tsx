@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -12,96 +17,137 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import UploadPackagePhoto from "./package-upload-photo";
-
-type PackageType = "document" | "package" | "other";
-
-interface PackageFormData {
-  userId: string;
-  type: PackageType;
-  description: string;
-  photo: File | null;
-}
+import { z } from "zod";
+import { PackageSchema, PackageType } from "@/validation/package.schema";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createPackageService } from "@/services/admin/package/createPackage";
+import { toast } from "sonner";
 
 interface PackageFormProps {
-  onSubmit: (data: PackageFormData) => void;
-  initialData?: Partial<PackageFormData>;
   users: { id: string; name: string }[];
 }
 
-export default function PackageForm({
-  onSubmit,
-  initialData,
-  users,
-}: PackageFormProps) {
-  const [formData, setFormData] = useState<PackageFormData>({
-    userId: initialData?.userId || "",
-    type: initialData?.type || "document",
-    description: initialData?.description || "",
-    photo: initialData?.photo || null,
+type PackageSchemaType = z.infer<typeof PackageSchema>;
+
+export default function PackageForm({ users }: PackageFormProps) {
+  const methods = useForm<PackageSchemaType>({
+    resolver: zodResolver(PackageSchema),
+    defaultValues: {
+      package_description: "",
+      package_type: PackageType.Document,
+      package_image: undefined as unknown as File,
+      user_id: "",
+    },
   });
 
-  const handleChange = <K extends keyof PackageFormData>(field: K, value: PackageFormData[K]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const { control, handleSubmit, watch, reset } = methods;
+  const image = watch("package_image");
+
+  const onSubmit = async (data: PackageSchemaType) => {
+    const result = await createPackageService(data);
+
+    if (result.status === true) {
+      toast.success(result.message);
+      reset();
+    } else {
+      toast.error(result.error);
+    }
   };
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(formData);
-      }}
-      className="space-y-4"
-    >
-      <UploadPackagePhoto
-        photo={formData.photo}
-        onChange={(file) => handleChange("photo", file)}
-      />
-
-      <div>
-        <Label>Select User</Label>
-        <Select
-          value={formData.userId}
-          onValueChange={(val) => handleChange("userId", val)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select user" />
-          </SelectTrigger>
-          <SelectContent>
-            {users.map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Type</Label>
-        <Select
-          value={formData.type}
-          onValueChange={(val: PackageType) => handleChange("type", val)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="document">Document</SelectItem>
-            <SelectItem value="package">Package</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Description</Label>
-        <Textarea
-          value={formData.description}
-          onChange={(e) => handleChange("description", e.target.value)}
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={control}
+          name="package_image"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <UploadPackagePhoto
+                  photo={image}
+                  onChange={(file) => field.onChange(file)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <Button type="submit">Submit</Button>
-    </form>
+        <FormField
+          control={control}
+          name="user_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Select User</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih pengguna" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="package_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Package Type</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Package Type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={PackageType.Document}>Document</SelectItem>
+                  <SelectItem value={PackageType.Item}>Item</SelectItem>
+                  <SelectItem value={PackageType.Other}>Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="package_description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Write package description here..."
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          disabled={
+            !methods.formState.isValid || methods.formState.isSubmitting
+          }
+          type="submit"
+        >
+          {methods.formState.isSubmitting ? "Loading..." : "Submit"}
+        </Button>
+      </form>
+    </FormProvider>
   );
 }

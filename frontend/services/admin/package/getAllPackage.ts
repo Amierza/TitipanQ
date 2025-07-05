@@ -18,8 +18,6 @@ export const getAllPackageService = async (): Promise<
     });
 
     if (response.status === 200) {
-      console.log("Access token: ", localStorage.getItem("access_token"))
-      console.log("Refresh token: ", localStorage.getItem("refresh_token"))
       return response.data as AllPackageResponse;
     } else {
       return response.data as ErrorResponse;

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { getAllPackageService } from "@/services/admin/package/getAllPackage";
+import { getAllUserService } from "@/services/admin/user/getAllUser";
 
 const HomePage = () => {
   const { data: packageData } = useQuery({
@@ -27,15 +28,25 @@ const HomePage = () => {
     queryFn: getAllPackageService,
   });
 
-  // const { data: userData } = useQuery({
-  //   queryKey: ["userData"],
-  //   queryFn: getAllUserService,
-  // });
-
-  // console.log(userData)
+  const { data: userData } = useQuery({
+    queryKey: ["userData"],
+    queryFn: getAllUserService,
+  });
 
   if (!packageData) return <p>Loading...</p>;
+  if (!userData) return <p>Loading...</p>;
   if (packageData.status === false) return <p>Failed to fetch data</p>;
+  if (userData.status === false) return <p>Failed to fetch data</p>;
+
+  const combinedData =
+    packageData?.data?.map((pkg) => {
+      const user = userData?.data?.find((user) => user.user_id === pkg.user_id);
+      return {
+        ...pkg,
+        user_name: user?.user_name || "Unknown",
+        company_name: user?.company?.company_name || "Unknown",
+      };
+    }) ?? [];
 
   const receivedPackage =
     packageData.data?.filter((p) => p.package_status === "received") ?? [];
@@ -46,32 +57,11 @@ const HomePage = () => {
   const expiredPackage =
     packageData.data?.filter((p) => p.package_status === "expired") ?? [];
 
-  const packageList = [
-    {
-      name: "Budi Santoso",
-      company: "Maju Terus Inc.",
-      type: "Item",
-      status: "Received",
-    },
-    {
-      name: "Siti Aminah",
-      company: "Amanah Ltd.",
-      type: "Letter",
-      status: "Picked Up",
-    },
-    {
-      name: "Rudi Hartono",
-      company: "Bright Light Corp.",
-      type: "Item",
-      status: "Expired",
-    },
-  ];
-
   const getStatusBadge = (status: string) => {
     const variant =
-      status === "Received"
+      status === "received"
         ? "default"
-        : status === "Picked Up"
+        : status === "picked Up"
         ? "secondary"
         : "destructive";
     return <Badge variant={variant}>{status}</Badge>;
@@ -150,13 +140,13 @@ const HomePage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {packageList.map((pkg, index) => (
+                {combinedData.map((pkg, index) => (
                   <TableRow key={index}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{pkg.name}</TableCell>
-                    <TableCell>{pkg.company}</TableCell>
-                    <TableCell>{pkg.type}</TableCell>
-                    <TableCell>{getStatusBadge(pkg.status)}</TableCell>
+                    <TableCell>{pkg.user_name}</TableCell>
+                    <TableCell>{pkg.company_name}</TableCell>
+                    <TableCell>{pkg.package_type}</TableCell>
+                    <TableCell>{getStatusBadge(pkg.package_status)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
