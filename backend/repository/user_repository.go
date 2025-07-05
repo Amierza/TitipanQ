@@ -21,6 +21,7 @@ type (
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
 		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
+		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
 
 		// Create
 		Register(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -169,6 +170,18 @@ func (ur *UserRepository) GetAllPackageWithPagination(ctx context.Context, tx *g
 			Count:   count,
 		},
 	}, err
+}
+func (ur *UserRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error) {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	var user entity.Package
+	if err := tx.WithContext(ctx).Where("id = ?", pkgID).Take(&user).Error; err != nil {
+		return entity.Package{}, false, err
+	}
+
+	return user, true, nil
 }
 
 // Create

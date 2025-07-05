@@ -25,6 +25,7 @@ type (
 
 		// Package
 		ReadAllPackage(ctx *gin.Context)
+		GetDetailPackage(ctx *gin.Context)
 	}
 
 	UserHandler struct {
@@ -161,5 +162,17 @@ func (uh *UserHandler) ReadAllPackage(ctx *gin.Context) {
 		Meta:     result.PaginationResponse,
 	}
 
+	ctx.JSON(http.StatusOK, res)
+}
+func (uh *UserHandler) GetDetailPackage(ctx *gin.Context) {
+	pkgID := ctx.Param("id")
+	result, err := uh.userService.GetDetailPackage(ctx, pkgID)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DETAIL_PACKAGE, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_PACKAGE, result)
 	ctx.JSON(http.StatusOK, res)
 }
