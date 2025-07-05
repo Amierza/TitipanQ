@@ -26,6 +26,7 @@ type (
 
 		// Package
 		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.PackagePaginationResponse, error)
+		GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error)
 	}
 
 	UserService struct {
@@ -388,6 +389,28 @@ func (us *UserService) ReadAllPackageWithPagination(ctx context.Context, req dto
 			PerPage: dataWithPaginate.PerPage,
 			MaxPage: dataWithPaginate.MaxPage,
 			Count:   dataWithPaginate.Count,
+		},
+	}, nil
+}
+func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error) {
+	pkg, _, err := us.userRepo.GetPackageByID(ctx, nil, pkgID)
+	if err != nil {
+		return dto.PackageResponse{}, dto.ErrPackageNotFound
+	}
+
+	return dto.PackageResponse{
+		ID:          pkg.ID,
+		Description: pkg.Description,
+		Image:       pkg.Image,
+		Type:        pkg.Type,
+		Status:      pkg.Status,
+		DeliveredAt: pkg.DeliveredAt,
+		ExpiredAt:   pkg.ExpiredAt,
+		UserID:      *pkg.UserID,
+		TimeStamp: entity.TimeStamp{
+			CreatedAt: pkg.CreatedAt,
+			UpdatedAt: pkg.UpdatedAt,
+			DeletedAt: pkg.DeletedAt,
 		},
 	}, nil
 }
