@@ -37,7 +37,7 @@ func NewUserHandler(userService service.IUserService) *UserHandler {
 
 // Authentication
 func (uh *UserHandler) Register(ctx *gin.Context) {
-	var payload dto.RegisterRequest
+	var payload dto.CreateUserRequest
 	if err := ctx.ShouldBind(&payload); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)

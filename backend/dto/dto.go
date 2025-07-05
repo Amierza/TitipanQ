@@ -143,14 +143,6 @@ var (
 
 type (
 	// Authentication
-	RegisterRequest struct {
-		Name        string    `json:"user_name" form:"name"`
-		Email       string    `json:"user_email" form:"email"`
-		Password    string    `json:"user_password" form:"password"`
-		PhoneNumber string    `json:"user_phone_number" form:"phone_number"`
-		Address     string    `json:"user_address" form:"address"`
-		CompanyID   uuid.UUID `json:"company_id" form:"company_id"`
-	}
 	LoginRequest struct {
 		Email    string `json:"user_email" form:"email"`
 		Password string `json:"user_password" form:"password"`
@@ -184,12 +176,12 @@ type (
 		Role        RoleResponse    `json:"role"`
 	}
 	CreateUserRequest struct {
-		Name        string    `json:"user_name" form:"name"`
-		Email       string    `json:"user_email" form:"email"`
-		Password    string    `json:"user_password" form:"password"`
-		PhoneNumber string    `json:"user_phone_number" form:"phone_number"`
-		Address     string    `json:"user_address" form:"address"`
-		CompanyID   uuid.UUID `json:"company_id" form:"company_id"`
+		Name        string     `json:"user_name" form:"user_name"`
+		Email       string     `json:"user_email" form:"user_email"`
+		Password    string     `json:"user_password" form:"user_password"`
+		PhoneNumber string     `json:"user_phone_number" form:"user_phone_number"`
+		Address     string     `json:"user_address,omitempty" form:"user_address"`
+		CompanyID   *uuid.UUID `json:"company_id" form:"company_id"`
 	}
 	UpdateUserRequest struct {
 		ID          string     `json:"-"`

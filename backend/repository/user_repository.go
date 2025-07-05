@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Amierza/TitipanQ/backend/entity"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -20,7 +19,7 @@ type (
 		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
 
 		// Create
-		Register(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
+		Register(ctx context.Context, tx *gorm.DB, user entity.User) error
 
 		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -125,17 +124,12 @@ func (ur *UserRepository) GetAllCompany(ctx context.Context, tx *gorm.DB) ([]ent
 }
 
 // Create
-func (ur *UserRepository) Register(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error) {
+func (ur *UserRepository) Register(ctx context.Context, tx *gorm.DB, user entity.User) error {
 	if tx == nil {
 		tx = ur.db
 	}
 
-	user.ID = uuid.New()
-	if err := tx.WithContext(ctx).Create(&user).Error; err != nil {
-		return entity.User{}, err
-	}
-
-	return user, nil
+	return tx.WithContext(ctx).Create(&user).Error
 }
 
 // Update

@@ -7,12 +7,13 @@ import (
 	"github.com/Amierza/TitipanQ/backend/entity"
 	"github.com/Amierza/TitipanQ/backend/helpers"
 	"github.com/Amierza/TitipanQ/backend/repository"
+	"github.com/google/uuid"
 )
 
 type (
 	IUserService interface {
 		// Authentication
-		Register(ctx context.Context, req dto.RegisterRequest) (dto.UserResponse, error)
+		Register(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error)
 		Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error)
 		RefreshToken(ctx context.Context, req dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error)
 
@@ -38,7 +39,7 @@ func NewUserService(userRepo repository.IUserRepository, jwtService IJWTService)
 }
 
 // Authentication
-func (us *UserService) Register(ctx context.Context, req dto.RegisterRequest) (dto.UserResponse, error) {
+func (us *UserService) Register(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error) {
 	if len(req.Name) < 5 {
 		return dto.UserResponse{}, dto.ErrInvalidName
 	}
@@ -61,9 +62,13 @@ func (us *UserService) Register(ctx context.Context, req dto.RegisterRequest) (d
 		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
 
-	company, flag, err := us.userRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-	if err != nil || !flag {
-		return dto.UserResponse{}, dto.ErrGetCompanyByID
+	var company *entity.Company
+	if req.CompanyID != nil {
+		c, flag, err := us.userRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
+		if err != nil || !flag {
+			return dto.UserResponse{}, dto.ErrGetCompanyByID
+		}
+		company = &c
 	}
 
 	role, _, err := us.userRepo.GetRoleByName(ctx, nil, "user")
@@ -72,37 +77,42 @@ func (us *UserService) Register(ctx context.Context, req dto.RegisterRequest) (d
 	}
 
 	user := entity.User{
+		ID:          uuid.New(),
 		Name:        req.Name,
 		Email:       req.Email,
 		Password:    req.Password,
 		PhoneNumber: phoneNumberFormatted,
 		Address:     req.Address,
-		CompanyID:   &company.ID,
-		Company:     company,
+		CompanyID:   nil,
 		RoleID:      &role.ID,
 		Role:        role,
 	}
 
-	userReg, err := us.userRepo.Register(ctx, nil, user)
+	if company != nil {
+		user.CompanyID = &company.ID
+		user.Company = *company
+	}
+
+	err = us.userRepo.Register(ctx, nil, user)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrRegisterUser
 	}
 
 	return dto.UserResponse{
-		ID:          userReg.ID,
-		Name:        userReg.Name,
-		Email:       userReg.Email,
-		Password:    userReg.Password,
-		PhoneNumber: userReg.PhoneNumber,
-		Address:     userReg.Address,
+		ID:          user.ID,
+		Name:        user.Name,
+		Email:       user.Email,
+		Password:    user.Password,
+		PhoneNumber: user.PhoneNumber,
+		Address:     user.Address,
 		Company: dto.CompanyResponse{
-			ID:      userReg.CompanyID,
-			Name:    userReg.Company.Name,
-			Address: userReg.Company.Address,
+			ID:      user.CompanyID,
+			Name:    user.Company.Name,
+			Address: user.Company.Address,
 		},
 		Role: dto.RoleResponse{
-			ID:   userReg.RoleID,
-			Name: userReg.Role.Name,
+			ID:   user.RoleID,
+			Name: user.Role.Name,
 		},
 	}, nil
 }
