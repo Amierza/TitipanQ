@@ -8,11 +8,11 @@ interface StatusBadgeProps {
 export function StatusBadge({ status }: StatusBadgeProps) {
   const getVariant = () => {
     switch (status) {
-      case "Menunggu diambil":
+      case "Waiting to be picked up":
         return "default";
-      case "Sudah diambil":
+      case "Picked up":
         return "secondary";
-      case "Dalam proses":
+      case "expired":
         return "outline";
       default:
         return "default";
@@ -21,9 +21,9 @@ export function StatusBadge({ status }: StatusBadgeProps) {
 
   const getIcon = () => {
     switch (status) {
-      case "Menunggu diambil":
+      case "Waiting to be picked up":
         return <Clock className="w-3 h-3" />;
-      case "Sudah diambil":
+      case "Picked up":
         return <Package className="w-3 h-3" />;
       default:
         return <Clock className="w-3 h-3" />;

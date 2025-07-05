@@ -5,10 +5,10 @@ import { PackageSection } from "@/components/package/package-section";
 
 export default function UserDashboardPage() {
   const pendingPackages = userPackages.filter(
-    (p) => p.status === "Menunggu diambil"
+    (p) => p.status === "Waiting to be picked up"
   );
   const completedPackages = userPackages.filter(
-    (p) => p.status === "Sudah diambil"
+    (p) => p.status === "Picked up"
   );
 
   return (
@@ -36,7 +36,7 @@ export default function UserDashboardPage() {
       {/* Sections */}
       {pendingPackages.length > 0 && (
         <PackageSection
-          title="Menunggu Diambil"
+          title="Waiting to be picked up"
           icon="pending"
           items={pendingPackages}
           highlight
@@ -45,7 +45,7 @@ export default function UserDashboardPage() {
 
       {completedPackages.length > 0 && (
         <PackageSection
-          title="Sudah Diambil"
+          title="Picked up"
           icon="done"
           items={completedPackages}
         />

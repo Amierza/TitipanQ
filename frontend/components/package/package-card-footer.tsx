@@ -1,4 +1,3 @@
-// components/PackageCardFooter.tsx
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
 
 export function PackageCardFooter({ status }: { status: string }) {
