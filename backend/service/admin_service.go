@@ -158,8 +158,8 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
 
-	company, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-	if err != nil {
+	company, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
+	if err != nil || !flag {
 		return dto.UserResponse{}, dto.ErrGetCompanyByID
 	}
 
@@ -324,8 +324,8 @@ func (as *AdminService) UpdateUser(ctx context.Context, req dto.UpdateUserReques
 	}
 
 	if req.CompanyID != nil {
-		company, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-		if err != nil {
+		company, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
+		if err != nil || !flag {
 			return dto.UserResponse{}, dto.ErrGetCompanyByID
 		}
 
@@ -417,7 +417,10 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 			return dto.PackageResponse{}, dto.ErrInvalidExtensionPhoto
 		}
 
-		fileName := fmt.Sprintf("package_%d_%s.%s", now.Unix(), req.FileHeader.Filename, ext)
+		fn := req.FileHeader.Filename
+		base := filepath.Base(fn)
+		nameOnly := strings.TrimSuffix(base, filepath.Ext(base))
+		fileName := fmt.Sprintf("package_%d_%s.%s", now.Unix(), nameOnly, ext)
 
 		_ = os.MkdirAll("assets/package", os.ModePerm)
 		savePath := fmt.Sprintf("assets/package/%s", fileName)
@@ -449,7 +452,6 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		Type:        req.Type,
 		Status:      entity.Received,
 		Image:       req.Image,
-		ReceivedAt:  now,
 		ExpiredAt:   helpers.PtrTime(now.AddDate(0, 3, 0)),
 		UserID:      &req.UserID,
 	}
@@ -475,7 +477,6 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		Image:       pkg.Image,
 		Type:        pkg.Type,
 		Status:      pkg.Status,
-		ReceivedAt:  pkg.ReceivedAt,
 		DeliveredAt: pkg.DeliveredAt,
 		ExpiredAt:   pkg.ExpiredAt,
 		UserID:      *pkg.UserID,
@@ -495,7 +496,6 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 			Image:       pkg.Image,
 			Type:        pkg.Type,
 			Status:      pkg.Status,
-			ReceivedAt:  pkg.ReceivedAt,
 			DeliveredAt: pkg.DeliveredAt,
 			ExpiredAt:   pkg.ExpiredAt,
 			UserID:      *pkg.UserID,
@@ -525,7 +525,6 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, pkgID string) (dto
 		Image:       pkg.Image,
 		Type:        pkg.Type,
 		Status:      pkg.Status,
-		ReceivedAt:  pkg.ReceivedAt,
 		DeliveredAt: pkg.DeliveredAt,
 		ExpiredAt:   pkg.ExpiredAt,
 		UserID:      *pkg.UserID,
@@ -629,7 +628,6 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		Image:       p.Image,
 		Type:        p.Type,
 		Status:      p.Status,
-		ReceivedAt:  p.ReceivedAt,
 		DeliveredAt: p.DeliveredAt,
 		ExpiredAt:   p.ExpiredAt,
 		UserID:      *p.UserID,
@@ -653,7 +651,6 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		Image:       deletedPackage.Image,
 		Type:        deletedPackage.Type,
 		Status:      deletedPackage.Status,
-		ReceivedAt:  deletedPackage.ReceivedAt,
 		DeliveredAt: deletedPackage.DeliveredAt,
 		ExpiredAt:   deletedPackage.ExpiredAt,
 		UserID:      *deletedPackage.UserID,
@@ -664,21 +661,14 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 
 // Company
 func (as *AdminService) CreateCompany(ctx context.Context, req dto.CreateCompanyRequest) (dto.CompanyResponse, error) {
-	token, err := helpers.ExtractTokenFromContext(ctx)
-	if err != nil {
-		return dto.CompanyResponse{}, dto.ErrValidateToken
-	}
-	_, err = as.jwtService.GetUserIDByToken(token)
-	if err != nil {
-		return dto.CompanyResponse{}, dto.ErrGetUserIDFromToken
-	}
-
 	if len(req.Name) < 3 {
 		return dto.CompanyResponse{}, dto.ErrInvalidCompanyName
 	}
+
 	if len(req.Address) < 5 {
 		return dto.CompanyResponse{}, dto.ErrInvalidCompanyAddress
 	}
+
 	company := entity.Company{
 		ID:      uuid.New(),
 		Name:    req.Name,
@@ -695,9 +685,6 @@ func (as *AdminService) CreateCompany(ctx context.Context, req dto.CreateCompany
 		Address: company.Address,
 	}, nil
 }
-
-
-
 func (as *AdminService) ReadAllCompanyWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.CompanyPaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllCompanyWithPagination(ctx, nil, req)
 	if err != nil {
@@ -723,10 +710,9 @@ func (as *AdminService) ReadAllCompanyWithPagination(ctx context.Context, req dt
 		},
 	}, nil
 }
-
 func (as *AdminService) GetDetailCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error) {
-	company, err := as.adminRepo.GetCompanyByID(ctx, nil, companyID)
-	if err != nil {
+	company, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, companyID)
+	if err != nil || !flag {
 		return dto.CompanyResponse{}, dto.ErrCompanyNotFound
 	}
 
@@ -736,27 +722,17 @@ func (as *AdminService) GetDetailCompany(ctx context.Context, companyID string) 
 		Address: company.Address,
 	}, nil
 }
-
 func (as *AdminService) UpdateCompany(ctx context.Context, req dto.UpdateCompanyRequest) (dto.UpdateCompanyResponse, error) {
-	token := ctx.Value("Authorization").(string)
-
-	userId, err := as.jwtService.GetUserIDByToken(token)
-	if err != nil {
-		return dto.UpdateCompanyResponse{}, dto.ErrGetUserIDFromToken
-	}
-	_, err = uuid.Parse(userId)
-	if err != nil {
-		return dto.UpdateCompanyResponse{}, dto.ErrParseUUID
-	}
-
-	company, err := as.adminRepo.GetCompanyByID(ctx, nil, req.ID)
-	if err != nil {
+	company, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, req.ID)
+	if err != nil || !flag {
 		return dto.UpdateCompanyResponse{}, dto.ErrCompanyNotFound
 	}
+
 	if req.Name != "" {
 		if len(req.Name) < 3 {
 			return dto.UpdateCompanyResponse{}, dto.ErrInvalidCompanyName
 		}
+
 		company.Name = req.Name
 	}
 
@@ -764,6 +740,7 @@ func (as *AdminService) UpdateCompany(ctx context.Context, req dto.UpdateCompany
 		if len(req.Address) < 5 {
 			return dto.UpdateCompanyResponse{}, dto.ErrInvalidCompanyAddress
 		}
+
 		company.Address = req.Address
 	}
 
@@ -776,16 +753,17 @@ func (as *AdminService) UpdateCompany(ctx context.Context, req dto.UpdateCompany
 		Address: company.Address,
 	}, nil
 }
-
 func (as *AdminService) DeleteCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error) {
-	deletedCompany, err := as.adminRepo.GetCompanyByID(ctx, nil, companyID)
-	if err != nil {
+	deletedCompany, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, companyID)
+	if err != nil || !flag {
 		return dto.CompanyResponse{}, dto.ErrCompanyNotFound
 	}
+
 	err = as.adminRepo.DeleteCompanyByID(ctx, nil, companyID)
 	if err != nil {
 		return dto.CompanyResponse{}, dto.ErrDeleteCompany
 	}
+
 	res := dto.CompanyResponse{
 		ID:      &deletedCompany.ID,
 		Name:    deletedCompany.Name,

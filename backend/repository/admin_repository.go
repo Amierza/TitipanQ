@@ -13,7 +13,7 @@ import (
 
 type (
 	IAdminRepository interface {
-	// Get
+		// Get
 		GetRoleByName(ctx context.Context, tx *gorm.DB, roleName string) (entity.Role, bool, error)
 		GetRoleByID(ctx context.Context, tx *gorm.DB, roleID string) (entity.Role, error)
 		GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error)
@@ -22,21 +22,21 @@ type (
 		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error)
 		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
 		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.PackagePaginationRepositoryResponse, error)
-		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, error)
+		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
 
-	//Create
+		//Create
 		CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		CreatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 		CreatePackageHistory(ctx context.Context, tx *gorm.DB, history entity.PackageHistory) error
 		CreateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
 
-	// Update
+		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 		UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
 
-	// Delete
+		// Delete
 		DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error
 		DeletePackageByID(ctx context.Context, tx *gorm.DB, pkgID string) error
 		DeleteCompanyByID(ctx context.Context, tx *gorm.DB, CompanyID string) error
@@ -114,17 +114,17 @@ func (ar *AdminRepository) GetUserByID(ctx context.Context, tx *gorm.DB, userID 
 
 	return user, true, nil
 }
-func (ar *AdminRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, error) {
+func (ar *AdminRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error) {
 	if tx == nil {
 		tx = ar.db
 	}
 
 	var company entity.Company
 	if err := tx.WithContext(ctx).Where("id = ?", companyID).Take(&company).Error; err != nil {
-		return entity.Company{}, err
+		return entity.Company{}, false, err
 	}
 
-	return company, nil
+	return company, true, nil
 }
 func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error) {
 	if tx == nil {
@@ -233,7 +233,6 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 		},
 	}, err
 }
-
 func (r *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = r.db
@@ -253,7 +252,7 @@ func (r *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *g
 
 	if req.Search != "" {
 		search := "%" + strings.ToLower(req.Search) + "%"
-		query = query.Where("LOWER(name) LIKE ? OR LOWER(code) LIKE ?", search, search)
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(address) LIKE ?", search, search)
 	}
 
 	if err := query.Count(&count).Error; err != nil {
@@ -274,7 +273,6 @@ func (r *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *g
 		},
 	}, nil
 }
-
 
 // Create
 func (ar *AdminRepository) CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error {
@@ -305,9 +303,6 @@ func (r *AdminRepository) CreateCompany(ctx context.Context, tx *gorm.DB, compan
 	return tx.WithContext(ctx).Create(&company).Error
 }
 
-
-
-
 // Update
 func (ar *AdminRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error {
 	if tx == nil {
@@ -323,7 +318,6 @@ func (ar *AdminRepository) UpdatePackage(ctx context.Context, tx *gorm.DB, pkg e
 
 	return tx.WithContext(ctx).Where("id = ?", pkg.ID).Updates(&pkg).Error
 }
-
 func (r *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
 	if tx == nil {
 		tx = r.db
@@ -331,8 +325,6 @@ func (r *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, compan
 
 	return tx.WithContext(ctx).Where("id = ?", company.ID).Updates(&company).Error
 }
-
-
 
 // Delete
 func (ar *AdminRepository) DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error {
@@ -356,4 +348,3 @@ func (ar *AdminRepository) DeleteCompanyByID(ctx context.Context, tx *gorm.DB, C
 
 	return tx.WithContext(ctx).Where("id = ?", CompanyID).Delete(&entity.Company{}).Error
 }
-
