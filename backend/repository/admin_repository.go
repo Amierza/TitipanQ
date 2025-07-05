@@ -21,7 +21,8 @@ type (
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
 		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error)
 		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
-		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.PackagePaginationRepositoryResponse, error)
+		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
+		GetAllPackageHistoryWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, pkgID uuid.UUID) (dto.PackageHistoryPaginationRepositoryResponse, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
 
@@ -54,9 +55,9 @@ func NewAdminRepository(db *gorm.DB) *AdminRepository {
 }
 
 // Get
-func (ur *AdminRepository) GetRoleByName(ctx context.Context, tx *gorm.DB, roleName string) (entity.Role, bool, error) {
+func (ar *AdminRepository) GetRoleByName(ctx context.Context, tx *gorm.DB, roleName string) (entity.Role, bool, error) {
 	if tx == nil {
-		tx = ur.db
+		tx = ar.db
 	}
 
 	var role entity.Role
@@ -189,7 +190,7 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 
 	return user, true, nil
 }
-func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.PackagePaginationRepositoryResponse, error) {
+func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = ar.db
 	}
@@ -213,6 +214,10 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 		query = query.Where("LOWER(description) LIKE ? ", searchValue)
 	}
 
+	if userID != "" {
+		query = query.Where("user_id = ? ", userID)
+	}
+
 	if err := query.Count(&count).Error; err != nil {
 		return dto.PackagePaginationRepositoryResponse{}, err
 	}
@@ -233,9 +238,48 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 		},
 	}, err
 }
-func (r *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error) {
+func (ar *AdminRepository) GetAllPackageHistoryWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, pkgID uuid.UUID) (dto.PackageHistoryPaginationRepositoryResponse, error) {
 	if tx == nil {
-		tx = r.db
+		tx = ar.db
+	}
+
+	var packageHistories []entity.PackageHistory
+	var err error
+	var count int64
+
+	if req.PerPage == 0 {
+		req.PerPage = 10
+	}
+
+	if req.Page == 0 {
+		req.Page = 1
+	}
+
+	query := tx.WithContext(ctx).Model(&entity.PackageHistory{}).Where("package_id = ?", pkgID)
+
+	if err := query.Count(&count).Error; err != nil {
+		return dto.PackageHistoryPaginationRepositoryResponse{}, err
+	}
+
+	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&packageHistories).Error; err != nil {
+		return dto.PackageHistoryPaginationRepositoryResponse{}, err
+	}
+
+	totalPage := int64(math.Ceil(float64(count) / float64(req.PerPage)))
+
+	return dto.PackageHistoryPaginationRepositoryResponse{
+		PackageHistories: packageHistories,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    req.Page,
+			PerPage: req.PerPage,
+			MaxPage: totalPage,
+			Count:   count,
+		},
+	}, err
+}
+func (ar *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error) {
+	if tx == nil {
+		tx = ar.db
 	}
 
 	var companies []entity.Company
@@ -318,9 +362,9 @@ func (ar *AdminRepository) UpdatePackage(ctx context.Context, tx *gorm.DB, pkg e
 
 	return tx.WithContext(ctx).Where("id = ?", pkg.ID).Updates(&pkg).Error
 }
-func (r *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
+func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
 	if tx == nil {
-		tx = r.db
+		tx = ar.db
 	}
 
 	return tx.WithContext(ctx).Where("id = ?", company.ID).Updates(&company).Error

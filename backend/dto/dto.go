@@ -36,20 +36,18 @@ const (
 	MESSAGE_FAILED_UPDATE_USER     = "failed update user"
 	MESSAGE_FAILED_DELETE_USER     = "failed delete user"
 	// Package
-	MESSAGE_FAILED_CREATE_PACKAGE     = "failed create package"
-	MESSAGE_FAILED_GET_DETAIL_PACKAGE = "failed get detail package"
-	MESSAGE_FAILED_GET_LIST_PACKAGE   = "failed get list package"
-	MESSAGE_FAILED_UPDATE_PACKAGE     = "failed update package"
-	MESSAGE_FAILED_DELETE_PACKAGE     = "failed delete package"
+	MESSAGE_FAILED_CREATE_PACKAGE           = "failed create package"
+	MESSAGE_FAILED_GET_DETAIL_PACKAGE       = "failed get detail package"
+	MESSAGE_FAILED_GET_LIST_PACKAGE         = "failed get list package"
+	MESSAGE_FAILED_GET_LIST_PACKAGE_HISTORY = "failed get list package history"
+	MESSAGE_FAILED_UPDATE_PACKAGE           = "failed update package"
+	MESSAGE_FAILED_DELETE_PACKAGE           = "failed delete package"
 	// Company
-	MESSAGE_FAILED_CREATE_COMPANY      = "failed create company"
-	MESSAGE_FAILED_GET_DETAIL_COMPANY  = "failed get detail company"
-	MESSAGE_FAILED_GET_LIST_COMPANY    = "failed get list company"
-	MESSAGE_FAILED_UPDATE_COMPANY      = "failed update company"
-	MESSAGE_FAILED_DELETE_COMPANY      = "failed delete company"
-	MESSAGE_INVALID_COMPANY_NAME       = "failed company name must be at least 3 characters"
-	MESSAGE_INVALID_COMPANY_ADDRESS    = "failed company address must be at least 5 characters"
-	MESSAGE_FAILED_GET_DATA_FROM_QUERY = "failed get data from query"
+	MESSAGE_FAILED_CREATE_COMPANY     = "failed create company"
+	MESSAGE_FAILED_GET_DETAIL_COMPANY = "failed get detail company"
+	MESSAGE_FAILED_GET_LIST_COMPANY   = "failed get list company"
+	MESSAGE_FAILED_UPDATE_COMPANY     = "failed update company"
+	MESSAGE_FAILED_DELETE_COMPANY     = "failed delete company"
 
 	// ====================================== Success ======================================
 	// Authentication
@@ -63,11 +61,12 @@ const (
 	MESSAGE_SUCCESS_UPDATE_USER     = "success update user"
 	MESSAGE_SUCCESS_DELETE_USER     = "success delete user"
 	// Package
-	MESSAGE_SUCCESS_CREATE_PACKAGE     = "success create package"
-	MESSAGE_SUCCESS_GET_DETAIL_PACKAGE = "success get detail package"
-	MESSAGE_SUCCESS_GET_LIST_PACKAGE   = "success get list package"
-	MESSAGE_SUCCESS_UPDATE_PACKAGE     = "success update package"
-	MESSAGE_SUCCESS_DELETE_PACKAGE     = "success delete package"
+	MESSAGE_SUCCESS_CREATE_PACKAGE           = "success create package"
+	MESSAGE_SUCCESS_GET_DETAIL_PACKAGE       = "success get detail package"
+	MESSAGE_SUCCESS_GET_LIST_PACKAGE         = "success get list package"
+	MESSAGE_SUCCESS_GET_LIST_PACKAGE_HISTORY = "success get list package history"
+	MESSAGE_SUCCESS_UPDATE_PACKAGE           = "success update package"
+	MESSAGE_SUCCESS_DELETE_PACKAGE           = "success delete package"
 	// Company
 	MESSAGE_SUCCESS_CREATE_COMPANY     = "success create company"
 	MESSAGE_SUCCESS_GET_DETAIL_COMPANY = "success get detail company"
@@ -117,13 +116,14 @@ var (
 	ErrDeleteUserByID           = errors.New("failed delete user by id")
 	ErrGetUserIDFromToken       = errors.New("failed get user id from token")
 	// Package & Package History
-	ErrCreatePackage               = errors.New("failed create package")
-	ErrCreatePackageHistory        = errors.New("failed create package history")
-	ErrGetAllPackageWithPagination = errors.New("failed get list package with pagination")
-	ErrPackageNotFound             = errors.New("failed package not found")
-	ErrInvalidPackageType          = errors.New("failed invalid package type")
-	ErrInvalidPackageStatus        = errors.New("failed invalid package status")
-	ErrUpdatePackage               = errors.New("failed update package")
+	ErrCreatePackage                      = errors.New("failed create package")
+	ErrCreatePackageHistory               = errors.New("failed create package history")
+	ErrGetAllPackageWithPagination        = errors.New("failed get list package with pagination")
+	ErrGetAllPackageHistoryWithPagination = errors.New("failed get list package history with pagination")
+	ErrPackageNotFound                    = errors.New("failed package not found")
+	ErrInvalidPackageType                 = errors.New("failed invalid package type")
+	ErrInvalidPackageStatus               = errors.New("failed invalid package status")
+	ErrUpdatePackage                      = errors.New("failed update package")
 	// Company
 	ErrGetCompanyByID              = errors.New("failed get company by id")
 	ErrCreateCompany               = errors.New("failed to create company")
@@ -222,6 +222,7 @@ type (
 		DeliveredAt *time.Time    `json:"package_delivered_at"`
 		ExpiredAt   *time.Time    `json:"package_expired_at"`
 		UserID      uuid.UUID     `json:"user_id"`
+		entity.TimeStamp
 	}
 	PackagePaginationResponse struct {
 		PaginationResponse
@@ -244,9 +245,16 @@ type (
 	PackageHistoryResponse struct {
 		ID        uuid.UUID     `json:"history_id"`
 		Status    entity.Status `json:"history_status"`
-		ChangedAt time.Time     `json:"history_changed_at"`
-		PackageID uuid.UUID     `json:"package_id"`
 		ChangedBy uuid.UUID     `json:"changed_by"`
+		CreatedAt time.Time     `json:"created_at"`
+	}
+	PackageHistoryPaginationResponse struct {
+		PaginationResponse
+		Data []PackageHistoryResponse `json:"data"`
+	}
+	PackageHistoryPaginationRepositoryResponse struct {
+		PaginationResponse
+		PackageHistories []entity.PackageHistory
 	}
 	UpdatePackageResponse struct {
 		ID          uuid.UUID     `json:"package_id"`
@@ -258,6 +266,7 @@ type (
 		ExpiredAt   *time.Time    `json:"package_expired_at"`
 		UserID      uuid.UUID     `json:"user_id"`
 		ChangedBy   uuid.UUID     `json:"change_by"`
+		entity.TimeStamp
 	}
 	DeletePackageRequest struct {
 		PackageID string `json:"-"`

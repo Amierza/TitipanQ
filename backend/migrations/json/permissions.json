@@ -50,6 +50,11 @@
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   },
   {
+    "permission_id": "f9842c25-c753-4b51-a927-488bdc69e581",
+    "permission_endpoint": "/api/v1/admin/get-all-package-history/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
     "permission_id": "b2dfc84a-1afe-443a-90c9-a8b49b9d1d37",
     "permission_endpoint": "/api/v1/admin/update-package/:id",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"

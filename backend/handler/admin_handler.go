@@ -28,6 +28,7 @@ type (
 		CreatePackage(ctx *gin.Context)
 		ReadAllPackage(ctx *gin.Context)
 		GetDetailPackage(ctx *gin.Context)
+		GetAllPackageHistory(ctx *gin.Context)
 		UpdatePackage(ctx *gin.Context)
 		DeletePackage(ctx *gin.Context)
 
@@ -224,6 +225,7 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 func (ah *AdminHandler) ReadAllPackage(ctx *gin.Context) {
+	userID := ctx.Query("user_id")
 	var payload dto.PaginationRequest
 	if err := ctx.ShouldBind(&payload); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
@@ -231,7 +233,7 @@ func (ah *AdminHandler) ReadAllPackage(ctx *gin.Context) {
 		return
 	}
 
-	result, err := ah.adminService.ReadAllPackageWithPagination(ctx.Request.Context(), payload)
+	result, err := ah.adminService.ReadAllPackageWithPagination(ctx, payload, userID)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -257,6 +259,31 @@ func (ah *AdminHandler) GetDetailPackage(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_PACKAGE, result)
+	ctx.JSON(http.StatusOK, res)
+}
+func (ah *AdminHandler) GetAllPackageHistory(ctx *gin.Context) {
+	var payload dto.PaginationRequest
+	pkgIdStr := ctx.Param("id")
+	if err := ctx.ShouldBind(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := ah.adminService.ReadAllPackageHistoryWithPagination(ctx, payload, pkgIdStr)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE_HISTORY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.Response{
+		Status:   true,
+		Messsage: dto.MESSAGE_SUCCESS_GET_LIST_PACKAGE_HISTORY,
+		Data:     result.Data,
+		Meta:     result.PaginationResponse,
+	}
+
 	ctx.JSON(http.StatusOK, res)
 }
 func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
@@ -338,7 +365,7 @@ func (ah *AdminHandler) CreateCompany(ctx *gin.Context) {
 func (ah *AdminHandler) ReadAllCompany(ctx *gin.Context) {
 	var payload dto.PaginationRequest
 	if err := ctx.ShouldBindQuery(&payload); err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_QUERY, err.Error(), nil)
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
