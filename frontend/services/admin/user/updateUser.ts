@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
 import { ErrorResponse } from "@/types/error";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { z } from "zod";
 import { UserSchema } from "@/validation/user.schema";
 import { UserResponse } from "@/types/user.type";
+import axiosAdminConfig from "@/services/auth/auth.config";
 
 export const updateUserService = async (
   userId: string,
@@ -12,7 +13,7 @@ export const updateUserService = async (
 ): Promise<UserResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.patch(
+    const response = await axiosAdminConfig.patch(
       `${baseUrl}/admin/update-user/${userId}`,
       data,
       {

@@ -1,24 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
-import axiosAdminConfig from "@/services/auth/auth.config";
+import { AllCompanyResponse } from "@/types/company.type";
 import { ErrorResponse } from "@/types/error";
-import { AllUserResponse } from "@/types/user.type";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 
-export const getAllUserService = async (): Promise<
-  AllUserResponse | ErrorResponse
+export const getAllCompanyClientService = async (): Promise<
+  AllCompanyResponse | ErrorResponse
 > => {
-  const token = localStorage.getItem("access_token");
   try {
-    const response = await axiosAdminConfig.get(`${baseUrl}/admin/get-all-user`, {
+    const response = await axios.get(`${baseUrl}/user/get-all-company`, {
       headers: {
-        Authorization: `Bearer ${token}`,
         Accept: "application/json",
       },
     });
 
     if (response.status === 200) {
-      return response.data as AllUserResponse;
+      return response.data as AllCompanyResponse;
     } else {
       return response.data as ErrorResponse;
     }
@@ -29,7 +26,7 @@ export const getAllUserService = async (): Promise<
       status: false,
       message:
         axiosError.response?.data?.message ||
-        "Terjadi kesalahan saat melakukan pengambilan data user.",
+        "Terjadi kesalahan saat melakukan pengambilan data company.",
       timestamp: new Date().toISOString(),
       error: axiosError.message || "Unknown error",
     };

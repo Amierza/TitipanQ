@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
+import axiosAdminConfig from "@/services/auth/auth.config";
 import { ErrorResponse } from "@/types/error";
 import { PackageResponse } from "@/types/package.type";
 import { PackageSchema } from "@/validation/package.schema";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { z } from "zod";
 
 export const createPackageService = async (
@@ -11,7 +12,7 @@ export const createPackageService = async (
 ): Promise<PackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.post(`${baseUrl}/admin/create-package`, data, {
+    const response = await axiosAdminConfig.post(`${baseUrl}/admin/create-package`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",

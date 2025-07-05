@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
+import axiosAdminConfig from "@/services/auth/auth.config";
 import { ErrorResponse } from "@/types/error";
 import { UserResponse } from "@/types/user.type";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
 export const getDetailUserService = async (
   userId: string
 ): Promise<UserResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.get(
+    const response = await axiosAdminConfig.get(
       `${baseUrl}/admin/get-detail-user/${userId}`,
       {
         headers: {

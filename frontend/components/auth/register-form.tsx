@@ -24,6 +24,7 @@ import { useMutation } from "@tanstack/react-query";
 import { registerUserService } from "@/services/auth/registerUserService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import SelectCompany from "./companyDropDown";
 
 export function RegisterForm({
   className,
@@ -129,6 +130,38 @@ export function RegisterForm({
 
               <FormField
                 control={form.control}
+                name="user_address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Jalan Ahmad Yani"
+                        type="text"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="company_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company</FormLabel>
+                    <FormControl>
+                      <SelectCompany {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="user_password"
                 render={({ field }) => (
                   <FormItem>
@@ -167,7 +200,10 @@ export function RegisterForm({
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 Sudah punya akun?{" "}
-                <Link href="/login" className="underline underline-offset-4 hover:font-semibold hover:text-black">
+                <Link
+                  href="/login"
+                  className="underline underline-offset-4 hover:font-semibold hover:text-black"
+                >
                   Login
                 </Link>
               </p>
