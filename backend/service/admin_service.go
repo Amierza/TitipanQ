@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,6 +29,9 @@ type (
 		GetDetailUser(ctx context.Context, userID string) (dto.UserResponse, error)
 		UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error)
 		DeleteUser(ctx context.Context, req dto.DeleteUserRequest) (dto.UserResponse, error)
+
+		// cron
+		AutoExpirePackages() error
 
 		// Package
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
@@ -748,6 +752,40 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 	}
 
 	return res, nil
+}
+
+// Cron
+func (as *AdminService) AutoExpirePackages() error {
+	now := time.Now()
+
+	var packages []entity.Package
+	err := as.adminRepo.GetAllExpiredPackages(now, &packages)
+	if err != nil {
+		return err
+	}
+
+	for _, pkg := range packages {
+		err := as.adminRepo.UpdatePackageStatusAndSoftDelete(pkg.ID, entity.Expired, now)
+		if err != nil {
+			log.Printf("[AutoExpire] failed to update package %s: %v", pkg.ID, err)
+			continue
+		}
+
+		history := entity.PackageHistory{
+			ID:          uuid.New(),
+			Status:      entity.Expired,
+			Description: "package expired automatically",
+			PackageID:   &pkg.ID,
+			ChangedBy:   nil,
+			TimeStamp: entity.TimeStamp{
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		}
+		_ = as.adminRepo.CreatePackageHistory(nil, nil, history)
+	}
+
+	return nil
 }
 
 // Company

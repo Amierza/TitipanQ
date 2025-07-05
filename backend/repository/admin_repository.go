@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
@@ -25,6 +26,7 @@ type (
 		GetAllPackageHistoryWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, pkgID uuid.UUID) (dto.PackageHistoryPaginationRepositoryResponse, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
+		GetAllExpiredPackages(now time.Time, out *[]entity.Package) error
 
 		//Create
 		CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -36,6 +38,7 @@ type (
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 		UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
+		UpdatePackageStatusAndSoftDelete(id uuid.UUID, status entity.Status, deletedAt time.Time) error
 
 		// Delete
 		DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error
@@ -317,6 +320,13 @@ func (ar *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *
 		},
 	}, nil
 }
+func (ur *AdminRepository) GetAllExpiredPackages(now time.Time, out *[]entity.Package) error {
+	return ur.db.
+		Where("expired_at < ?", now).
+		Where("deleted_at IS NULL").
+		Where("status != ?", entity.Expired).
+		Find(out).Error
+}
 
 // Create
 func (ar *AdminRepository) CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error {
@@ -368,6 +378,12 @@ func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, compa
 	}
 
 	return tx.WithContext(ctx).Where("id = ?", company.ID).Updates(&company).Error
+}
+func (ur *AdminRepository) UpdatePackageStatusAndSoftDelete(id uuid.UUID, status entity.Status, deletedAt time.Time) error {
+	return ur.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":     status,
+		"deleted_at": deletedAt,
+	}).Error
 }
 
 // Delete

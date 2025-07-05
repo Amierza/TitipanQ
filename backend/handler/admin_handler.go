@@ -32,6 +32,9 @@ type (
 		UpdatePackage(ctx *gin.Context)
 		DeletePackage(ctx *gin.Context)
 
+		// Cron
+		TriggerExpire(ctx *gin.Context)
+
 		// Company
 		CreateCompany(ctx *gin.Context)
 		ReadAllCompany(ctx *gin.Context)
@@ -183,6 +186,19 @@ func (ah *AdminHandler) DeleteUser(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_DELETE_USER, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+// Cron
+func (ah *AdminHandler) TriggerExpire(ctx *gin.Context) {
+	err := ah.adminService.AutoExpirePackages()
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DETAIL_USER, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_AUTO_CHANGE_STATUS, nil)
 	ctx.JSON(http.StatusOK, res)
 }
 

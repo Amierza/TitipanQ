@@ -12,6 +12,8 @@ import (
 const (
 	// ====================================== Failed ======================================
 	MESSAGE_FAILED_GET_DATA_FROM_BODY = "failed get data from body"
+	// Cron
+	MESSAGE_FAILED_AUTO_CHANGE_STATUS = "failed packages expired successfully"
 	// File
 	MESSAGE_FAILED_READ_PHOTO = "failed read photo"
 	MESSAGE_FAILED_OPEN_PHOTO = "failed open photo"
@@ -50,6 +52,8 @@ const (
 	MESSAGE_FAILED_DELETE_COMPANY     = "failed delete company"
 
 	// ====================================== Success ======================================
+	// Cron
+	MESSAGE_SUCCESS_AUTO_CHANGE_STATUS = "success packages expired successfully"
 	// Authentication
 	MESSAGE_SUCCESS_REGISTER_USER = "success register user"
 	MESSAGE_SUCCESS_LOGIN_USER    = "success login user"

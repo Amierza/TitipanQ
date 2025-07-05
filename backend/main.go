@@ -12,6 +12,7 @@ import (
 	"github.com/Amierza/TitipanQ/backend/routes"
 	"github.com/Amierza/TitipanQ/backend/service"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 )
 
 func main() {
@@ -33,6 +34,17 @@ func main() {
 		userService  = service.NewUserService(userRepo, jwtService)
 		userHandler  = handler.NewUserHandler(userService)
 	)
+
+	c := cron.New()
+	c.AddFunc("@daily", func() {
+		err := adminService.AutoExpirePackages()
+		if err != nil {
+			log.Println("[CRON] AutoExpirePackages error:", err)
+		} else {
+			log.Println("[CRON] AutoExpirePackages success")
+		}
+	})
+	c.Start()
 
 	server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
