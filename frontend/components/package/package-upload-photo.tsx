@@ -5,13 +5,26 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 
-export default function UploadPackagePhoto({ photo, onChange }: { photo: File | null; onChange: (file: File) => void }) {
-  const [preview, setPreview] = useState<string | null>(photo ? URL.createObjectURL(photo) : null);
+export default function UploadPackagePhoto({
+  photo,
+  onChange,
+}: {
+  photo: File | null;
+  onChange: (file: File) => void;
+}) {
+  const [preview, setPreview] = useState<string | null>(
+    photo ? URL.createObjectURL(photo) : null
+  );
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPreview(URL.createObjectURL(file));
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+
+      const newPreview = URL.createObjectURL(file);
+      setPreview(newPreview);
       onChange(file);
     }
   };
@@ -20,7 +33,15 @@ export default function UploadPackagePhoto({ photo, onChange }: { photo: File | 
     <div className="space-y-2">
       <Label>Upload Foto Package</Label>
       <Input type="file" accept="image/*" onChange={handleFile} />
-      {preview && <Image src={preview} alt="Preview" className="w-32 h-32 object-cover rounded-md" />}
+      {preview && (
+        <Image
+          src={preview}
+          alt="Preview"
+          width={128}
+          height={128}
+          className="w-32 h-32 object-cover rounded-md"
+        />
+      )}
     </div>
   );
 }
