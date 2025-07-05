@@ -14,8 +14,6 @@ export const RegisterSchema = z.object({
     .string()
     .regex(phoneNumberRegex, "Phone number format is not valid"),
   user_password: z.string().min(3, "Password must have at least 3 characters"),
-  user_address: z
-    .string({ required_error: "Address is required" })
-    .min(5, "Address must have at least 5 characters"),
-  company_id: z.string({ required_error: "Company is required" }),
+  user_address: z.string({ required_error: "Address is required" }).optional(),
+  company_id: z.string({ required_error: "Company is required" }).optional(),
 });
