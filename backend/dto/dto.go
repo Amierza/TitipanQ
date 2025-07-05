@@ -41,7 +41,6 @@ const (
 	MESSAGE_FAILED_GET_LIST_PACKAGE   = "failed get list package"
 	MESSAGE_FAILED_UPDATE_PACKAGE     = "failed update package"
 	MESSAGE_FAILED_DELETE_PACKAGE     = "failed delete package"
-
 	// Company
 	MESSAGE_FAILED_CREATE_COMPANY      = "failed create company"
 	MESSAGE_FAILED_GET_DETAIL_COMPANY  = "failed get detail company"
@@ -69,7 +68,6 @@ const (
 	MESSAGE_SUCCESS_GET_LIST_PACKAGE   = "success get list package"
 	MESSAGE_SUCCESS_UPDATE_PACKAGE     = "success update package"
 	MESSAGE_SUCCESS_DELETE_PACKAGE     = "success delete package"
-
 	// Company
 	MESSAGE_SUCCESS_CREATE_COMPANY     = "success create company"
 	MESSAGE_SUCCESS_GET_DETAIL_COMPANY = "success get detail company"
@@ -136,7 +134,7 @@ var (
 	ErrCompanyIDRequired           = errors.New("company ID is required")
 	ErrInvalidCompanyName          = errors.New("failed invalid company name")
 	ErrInvalidCompanyAddress       = errors.New("failed invalid company address")
-
+	ErrSameCompanyID               = errors.New("failed same company id")
 	// Role
 	ErrGetRoleFromName  = errors.New("failed get role by name")
 	ErrGetRoleFromToken = errors.New("failed get role from token")
@@ -229,7 +227,6 @@ type (
 		Image       string        `json:"package_image"`
 		Type        entity.Type   `json:"package_type"`
 		Status      entity.Status `json:"package_status"`
-		ReceivedAt  time.Time     `json:"package_received_at"`
 		DeliveredAt *time.Time    `json:"package_delivered_at"`
 		ExpiredAt   *time.Time    `json:"package_expired_at"`
 		UserID      uuid.UUID     `json:"user_id"`
@@ -265,7 +262,6 @@ type (
 		Image       string        `json:"package_image"`
 		Type        entity.Type   `json:"package_type"`
 		Status      entity.Status `json:"package_status"`
-		ReceivedAt  time.Time     `json:"package_received_at"`
 		DeliveredAt *time.Time    `json:"package_delivered_at"`
 		ExpiredAt   *time.Time    `json:"package_expired_at"`
 		UserID      uuid.UUID     `json:"user_id"`
@@ -280,7 +276,6 @@ type (
 		Name    string `json:"company_name" binding:"required"`
 		Address string `json:"company_address" binding:"required"`
 	}
-
 	CompanyResponse struct {
 		ID      *uuid.UUID `json:"company_id"`
 		Name    string     `json:"company_name"`
@@ -294,13 +289,11 @@ type (
 		PaginationResponse
 		Companies []entity.Company
 	}
-
 	UpdateCompanyRequest struct {
 		ID      string `json:"-"`
 		Name    string `json:"company_name,omitempty"`
 		Address string `json:"company_address,omitempty"`
 	}
-
 	UpdateCompanyResponse struct {
 		ID      *uuid.UUID `json:"company_id"`
 		Name    string     `json:"company_name"`

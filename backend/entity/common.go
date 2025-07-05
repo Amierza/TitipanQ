@@ -22,11 +22,10 @@ const (
 	Item     Type = "item"
 	Other    Type = "other"
 
-	Received   Status = "received"
-	Processing Status = "processing"
-	Delivered  Status = "delivered"
-	Completed  Status = "completed"
-	Expired    Status = "expired"
+	Received  Status = "received"
+	Delivered Status = "delivered"
+	Completed Status = "completed"
+	Expired   Status = "expired"
 )
 
 func IsValidType(t Type) bool {
@@ -34,5 +33,5 @@ func IsValidType(t Type) bool {
 }
 
 func IsValidStatus(s Status) bool {
-	return s == Received || s == Processing || s == Delivered || s == Completed || s == Expired
+	return s == Received || s == Delivered || s == Completed || s == Expired
 }

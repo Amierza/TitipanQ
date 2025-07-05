@@ -14,7 +14,6 @@ type Package struct {
 	Image       string     `gorm:"type:text" json:"package_image"`
 	Type        Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
 	Status      Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
-	ReceivedAt  time.Time  `json:"package_received_at"`
 	DeliveredAt *time.Time `json:"package_delivered_at"`
 	ExpiredAt   *time.Time `json:"package_expired_at"`
 

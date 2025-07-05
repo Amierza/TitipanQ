@@ -16,10 +16,14 @@ type (
 		GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error)
 		GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error)
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
-		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, error)
+		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
+		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
 
 		// Create
 		Register(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
+
+		// Update
+		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 	}
 
 	UserRepository struct {
@@ -94,17 +98,30 @@ func (ur *UserRepository) GetUserByID(ctx context.Context, tx *gorm.DB, userID s
 
 	return user, true, nil
 }
-func (ur *UserRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, error) {
+func (ur *UserRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error) {
 	if tx == nil {
 		tx = ur.db
 	}
 
 	var company entity.Company
 	if err := tx.WithContext(ctx).Where("id = ?", companyID).Take(&company).Error; err != nil {
-		return entity.Company{}, err
+		return entity.Company{}, false, err
 	}
 
-	return company, nil
+	return company, true, nil
+}
+func (ur *UserRepository) GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error) {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	var companies []entity.Company
+
+	if err := tx.WithContext(ctx).Model(&entity.Company{}).Order("created_at DESC").Find(&companies).Error; err != nil {
+		return []entity.Company{}, err
+	}
+
+	return companies, nil
 }
 
 // Create
@@ -119,4 +136,13 @@ func (ur *UserRepository) Register(ctx context.Context, tx *gorm.DB, user entity
 	}
 
 	return user, nil
+}
+
+// Update
+func (ur *UserRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	return tx.WithContext(ctx).Where("id = ?", user.ID).Updates(&user).Error
 }

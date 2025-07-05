@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"context"
 	"net/http"
-	"strings"
 
 	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
@@ -32,6 +30,8 @@ type (
 		GetDetailPackage(ctx *gin.Context)
 		UpdatePackage(ctx *gin.Context)
 		DeletePackage(ctx *gin.Context)
+
+		// Company
 		CreateCompany(ctx *gin.Context)
 		ReadAllCompany(ctx *gin.Context)
 		GetDetailCompany(ctx *gin.Context)
@@ -316,8 +316,7 @@ func (ah *AdminHandler) DeletePackage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-
-// Company 
+// Company
 func (ah *AdminHandler) CreateCompany(ctx *gin.Context) {
 	var payload dto.CreateCompanyRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -326,17 +325,7 @@ func (ah *AdminHandler) CreateCompany(ctx *gin.Context) {
 		return
 	}
 
-	token := ctx.GetHeader("Authorization")
-	if token == "" {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_COMPANY, "authorization token is missing", nil)
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
-		return
-	}
-
-	token = strings.TrimPrefix(token, "Bearer ")
-	ctxWithToken := context.WithValue(ctx.Request.Context(), "Authorization", token)
-
-	result, err := ah.adminService.CreateCompany(ctxWithToken, payload)
+	result, err := ah.adminService.CreateCompany(ctx, payload)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_COMPANY, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -346,9 +335,6 @@ func (ah *AdminHandler) CreateCompany(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_COMPANY, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
-
-
 func (ah *AdminHandler) ReadAllCompany(ctx *gin.Context) {
 	var payload dto.PaginationRequest
 	if err := ctx.ShouldBindQuery(&payload); err != nil {
@@ -372,7 +358,6 @@ func (ah *AdminHandler) ReadAllCompany(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) GetDetailCompany(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	result, err := ah.adminService.GetDetailCompany(ctx.Request.Context(), idStr)
@@ -385,7 +370,6 @@ func (ah *AdminHandler) GetDetailCompany(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_COMPANY, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) UpdateCompany(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	var payload dto.UpdateCompanyRequest
@@ -407,7 +391,6 @@ func (ah *AdminHandler) UpdateCompany(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_COMPANY, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) DeleteCompany(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	result, err := ah.adminService.DeleteCompany(ctx.Request.Context(), idStr)

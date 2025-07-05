@@ -1,5 +1,15 @@
 [
   {
+    "permission_id": "06c6e5de-aad1-4fe0-8b01-380176d27f70",
+    "permission_endpoint": "/api/v1/user/get-detail-user",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85"
+  },
+  {
+    "permission_id": "59900dd5-5a9a-4981-9a84-df1d530e7389",
+    "permission_endpoint": "/api/v1/user/update-user",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85"
+  },
+  {
     "permission_id": "b3177e49-9628-40e5-8cf4-4b3482e4adcf",
     "permission_endpoint": "/api/v1/admin/create-user",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
