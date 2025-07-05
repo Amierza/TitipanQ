@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
+import axiosAdminConfig from "@/services/auth/auth.config";
 import { ErrorResponse } from "@/types/error";
 import { UserResponse } from "@/types/user.type";
 import { UserSchema } from "@/validation/user.schema";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { z } from "zod";
 
 export const createUserService = async (
@@ -11,13 +12,17 @@ export const createUserService = async (
 ): Promise<UserResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.post(`${baseUrl}/admin/create-user`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
+    const response = await axiosAdminConfig.post(
+      `${baseUrl}/admin/create-user`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
 
     if (response.status === 200) {
       return response.data as UserResponse;

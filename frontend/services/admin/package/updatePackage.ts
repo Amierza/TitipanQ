@@ -3,8 +3,9 @@ import { baseUrl } from "@/config/api";
 import { PackageResponse } from "@/types/package.type";
 import { ErrorResponse } from "@/types/error";
 import { PackageSchema } from "@/validation/package.schema";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { z } from "zod";
+import axiosAdminConfig from "@/services/auth/auth.config";
 
 export const updatePackageService = async (
   packageId: string,
@@ -12,7 +13,7 @@ export const updatePackageService = async (
 ): Promise<PackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.patch(
+    const response = await axiosAdminConfig.patch(
       `${baseUrl}/admin/update-package/${packageId}`,
       data,
       {

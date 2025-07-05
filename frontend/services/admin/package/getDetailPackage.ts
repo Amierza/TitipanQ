@@ -2,14 +2,15 @@
 import { baseUrl } from "@/config/api";
 import { PackageResponse } from "@/types/package.type";
 import { ErrorResponse } from "@/types/error";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import axiosAdminConfig from "@/services/auth/auth.config";
 
 export const getPackageService = async (
   packageId: string
 ): Promise<PackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.get(
+    const response = await axiosAdminConfig.get(
       `${baseUrl}/admin/get-detail-package/${packageId}`,
       {
         headers: {
