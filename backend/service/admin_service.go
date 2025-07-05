@@ -649,17 +649,34 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		}
 	}
 
+	var validStatusOrder = map[entity.Status]entity.Status{
+		entity.Received:  entity.Delivered,
+		entity.Delivered: entity.Completed,
+	}
+
 	if req.Status != "" {
-		if !entity.IsValidStatus(req.Status) {
+		if !entity.IsValidStatus(entity.Status(req.Status)) {
 			return dto.UpdatePackageResponse{}, dto.ErrInvalidPackageStatus
 		}
 
-		if p.Status != req.Status {
+		if entity.Status(req.Status) == entity.Expired {
+			return dto.UpdatePackageResponse{}, dto.ErrCannotChangeStatusToExpired
+		}
+
+		// Validasi urutan status
+		if p.Status != entity.Status(req.Status) {
+			expectedNext, ok := validStatusOrder[p.Status]
+			if !ok || expectedNext != entity.Status(req.Status) {
+				return dto.UpdatePackageResponse{}, dto.ErrInvalidStatusTransition
+			}
+
 			descriptionChanges = append(descriptionChanges, "package status changed")
-			if req.Status == "delivered" {
+
+			if entity.Status(req.Status) == entity.Delivered {
 				p.DeliveredAt = &now
 			}
-			p.Status = req.Status
+
+			p.Status = entity.Status(req.Status)
 		}
 	}
 

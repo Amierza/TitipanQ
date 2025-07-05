@@ -22,6 +22,9 @@ type (
 		// User
 		GetDetailUser(ctx *gin.Context)
 		UpdateUser(ctx *gin.Context)
+
+		// Package
+		ReadAllPackage(ctx *gin.Context)
 	}
 
 	UserHandler struct {
@@ -132,5 +135,31 @@ func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_USER, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+// Package
+func (uh *UserHandler) ReadAllPackage(ctx *gin.Context) {
+	var payload dto.PaginationRequest
+	if err := ctx.ShouldBind(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result, err := uh.userService.ReadAllPackageWithPagination(ctx, payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.Response{
+		Status:   true,
+		Messsage: dto.MESSAGE_SUCCESS_GET_LIST_PACKAGE,
+		Data:     result.Data,
+		Meta:     result.PaginationResponse,
+	}
+
 	ctx.JSON(http.StatusOK, res)
 }

@@ -2,7 +2,10 @@ package repository
 
 import (
 	"context"
+	"math"
+	"strings"
 
+	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
 	"gorm.io/gorm"
 )
@@ -17,6 +20,7 @@ type (
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
+		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
 
 		// Create
 		Register(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -121,6 +125,50 @@ func (ur *UserRepository) GetAllCompany(ctx context.Context, tx *gorm.DB) ([]ent
 	}
 
 	return companies, nil
+}
+func (ur *UserRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error) {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	var packages []entity.Package
+	var err error
+	var count int64
+
+	if req.PerPage == 0 {
+		req.PerPage = 10
+	}
+
+	if req.Page == 0 {
+		req.Page = 1
+	}
+
+	query := tx.WithContext(ctx).Model(&entity.Package{}).Where("user_id = ? ", userID)
+
+	if req.Search != "" {
+		searchValue := "%" + strings.ToLower(req.Search) + "%"
+		query = query.Where("LOWER(description) LIKE ? ", searchValue)
+	}
+
+	if err := query.Count(&count).Error; err != nil {
+		return dto.PackagePaginationRepositoryResponse{}, err
+	}
+
+	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&packages).Error; err != nil {
+		return dto.PackagePaginationRepositoryResponse{}, err
+	}
+
+	totalPage := int64(math.Ceil(float64(count) / float64(req.PerPage)))
+
+	return dto.PackagePaginationRepositoryResponse{
+		Packages: packages,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    req.Page,
+			PerPage: req.PerPage,
+			MaxPage: totalPage,
+			Count:   count,
+		},
+	}, err
 }
 
 // Create

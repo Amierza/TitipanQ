@@ -23,6 +23,9 @@ type (
 		// User
 		GetDetailUser(ctx context.Context) (dto.UserResponse, error)
 		UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error)
+
+		// Package
+		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.PackagePaginationResponse, error)
 	}
 
 	UserService struct {
@@ -342,4 +345,49 @@ func (us *UserService) UpdateUser(ctx context.Context, req dto.UpdateUserRequest
 	}
 
 	return res, nil
+}
+
+// Package
+func (us *UserService) ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.PackagePaginationResponse, error) {
+	token := ctx.Value("Authorization").(string)
+
+	userID, err := us.jwtService.GetUserIDByToken(token)
+	if err != nil {
+		return dto.PackagePaginationResponse{}, dto.ErrGetUserIDFromToken
+	}
+
+	dataWithPaginate, err := us.userRepo.GetAllPackageWithPagination(ctx, nil, req, userID)
+	if err != nil {
+		return dto.PackagePaginationResponse{}, dto.ErrGetAllPackageWithPagination
+	}
+
+	var datas []dto.PackageResponse
+	for _, pkg := range dataWithPaginate.Packages {
+		data := dto.PackageResponse{
+			ID:          pkg.ID,
+			Description: pkg.Description,
+			Image:       pkg.Image,
+			Type:        pkg.Type,
+			Status:      pkg.Status,
+			DeliveredAt: pkg.DeliveredAt,
+			ExpiredAt:   pkg.ExpiredAt,
+			UserID:      *pkg.UserID,
+			TimeStamp: entity.TimeStamp{
+				CreatedAt: pkg.CreatedAt,
+				UpdatedAt: pkg.UpdatedAt,
+				DeletedAt: pkg.DeletedAt,
+			},
+		}
+		datas = append(datas, data)
+	}
+
+	return dto.PackagePaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    dataWithPaginate.Page,
+			PerPage: dataWithPaginate.PerPage,
+			MaxPage: dataWithPaginate.MaxPage,
+			Count:   dataWithPaginate.Count,
+		},
+	}, nil
 }
