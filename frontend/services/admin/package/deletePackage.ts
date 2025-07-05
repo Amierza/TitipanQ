@@ -1,23 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
 import { ErrorResponse } from "@/types/error";
-import { AllPackageResponse } from "@/types/package/allPackage";
+import { PackageResponse } from "@/types/package.type";
 import axios, { AxiosError } from "axios";
 
-export const getAllPackageService = async (): Promise<
-  AllPackageResponse | ErrorResponse
-> => {
+export const getPackageService = async (
+  packageId: string
+): Promise<PackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.get(`${baseUrl}/admin/get-all-package`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    });
+    const response = await axios.get(
+      `${baseUrl}/admin/delete-package/${packageId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
+    );
 
     if (response.status === 200) {
-      return response.data as AllPackageResponse;
+      return response.data as PackageResponse;
     } else {
       return response.data as ErrorResponse;
     }
@@ -28,7 +31,7 @@ export const getAllPackageService = async (): Promise<
       status: false,
       message:
         axiosError.response?.data?.message ||
-        "Terjadi kesalahan saat melakukan pengambilan data paket.",
+        "Terjadi kesalahan saat melakukan hapus data paket.",
       timestamp: new Date().toISOString(),
       error: axiosError.message || "Unknown error",
     };

@@ -1,4 +1,4 @@
-import { meta, SuccessResponse } from "../sucess";
+import { Meta, SuccessResponse } from "./sucess";
 
 export type Package = {
   package_id: string;
@@ -15,5 +15,5 @@ export type Package = {
 export type PackageResponse = SuccessResponse<Package>;
 
 export type AllPackageResponse = SuccessResponse<Package[]> & {
-  meta: meta;
+  meta: Meta;
 };

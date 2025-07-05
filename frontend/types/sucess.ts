@@ -5,7 +5,7 @@ export type SuccessResponse<T = unknown> = {
   data: T;
 };
 
-export type meta = {
+export type Meta = {
   page: number;
   per_page: number;
   max_page: number;
