@@ -103,5 +103,10 @@
     "permission_id": "ef560178-2c90-1234-ef01-2c5678901234",
     "permission_endpoint": "/api/v1/admin/delete-company/:id",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "32e1cafd-034e-4fe6-832d-51212eba7fee",
+    "permission_endpoint": "/api/v1/admin/trigger-expire-packages",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   }
 ]

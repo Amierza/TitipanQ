@@ -31,6 +31,9 @@ func Admin(route *gin.Engine, adminHandler handler.IAdminHandler, jwtService ser
 			routes.PATCH("/update-package/:id", adminHandler.UpdatePackage)
 			routes.DELETE("/delete-package/:id", adminHandler.DeletePackage)
 
+			// Cron
+			routes.POST("/trigger-expire-packages", adminHandler.TriggerExpire)
+
 			// Company
 			routes.POST("/create-company", adminHandler.CreateCompany)
 			routes.GET("/get-all-company", adminHandler.ReadAllCompany)
