@@ -1,4 +1,3 @@
-// components/user/UserSidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -19,20 +18,20 @@ import { Button } from "@/components/ui/button";
 export function UserSidebar() {
   const pathname = usePathname();
 
-  // Mock user data - ganti dengan data real dari context/session
+  // Mock user data - replace with real data from context/session
   const userData = {
     name: "Sergio Conceicao",
     email: "sergio.concei@email.com",
-    avatar: "/avatars/01.png", // atau null jika tidak ada
-    role: "Karyawan",
+    avatar: "/avatars/01.png", // or null if not available
+    role: "Employee",
     unit: "PT Barcelona Group",
   };
 
   const mainMenu = [
-    { name: "Paket Saya", href: "/dashboard/paket", icon: PackageSearch },
-    { name: "Riwayat", href: "/dashboard/riwayat", icon: History },
+    { name: "My Packages", href: "/client/package", icon: PackageSearch },
+    { name: "History", href: "/client/history", icon: History },
     {
-      name: "Tanya Admin",
+      name: "Ask In Whatsapp",
       href: "https://wa.me/6282332384036",
       icon: MessageSquareText,
       external: true,
@@ -40,7 +39,7 @@ export function UserSidebar() {
   ];
 
   const bottomMenu = [
-    { name: "Pengaturan Akun", href: "/dashboard/edit-account", icon: Settings },
+    { name: "Account Settings", href: "/client/edit-account", icon: Settings },
   ];
 
   const handleLogout = () => {
@@ -83,7 +82,7 @@ export function UserSidebar() {
       {/* Navigation Menu */}
       <div className="flex-1 p-4">
         <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-          Menu Utama
+          Main Menu
         </h2>
         <nav className="space-y-1">
           {/* Main Menu Items */}
@@ -142,7 +141,7 @@ export function UserSidebar() {
             className="w-full justify-start gap-3 px-3 py-2 hover:bg-red-50 hover:text-red-700 text-sm mt-2"
           >
             <LogOut className="w-4 h-4" />
-            Keluar
+            Log Out
           </Button>
         </nav>
       </div>
