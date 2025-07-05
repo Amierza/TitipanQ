@@ -12,7 +12,7 @@ export const updatePackageService = async (
 ): Promise<PackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.post(
+    const response = await axios.patch(
       `${baseUrl}/admin/update-package/${packageId}`,
       data,
       {

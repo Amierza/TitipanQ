@@ -2,12 +2,12 @@
 import { baseUrl } from "@/config/api";
 import { ErrorResponse } from "@/types/error";
 import { UserResponse } from "@/types/user.type";
-import { PackageSchema } from "@/validation/package.schema";
+import { UserSchema } from "@/validation/user.schema";
 import axios, { AxiosError } from "axios";
 import { z } from "zod";
 
 export const createUserService = async (
-  data: z.infer<typeof PackageSchema>
+  data: z.infer<typeof UserSchema>
 ): Promise<UserResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
