@@ -25,19 +25,24 @@ import { registerUserService } from "@/services/auth/registerUserService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import SelectCompany from "./companyDropDown";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Label } from "../ui/label";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [show, setShow] = useState(false);
+  const [isCompany, setIsCompany] = useState(false);
   const router = useRouter();
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
+    mode: "onChange",
     defaultValues: {
       user_name: "",
       user_email: "",
       user_phone_number: "",
+      user_address: "",
       user_password: "",
     },
   });
@@ -58,7 +63,10 @@ export function RegisterForm({
   });
 
   const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
-    console.log("Submitted values:", values);
+    const payload = { ...values };
+    if (!payload.company_id) delete payload.company_id;
+    if (!payload.user_address) delete payload.user_address;
+
     registerUser(values);
   };
 
@@ -128,37 +136,57 @@ export function RegisterForm({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="user_address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Jalan Ahmad Yani"
-                        type="text"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <RadioGroup
+                className="grid grid-cols-2 gap-6"
+                defaultValue="user"
+                onValueChange={(val) => setIsCompany(val === "company")}
+              >
+                <div className="flex items-center gap-3">
+                  <RadioGroupItem value="user" id="r1" />
+                  <Label htmlFor="r1">User</Label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <RadioGroupItem value="company" id="r2" />
+                  <Label htmlFor="r2">Company</Label>
+                </div>
+              </RadioGroup>
 
-              <FormField
-                control={form.control}
-                name="company_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company</FormLabel>
-                    <FormControl>
-                      <SelectCompany {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isCompany ? (
+                <FormField
+                  control={form.control}
+                  name="user_address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Jalan Ahmad Yani"
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="company_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company</FormLabel>
+                      <FormControl>
+                        <SelectCompany
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
@@ -195,7 +223,11 @@ export function RegisterForm({
                 )}
               />
 
-              <Button type="submit" disabled={isPending} className="w-full">
+              <Button
+                type="submit"
+                disabled={!form.formState.isValid || isPending}
+                className="w-full"
+              >
                 {isPending ? "Loading..." : "Register"}
               </Button>
               <p className="text-center text-sm text-muted-foreground">
