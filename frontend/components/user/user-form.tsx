@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
@@ -9,62 +10,110 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { UserData } from "@/lib/data/dummy-user";
+import { useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import SelectCompany from "../auth/companyDropDown";
+import { createUserService } from "@/services/admin/user/createUser";
+import { User } from "@/types/user.type";
+import { updateUserService } from "@/services/admin/user/updateUser";
+import { UserSchema } from "@/validation/user.schema";
 
 interface UserFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: UserData) => void;
-  user: UserData | null;
+  user: User | null;
 }
 
-export function UserForm({ isOpen, onClose, onSubmit, user }: UserFormProps) {
-  const [formData, setFormData] = useState<UserData>({
-    id: "",
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    role: "user",
-    active: true,
+const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
+  const queryClient = useQueryClient();
+  const [show, setShow] = useState(false);
+  const [isCompany, setIsCompany] = useState(false);
+  const form = useForm<z.infer<typeof UserSchema>>({
+    resolver: zodResolver(UserSchema),
+    mode: "onChange",
+    defaultValues: {
+      user_name: user?.user_name || "",
+      user_email: user?.user_email || "",
+      user_phone_number: user?.user_phone_number || "",
+      user_address: user?.user_address || "",
+      user_password: user?.user_password || "",
+    },
   });
 
-  useEffect(() => {
-    if (user) setFormData(user);
-    else
-      setFormData({
-        id: "",
-        name: "",
-        email: "",
-        phone: "",
-        company: "",
-        role: "user",
-        active: true,
-      });
-  }, [user]);
+  const { mutate: createUser, isPending } = useMutation({
+    mutationFn: createUserService,
+    onSuccess: (result) => {
+      if (result.status) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ["user"] });
+        onClose();
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
+  const { mutate: updateUser } = useMutation({
+    mutationFn: updateUserService,
+    onSuccess: (result) => {
+      if (result.status) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ["user"] });
+        onClose();
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-    if (e.target instanceof HTMLInputElement && e.target.type === "checkbox") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: e.target,
-      }));
+  const onSubmit = (values: z.infer<typeof UserSchema>) => {
+    if (user?.user_id) {
+      const updatedFields: Partial<typeof values> = {};
+
+      for (const key in values) {
+        const field = key as keyof typeof values;
+
+        if (field === "company_id") {
+          if (values.company_id !== user.company?.company_id) {
+            updatedFields.company_id = values.company_id;
+          }
+        } else if (values[field] !== (user as any)[field]) {
+          updatedFields[field] = values[field];
+        }
+      }
+
+      if (!updatedFields.user_address) delete updatedFields.user_address;
+      if (!updatedFields.company_id) delete updatedFields.company_id;
+
+      updateUser({ userId: user.user_id, data: updatedFields });
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
+      // Mode CREATE
+      const payload = { ...values };
+      if (!payload.user_address) delete payload.user_address;
+      if (!payload.company_id) delete payload.company_id;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+      createUser(payload);
+      form.reset();
+    }
   };
 
   return (
@@ -73,69 +122,154 @@ export function UserForm({ isOpen, onClose, onSubmit, user }: UserFormProps) {
         <DialogHeader>
           <DialogTitle>{user ? "Edit User" : "Add New User"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Name</Label>
-            <Input
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="user_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="m@example.com" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div>
-            <Label>Email</Label>
-            <Input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
+
+            <FormField
+              control={form.control}
+              name="user_email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="m@example.com"
+                      type="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div>
-            <Label>Phone</Label>
-            <Input
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
+
+            <FormField
+              control={form.control}
+              name="user_phone_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="08xxxxxxxxxx" type="tel" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div>
-            <Label>Company</Label>
-            <Input
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div>
-            <Label>Role</Label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
+
+            <RadioGroup
+              className="grid grid-cols-2 gap-6"
+              defaultValue="user"
+              onValueChange={(val) => setIsCompany(val === "company")}
             >
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              name="active"
-              checked={formData.active}
-              onChange={handleChange}
+              <div className="flex items-center gap-3">
+                <RadioGroupItem value="user" id="r1" />
+                <Label htmlFor="r1">User</Label>
+              </div>
+              <div className="flex items-center gap-3">
+                <RadioGroupItem value="company" id="r2" />
+                <Label htmlFor="r2">Company</Label>
+              </div>
+            </RadioGroup>
+
+            {!isCompany ? (
+              <FormField
+                control={form.control}
+                name="user_address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Jalan Ahmad Yani"
+                        type="text"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="company_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company</FormLabel>
+                    <FormControl>
+                      <SelectCompany
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
+              name="user_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        id="password"
+                        placeholder="******"
+                        type={show ? "text" : "password"}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setShow((prev) => !prev)}
+                        className="absolute right-2 top-0 p-0 m-0 bg-transparent border-none shadow-none ring-0 focus:ring-0 focus-visible:ring-0 hover:bg-transparent"
+                        tabIndex={-1}
+                      >
+                        {show ? (
+                          <Eye size={12} className="text-black" />
+                        ) : (
+                          <EyeOff size={12} className="text-black" />
+                        )}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Label>Status Active</Label>
-          </div>
-          <div className="flex justify-end">
-            <Button type="submit">{user ? "Update" : "Create"}</Button>
-          </div>
-        </form>
+
+            <div className="flex justify-end">
+              <Button
+                disabled={isPending || !form.formState.isValid}
+                type="submit"
+              >
+                {user ? "Update" : "Create"}
+              </Button>
+            </div>
+          </form>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default UserForm;

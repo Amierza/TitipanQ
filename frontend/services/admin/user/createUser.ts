@@ -23,7 +23,7 @@ export const createUserService = async (
         },
       }
     );
-
+    
     if (response.status === 200) {
       return response.data as UserResponse;
     } else {

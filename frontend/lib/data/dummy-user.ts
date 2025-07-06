@@ -6,7 +6,7 @@ export interface UserData {
   email: string
   phone: string
   company: string
-  role: "admin" | "user"
+  role: "admin" | "client"
   active: boolean
 }
 
@@ -26,7 +26,7 @@ export const dummyUsers: UserData[] = [
     email: "bob@company.com",
     phone: "082345678901",
     company: "PT Beta",
-    role: "user",
+    role: "client",
     active: false
   },
   {
@@ -35,7 +35,7 @@ export const dummyUsers: UserData[] = [
     email: "clara@company.com",
     phone: "083456789012",
     company: "PT Gamma",
-    role: "user",
+    role: "client",
     active: true
   }
 ]

@@ -1,16 +1,14 @@
 import { z } from "zod";
 
+const phoneNumberRegex = /^(?:\+62|62|0)8[1-9][0-9]{6,10}$/;
+
 export const UserSchema = z.object({
-  user_name: z
+  user_name: z.string().min(3, "Name must have at least 3 characters"),
+  user_email: z.string().email({ message: "Email is not valid" }),
+  user_phone_number: z
     .string()
-    .min(2, { message: "Nama harus terdiri dari minimal 2 karakter" }),
-  user_email: z.string().email({ message: "Email tidak valid" }),
-  user_password: z
-    .string()
-    .min(6, { message: "Password harus terdiri dari minimal 6 karakter" }),
-  user_phone_number: z.string().regex(/^08[0-9]{8,11}$/, {
-    message: "Nomor telepon harus dimulai dengan 08 dan berisi 10-13 digit",
-  }),
-  user_address: z.string().min(5, { message: "Alamat terlalu pendek" }),
-  company_id: z.string().min(1, { message: "User harus menyertakan company" }),
+    .regex(phoneNumberRegex, "Phone number format is not valid"),
+  user_password: z.string().min(3, "Password must have at least 3 characters"),
+  user_address: z.string({ required_error: "Address is required" }).optional(),
+  company_id: z.string({ required_error: "Company is required" }).optional(),
 });
