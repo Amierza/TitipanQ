@@ -1,19 +1,68 @@
+"use client";
+
 import Image from "next/image";
-import { PackageHistory } from "../lib/data/dummy-history";
 import { UserInfo } from "./user/user-info";
 import { PackageStatusBadge } from "./package/package-status-badge";
+import { useQuery } from "@tanstack/react-query";
+import { getAllPackageService } from "@/services/admin/package/getAllPackage";
+import { getAllUserService } from "@/services/admin/user/getAllUser";
+import { imageUrl } from "@/config/api";
 
-interface HistoryTableProps {
-  data: PackageHistory[];
-}
+const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
+  const query = searchQuery.toLowerCase();
 
-export function HistoryTable({ data }: HistoryTableProps) {
+  const { data: packageData } = useQuery({
+    queryKey: ["packageData"],
+    queryFn: getAllPackageService,
+  });
+
+  const { data: userData } = useQuery({
+    queryKey: ["userData"],
+    queryFn: getAllUserService,
+  });
+
+  if (!packageData) return <p>Loading...</p>;
+  if (!userData) return <p>Loading...</p>;
+  if (packageData.status === false) return <p>Failed to fetch data</p>;
+  if (userData.status === false) return <p>Failed to fetch data</p>;
+
+  const dataPackage =
+    packageData.data?.filter(
+      (p) => p.package_status === "completed" || "expired"
+    ) ?? [];
+
+  const combinedData =
+    dataPackage?.map((pkg) => {
+      const user = userData?.data?.find((user) => user.user_id === pkg.user_id);
+      return {
+        ...pkg,
+        user_name: user?.user_name || "Unknown",
+        user_email: user?.user_email || "Unknown",
+        company_name: user?.company?.company_name || "Unknown",
+      };
+    }) ?? [];
+
+  const filteredData = combinedData.filter((pkg) =>
+    [pkg.user_name, pkg.package_description, pkg.company_name].some((val) =>
+      val.toLowerCase().includes(query)
+    )
+  );
+
+  const getFullImageUrl = (imagePath: string) => {
+    if (!imagePath) return "/assets/default_image.jpg";
+
+    if (imagePath.startsWith("http")) return imagePath;
+
+    return `${imageUrl}/package/${imagePath}`;
+  };
+
   return (
     <div className="overflow-x-auto border rounded-xl">
       <table className="min-w-full table-auto bg-white text-sm">
         <thead className="bg-black text-white">
           <tr>
             <th className="p-3 text-left">Photo</th>
+            <th className="p-3 text-left">Description</th>
             <th className="p-3 text-left">Recipient</th>
             <th className="p-3 text-left">Company</th>
             <th className="p-3 text-left">Status</th>
@@ -21,29 +70,34 @@ export function HistoryTable({ data }: HistoryTableProps) {
           </tr>
         </thead>
         <tbody>
-          {data.map((pkg) => (
-            <tr key={pkg.id} className="border-b hover:bg-gray-100">
+          {filteredData.map((pkg) => (
+            <tr key={pkg.package_id} className="border-b hover:bg-gray-100">
               <td className="p-3">
                 <Image
-                  src={pkg.photoUrl}
+                  src={getFullImageUrl(pkg.package_image)}
                   alt="Package"
                   width={64}
                   height={64}
                   className="w-16 h-16 object-cover rounded-md"
                 />
               </td>
+              <td className="p-3">{pkg.package_description}</td>
               <td className="p-3">
-                <UserInfo name={pkg.recipientName} email={pkg.email} />
+                <UserInfo name={pkg.user_name} email={pkg.user_email} />
               </td>
-              <td className="p-3">{pkg.company}</td>
+              <td className="p-3">{pkg.company_name}</td>
               <td className="p-3">
-                <PackageStatusBadge status={pkg.status} />
+                <PackageStatusBadge status={pkg.package_status} />
               </td>
-              <td className="p-3">{new Date(pkg.date).toLocaleDateString()}</td>
+              <td className="p-3">
+                {new Date(pkg.package_expired_at).toLocaleDateString()}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
   );
-}
+};
+
+export default HistoryTable;
