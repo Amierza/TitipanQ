@@ -7,10 +7,13 @@ import { UserSchema } from "@/validation/user.schema";
 import { UserResponse } from "@/types/user.type";
 import axiosAdminConfig from "@/services/auth/auth.config";
 
-export const updateUserService = async (
-  userId: string,
-  data: Partial<z.infer<typeof UserSchema>>
-): Promise<UserResponse | ErrorResponse> => {
+export const updateUserService = async ({
+  userId,
+  data,
+}: {
+  userId: string;
+  data: Partial<z.infer<typeof UserSchema>>;
+}): Promise<UserResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
     const response = await axiosAdminConfig.patch(
@@ -19,7 +22,7 @@ export const updateUserService = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           Accept: "application/json",
         },
       }
