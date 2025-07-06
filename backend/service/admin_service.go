@@ -163,9 +163,13 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
 
-	company, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-	if err != nil || !flag {
-		return dto.UserResponse{}, dto.ErrGetCompanyByID
+	var company *entity.Company
+	if req.CompanyID != nil {
+		c, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
+		if err != nil || !flag {
+			return dto.UserResponse{}, dto.ErrGetCompanyByID
+		}
+		company = &c
 	}
 
 	role, _, err := as.adminRepo.GetRoleByName(ctx, nil, "user")
@@ -181,7 +185,7 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		PhoneNumber: phoneNumberFormatted,
 		Address:     req.Address,
 		CompanyID:   &company.ID,
-		Company:     company,
+		Company:     *company,
 		RoleID:      &role.ID,
 		Role:        role,
 	}
