@@ -13,7 +13,9 @@ import (
 	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
 	"github.com/Amierza/TitipanQ/backend/helpers"
+	"github.com/Amierza/TitipanQ/backend/internal/whatsapp"
 	"github.com/Amierza/TitipanQ/backend/repository"
+	"github.com/Amierza/TitipanQ/backend/utils"
 	"github.com/google/uuid"
 )
 
@@ -184,10 +186,13 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		Password:    req.Password,
 		PhoneNumber: phoneNumberFormatted,
 		Address:     req.Address,
-		CompanyID:   &company.ID,
-		Company:     *company,
 		RoleID:      &role.ID,
 		Role:        role,
+	}
+
+	if company != nil {
+		user.CompanyID = &company.ID
+		user.Company = *company
 	}
 
 	err = as.adminRepo.CreateUser(ctx, nil, user)
@@ -450,7 +455,7 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		return dto.PackageResponse{}, dto.ErrInvalidPackageType
 	}
 
-	_, flag, err := as.adminRepo.GetUserByID(ctx, nil, req.UserID.String())
+	user, flag, err := as.adminRepo.GetUserByID(ctx, nil, req.UserID.String())
 	if !flag || err != nil {
 		return dto.PackageResponse{}, dto.ErrUserNotFound
 	}
@@ -463,10 +468,19 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		Image:       req.Image,
 		ExpiredAt:   helpers.PtrTime(now.AddDate(0, 3, 0)),
 		UserID:      &req.UserID,
+		TimeStamp: entity.TimeStamp{
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
 	}
 
 	if err := as.adminRepo.CreatePackage(ctx, nil, pkg); err != nil {
 		return dto.PackageResponse{}, dto.ErrCreatePackage
+	}
+
+	message := utils.BuildReceivedMessage(&pkg)
+	if err := whatsapp.SendTextMessage(user.PhoneNumber, message); err != nil {
+		log.Println("Failed to send WhatsApp notification:", err)
 	}
 
 	history := entity.PackageHistory{
@@ -695,6 +709,23 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 
 	if err := as.adminRepo.UpdatePackage(ctx, nil, p); err != nil {
 		return dto.UpdatePackageResponse{}, dto.ErrUpdatePackage
+	}
+
+	var message string
+
+	switch req.Status {
+	case entity.Delivered:
+		message = utils.BuildDeliveredMessage(&p)
+	case entity.Completed:
+		message = utils.BuildCompletedMessage(&p)
+	case entity.Expired:
+		message = utils.BuildExpiredMessage(&p)
+	}
+
+	if message != "" {
+		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
+			log.Println("Failed to send WhatsApp notification:", err)
+		}
 	}
 
 	descriptionPkgH := strings.Join(descriptionChanges, ", ")

@@ -88,7 +88,6 @@ func (us *UserService) Register(ctx context.Context, req dto.CreateUserRequest) 
 		Password:    req.Password,
 		PhoneNumber: phoneNumberFormatted,
 		Address:     req.Address,
-		CompanyID:   nil,
 		RoleID:      &role.ID,
 		Role:        role,
 	}
