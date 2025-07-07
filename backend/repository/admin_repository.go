@@ -187,7 +187,7 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 	}
 
 	var user entity.Package
-	if err := tx.WithContext(ctx).Where("id = ?", pkgID).Take(&user).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("User").Where("id = ?", pkgID).Take(&user).Error; err != nil {
 		return entity.Package{}, false, err
 	}
 
