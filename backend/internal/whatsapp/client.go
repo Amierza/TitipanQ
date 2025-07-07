@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
+	"github.com/Amierza/TitipanQ/backend/internal/openai"
 	"github.com/Amierza/TitipanQ/backend/repository"
 	_ "github.com/mattn/go-sqlite3"
 
@@ -21,13 +21,23 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-var chatbotRepo repository.IChatBotRepository
+var (
+	chatbotRepo       repository.IChatBotRepository
+	chatbotNLPService openai.IChatbotNLPService
+	Client            *whatsmeow.Client
+)
+
+// ========== INJECT ==========
 
 func InjectRepository(repo repository.IChatBotRepository) {
 	chatbotRepo = repo
 }
 
-var Client *whatsmeow.Client
+func InjectNLPService(s openai.IChatbotNLPService) {
+	chatbotNLPService = s
+}
+
+// ========== INIT CLIENT ==========
 
 func InitClient() error {
 	dbLog := waLog.Stdout("DB", "INFO", true)
@@ -45,30 +55,27 @@ func InitClient() error {
 	Client.AddEventHandler(eventHandler)
 
 	if Client.Store.ID == nil {
-		// Belum login, generate QR
 		qrChan, _ := Client.GetQRChannel(context.Background())
 		err = Client.Connect()
 		if err != nil {
 			return fmt.Errorf("failed to connect: %w", err)
 		}
-
 		for evt := range qrChan {
 			if evt.Event == "code" {
-				fmt.Println("🔑 Scan QR code to login:", evt.Code)
+				fmt.Println("🔑 Scan QR code:", evt.Code)
 				qrcodeTerminal.New().Get(evt.Code).Print()
 			} else {
 				fmt.Println("🔔 QR event:", evt.Event)
 			}
 		}
 	} else {
-		// Sudah login, langsung connect
 		err = Client.Connect()
 		if err != nil {
 			return fmt.Errorf("failed to connect (logged-in): %w", err)
 		}
 	}
 
-	// Optional: menangani CTRL+C agar disconnect dengan baik
+	// Graceful shutdown
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -79,28 +86,18 @@ func InitClient() error {
 	return nil
 }
 
+// ========== EVENT HANDLER ==========
+
 func eventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *waEvents.Message:
 		msg := v.Message.GetConversation()
 		if msg != "" {
 			fmt.Println("📩 Pesan masuk:", msg)
-			if strings.HasPrefix(strings.ToLower(msg), "cek paket") {
-				parts := strings.Split(msg, " ")
-				if len(parts) >= 3 {
-					packageID := parts[2]
-					go handlePackageCheck(v.Info.Sender.User, packageID)
-				} else {
-					go SendTextMessage(v.Info.Sender.User+"@s.whatsapp.net", "❌ Format salah. Contoh: cek paket <id>")
-				}
-			}
+			go handleIncomingMessage(v.Info.Sender.User, msg)
 		}
-	case *waEvents.Disconnected:
-		fmt.Println("❌ WhatsApp disconnected, mencoba reconnect...")
-		go reconnectClient()
-
-	case *waEvents.LoggedOut:
-		fmt.Println("🔌 WhatsApp logged out, mencoba reconnect...")
+	case *waEvents.Disconnected, *waEvents.LoggedOut:
+		fmt.Println("🔌 WhatsApp disconnected/logged out, reconnecting...")
 		go reconnectClient()
 	}
 }
@@ -109,12 +106,42 @@ func reconnectClient() {
 	if Client != nil {
 		Client.Disconnect()
 	}
-
 	err := Client.Connect()
 	if err != nil {
 		fmt.Println("⚠️ Gagal reconnect:", err)
 	} else {
-		fmt.Println("✅ Berhasil reconnect WhatsApp")
+		fmt.Println("✅ Reconnect berhasil")
+	}
+}
+
+// ========== HANDLER LOGIC ==========
+
+func handleIncomingMessage(userPhone, message string) {
+	if chatbotNLPService == nil {
+		SendTextMessage(userPhone, "❌ Sistem belum siap.")
+		return
+	}
+
+	intentResult, err := chatbotNLPService.GetIntent(message)
+	if err != nil {
+		fmt.Println("[ChatBot] Gagal proses NLP:", err)
+		SendTextMessage(userPhone, "❌ Maaf, sistem mengalami kendala.")
+		return
+	}
+
+	switch intentResult.Intent {
+	case "check_package":
+		if intentResult.PackageID == "" {
+			SendTextMessage(userPhone, "❌ Mohon sertakan ID paket. Contoh: cek paket 123")
+			return
+		}
+		handlePackageCheck(userPhone, intentResult.PackageID)
+
+	case "greeting":
+		SendTextMessage(userPhone, "👋 Halo! Saya adalah asisten TitipanQ. Ketik *cek paket <id>* untuk mengetahui status paketmu.")
+
+	default:
+		SendTextMessage(userPhone, "🤔 Maaf, saya tidak mengerti maksud kamu. Coba ketik *cek paket <id>*.")
 	}
 }
 
@@ -123,19 +150,14 @@ func handlePackageCheck(userPhone, packageID string) {
 
 	if chatbotRepo == nil {
 		fmt.Println("[ChatBot] Repository belum di-inject")
-		SendTextMessage(userPhone+"@s.whatsapp.net", "❌ Sistem belum siap.")
+		SendTextMessage(userPhone, "❌ Sistem belum siap.")
 		return
 	}
 
 	pkg, err := chatbotRepo.FindByID(packageID)
-	if err != nil {
-		fmt.Println("[ChatBot] ERROR saat cari paket:", err)
-		SendTextMessage(userPhone+"@s.whatsapp.net", "❌ Paket tidak ditemukan.")
-		return
-	}
-	if pkg == nil {
-		fmt.Println("[ChatBot] Paket tidak ditemukan.")
-		SendTextMessage(userPhone+"@s.whatsapp.net", "❌ Paket tidak ditemukan.")
+	if err != nil || pkg == nil {
+		fmt.Println("[ChatBot] Paket tidak ditemukan")
+		SendTextMessage(userPhone, "❌ Paket tidak ditemukan.")
 		return
 	}
 
@@ -146,39 +168,35 @@ func handlePackageCheck(userPhone, packageID string) {
 		pkg.Description,
 		pkg.TimeStamp.CreatedAt.Format("02 Jan 2006"),
 	)
-	fmt.Println("[ChatBot] Kirim balasan ke:", userPhone)
-	err = SendTextMessage(userPhone, msg)
-	if err != nil {
-		fmt.Println("[ChatBot] Gagal kirim pesan:", err)
-	}
+	SendTextMessage(userPhone, msg)
 }
 
-func SendTextMessage(phoneNumber string, message string) error {
+// ========== SEND MESSAGE ==========
+
+func SendTextMessage(jidStr, message string) error {
 	if Client == nil {
 		return fmt.Errorf("WhatsApp client not initialized")
 	}
 
-	jid := types.NewJID(phoneNumber, "s.whatsapp.net")
+	jid := types.NewJID(jidStr, "s.whatsapp.net")
 	msg := &waE2E.Message{
 		Conversation: &message,
 	}
 
 	fmt.Println("[WA] Kirim pesan ke", jid.String(), "dengan isi:", message)
-
 	resp, err := Client.SendMessage(context.Background(), jid, msg)
 	if err != nil {
 		fmt.Println("[WA] Kirim gagal:", err)
-		fmt.Println("[WA] Coba reconnect...")
 		reconnectClient()
-
-		// Retry setelah reconnect
 		time.Sleep(2 * time.Second)
+
+		// Retry
 		resp2, retryErr := Client.SendMessage(context.Background(), jid, msg)
 		if retryErr != nil {
-			fmt.Println("[WA] Gagal retry:", retryErr)
-			return fmt.Errorf("failed to send message after reconnect: %w", retryErr)
+			fmt.Println("[WA] Retry gagal:", retryErr)
+			return retryErr
 		}
-		fmt.Println("[WA] Retry berhasil:", resp2)
+		fmt.Println("[WA] Retry sukses:", resp2)
 		return nil
 	}
 
