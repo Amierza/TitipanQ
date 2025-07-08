@@ -31,7 +31,14 @@ export const PackageSchema = z.object({
   user_id: z.string().uuid({ message: "User ID harus berupa UUID yang valid" }),
 });
 
-export const UpdatePackageSchema = PackageSchema.extend({
+export const UpdatePackageSchema = z.object({
+  package_description: z
+    .string()
+    .min(1, { message: "Deskripsi paket tidak boleh kosong" }),
+  package_type: z.nativeEnum(PackageType, {
+    required_error: "Tipe paket harus diisi",
+  }),
+  user_id: z.string().uuid({ message: "User ID harus berupa UUID yang valid" }),
   package_status: z.nativeEnum(PackageStatus, {
     required_error: "Status paket harus diisi",
   }),

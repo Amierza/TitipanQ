@@ -1,16 +1,13 @@
 // components/PackageSection.tsx
-import { Clock, CheckCircle, AlertTriangle } from "lucide-react";
-import { PackageCard } from "./package-card";
+import {
+  Clock,
+  PackageCheck,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
+import { PackageCard, PackageItem } from "./package-card";
 
-interface PackageItem {
-  id: number;
-  status: string;
-  sender: string;
-  received_date: string;
-  photo_url: string;
-}
-
-type IconType = "pending" | "done" | "expired";
+type PackageStatus = "received" | "delivered" | "completed" | "expired";
 
 export function PackageSection({
   title,
@@ -20,7 +17,7 @@ export function PackageSection({
   cardProps = {},
 }: {
   title: string;
-  icon: IconType;
+  icon: PackageStatus;
   items: PackageItem[];
   highlight?: boolean;
   cardProps?: {
@@ -29,13 +26,28 @@ export function PackageSection({
     footer?: (item: PackageItem) => React.ReactNode;
   };
 }) {
-  const Icon = icon === "pending" ? Clock : icon === "done" ? CheckCircle : AlertTriangle;
-  const iconClass =
-    icon === "pending"
-      ? "text-orange-500"
-      : icon === "done"
-      ? "text-green-500"
-      : "text-red-500";
+  let Icon;
+  let iconClass = "";
+
+  switch (icon) {
+    case "received":
+      Icon = Clock;
+      iconClass = "text-yellow-500";
+      break;
+    case "delivered":
+      Icon = PackageCheck;
+      iconClass = "text-blue-500";
+      break;
+    case "completed":
+      Icon = CheckCircle;
+      iconClass = "text-green-500";
+      break;
+    case "expired":
+    default:
+      Icon = AlertTriangle;
+      iconClass = "text-red-500";
+      break;
+  }
 
   return (
     <div>
@@ -46,7 +58,7 @@ export function PackageSection({
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((item) => (
           <PackageCard
-            key={item.id}
+            key={item.package_id}
             item={item}
             highlight={highlight}
             topRightBadge={cardProps.topRightBadge?.(item)}

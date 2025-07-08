@@ -1,16 +1,17 @@
-// components/PackageCard.tsx
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Calendar, User } from "lucide-react";
+import { FileText, CalendarX } from "lucide-react";
 import Image from "next/image";
 import { ReactNode } from "react";
 import { StatusBadge } from "../status-badge";
 
-interface PackageItem {
-  id: number;
-  status: string;
-  sender: string;
-  received_date: string;
-  photo_url: string;
+export interface PackageItem {
+  package_id: string;
+  package_description: string;
+  package_image: string;
+  package_type: string;
+  package_status: string;
+  package_delivered_at: string;
+  package_expired_at: string;
 }
 
 interface Props {
@@ -21,45 +22,76 @@ interface Props {
   footer?: ReactNode;
 }
 
-export function PackageCard({ item, topRightBadge, cardClassName = "", footer }: Props) {
+export function PackageCard({
+  item,
+  topRightBadge,
+  cardClassName = "",
+  footer,
+}: Props) {
   return (
-    <Card className={cardClassName}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <StatusBadge status={item.status} />
-          <span className="text-xs text-muted-foreground">#{item.id}</span>
+    <Card
+      className={`rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg ${cardClassName}`}
+    >
+      {/* Header */}
+      <CardHeader className="pb-1 pt-4 px-4">
+        <div className="flex flex-col items-start gap-0.5">
+          <StatusBadge status={item.package_status} />
+          <span className="text-xs text-muted-foreground font-mono">
+            #{item.package_id}
+          </span>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="relative">
-          <Image
-            src={item.photo_url}
-            alt="Paket"
-            width={400}
-            height={200}
-            className={`w-full h-32 object-cover rounded-md ${item.status === "Kadaluarsa" ? "grayscale-[30%]" : ""}`}
-          />
-          {topRightBadge && (
-            <div className="absolute top-2 right-2">
-              {topRightBadge}
+
+      {/* Image */}
+      <div className="relative px-4">
+        <Image
+          src={item.package_image || "/assets/default_image.jpg"}
+          alt="Package"
+          width={400}
+          height={200}
+          className={`w-full h-36 object-cover rounded-lg transition ${
+            item.package_status === "expired" ? "grayscale" : ""
+          }`}
+        />
+        {topRightBadge && (
+          <div className="absolute top-3 right-6">{topRightBadge}</div>
+        )}
+      </div>
+
+      {/* Content */}
+      <CardContent className="space-y-3 pt-4 px-4 pb-2 text-sm">
+        {/* Deskripsi Paket */}
+        <div className="flex items-start gap-2 text-muted-foreground">
+          <FileText className="w-4 h-4 mt-0.5" />
+          <div>
+            <span className="block font-semibold text-foreground mb-0.5">
+              Description
+            </span>
+            <p className="text-sm">{item.package_description}</p>
+          </div>
+        </div>
+
+        {/* Tanggal Expired */}
+        {item.package_expired_at && (
+          <div className="flex items-start gap-2 text-muted-foreground">
+            <CalendarX className="w-4 h-4 mt-0.5" />
+            <div>
+              <span className="block font-semibold text-foreground mb-0.5">
+                Expired At
+              </span>
+              <p className="text-sm">
+                {new Date(item.package_expired_at).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
             </div>
-          )}
-        </div>
-
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium">Sender:</span>
-            <span>{item.sender}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium">Receive Date:</span>
-            <span>{item.received_date}</span>
-          </div>
-        </div>
+        )}
 
-        {footer}
+        {/* Footer (Histori Status) */}
+        {footer && <div className="pt-2">{footer}</div>}
       </CardContent>
     </Card>
   );

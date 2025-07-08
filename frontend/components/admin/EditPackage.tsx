@@ -87,7 +87,6 @@ const EditPackageSection = () => {
                 package_type: isValidPackageType(packageDetail.package_type)
                   ? packageDetail.package_type
                   : PackageType.Other,
-                package_image: undefined as unknown as File,
                 user_id: packageDetail.user_id,
                 package_status: packageDetail.package_status as PackageStatus,
               }}

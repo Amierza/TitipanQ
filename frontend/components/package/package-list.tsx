@@ -5,12 +5,22 @@ import { Pencil, FileText, Package, User } from "lucide-react";
 import Link from "next/link";
 import DeletePackageButton from "./package-delete-button";
 import Image from "next/image";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllPackageService } from "@/services/admin/package/getAllPackage";
 import { getAllUserService } from "@/services/admin/user/getAllUser";
 import { imageUrl } from "@/config/api";
+import { deletePackageService } from "@/services/admin/package/deletePackage";
+import { toast } from "sonner";
+import { useState } from "react";
+import { Package as PackageType } from "@/types/package.type";
+import DeleteConfirmationPackage from "./delete-confirmation-package";
 
 const PackageList = () => {
+  const queryClient = useQueryClient();
+  const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(
+    null
+  );
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { data: packageData } = useQuery({
     queryKey: ["package"],
     queryFn: getAllPackageService,
@@ -20,6 +30,41 @@ const PackageList = () => {
     queryKey: ["user"],
     queryFn: getAllUserService,
   });
+
+  const { mutate: deletePackage } = useMutation({
+    mutationFn: deletePackageService,
+    onSuccess: (result) => {
+      if (result.status) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ["package"] });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleDelete = (pkg: PackageType) => {
+    setSelectedPackage(pkg);
+    setIsDeleteOpen(true);
+  };
+
+  const confirmDelete = (pkg: PackageType) => {
+    if (selectedPackage) {
+      deletePackage(pkg.package_id);
+    }
+    setIsDeleteOpen(false);
+  };
+
+  const getFullImageUrl = (imagePath: string) => {
+    if (!imagePath) return "/Images/default_image.jpg";
+
+    if (imagePath.startsWith("http")) return imagePath;
+
+    return `${imageUrl}/package/${imagePath}`;
+  };
 
   if (!packageData) return <p>Loading...</p>;
   if (!userData) return <p>Loading...</p>;
@@ -39,14 +84,6 @@ const PackageList = () => {
         company_name: user?.company?.company_name || "Unknown",
       };
     }) ?? [];
-
-  const getFullImageUrl = (imagePath: string) => {
-    if (!imagePath) return "/Images/default_image.jpg";
-
-    if (imagePath.startsWith("http")) return imagePath;
-
-    return `${imageUrl}/package/${imagePath}`;
-  };
 
   if (combinedData.length === 0) {
     return (
@@ -127,11 +164,19 @@ const PackageList = () => {
                   Edit
                 </Button>
               </Link>
-              <DeletePackageButton packageId={pkg.package_id} />
+              <DeletePackageButton onClick={() => handleDelete(pkg)} />
             </div>
           </div>
         </div>
       ))}
+      <DeleteConfirmationPackage
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={() => {
+          if (selectedPackage) confirmDelete(selectedPackage);
+        }}
+        pkg={selectedPackage}
+      />
     </div>
   );
 };
