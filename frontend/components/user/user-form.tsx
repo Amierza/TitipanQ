@@ -106,7 +106,6 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
 
       updateUser({ userId: user.user_id, data: updatedFields });
     } else {
-      // Mode CREATE
       const payload = { ...values };
       if (!payload.user_address) delete payload.user_address;
       if (!payload.company_id) delete payload.company_id;

@@ -18,50 +18,47 @@ import {
 } from "@/components/ui/select";
 import UploadPackagePhoto from "./package-upload-photo";
 import { z } from "zod";
-import { PackageSchema, PackageType } from "@/validation/package.schema";
+import { PackageType, UpdatePackageSchema } from "@/validation/package.schema";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createPackageService } from "@/services/admin/package/createPackage";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { updatePackageService } from "@/services/admin/package/updatePackage";
+import { getPackageService } from "@/services/admin/package/getDetailPackage";
+import { imageUrl } from "@/config/api";
 
 interface PackageFormProps {
   users: { id: string; name: string }[];
   initialPackage?: Partial<PackageSchemaType> & { package_id?: string };
 }
 
-type PackageSchemaType = z.infer<typeof PackageSchema>;
+type PackageSchemaType = z.infer<typeof UpdatePackageSchema>;
 
-export default function PackageForm({
-  users,
-  initialPackage,
-}: PackageFormProps) {
+const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
   const methods = useForm<PackageSchemaType>({
-    resolver: zodResolver(PackageSchema),
+    resolver: zodResolver(UpdatePackageSchema),
     defaultValues: {
       package_description: initialPackage?.package_description || "",
       package_type: initialPackage?.package_type || PackageType.Document,
-      package_image: undefined as unknown as File,
       user_id: initialPackage?.user_id || "",
+      package_status: initialPackage?.package_status,
     },
   });
 
-  const { control, handleSubmit, watch, reset } = methods;
+  const { control, handleSubmit, watch } = methods;
   const image = watch("package_image");
+  const packageId = initialPackage?.package_id as string;
 
-  const createMutation = useMutation({
-    mutationFn: createPackageService,
-    onSuccess: (res) => {
-      toast.success(res.message);
-      reset();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+  const { data: packageData } = useQuery({
+    queryKey: ["package", packageId],
+    queryFn: () => getPackageService(packageId),
   });
 
-  console.log(initialPackage?.package_image);
+  console.log("Package Data : ", packageData);
+  if (packageData?.status === true) {
+    const initialImageUrl = `${imageUrl}/package/${packageData.data.package_image}`;
+    console.log("Image : ", initialImageUrl);
+  }
 
   const updateMutation = useMutation({
     mutationFn: (data: { id: string; payload: PackageSchemaType }) =>
@@ -75,42 +72,38 @@ export default function PackageForm({
   });
 
   const onSubmit = (data: PackageSchemaType) => {
-    if (initialPackage?.package_id) {
-      const updatedPayload: Partial<PackageSchemaType> = {};
+    const updatedPayload: Partial<PackageSchemaType> = {};
 
-      for (const key in data) {
-        const typedKey = key as keyof PackageSchemaType;
-        const newValue = data[typedKey];
-        const oldValue = initialPackage[typedKey];
+    for (const key in data) {
+      const typedKey = key as keyof PackageSchemaType;
+      const newValue = data[typedKey];
+      const oldValue = initialPackage![typedKey];
 
-        const isFileField = typedKey === "package_image";
-        if (isFileField) {
-          if (newValue instanceof File && newValue.size > 0) {
-            updatedPayload[typedKey] =
-              newValue as PackageSchemaType[typeof typedKey];
-          }
-        } else if (newValue !== oldValue) {
-          if (typedKey === "package_type") {
-            updatedPayload[typedKey] = newValue as PackageType;
-          } else {
-            updatedPayload[typedKey] =
-              newValue as PackageSchemaType[typeof typedKey];
-          }
+      const isFileField = typedKey === "package_image";
+      if (isFileField) {
+        if (newValue instanceof File && newValue.size > 0) {
+          updatedPayload[typedKey] =
+            newValue as PackageSchemaType[typeof typedKey];
+        }
+      } else if (newValue !== oldValue) {
+        if (typedKey === "package_type") {
+          updatedPayload[typedKey] = newValue as PackageType;
+        } else {
+          updatedPayload[typedKey] =
+            newValue as PackageSchemaType[typeof typedKey];
         }
       }
-
-      if (Object.keys(updatedPayload).length === 0) {
-        toast.info("Tidak ada perubahan");
-        return;
-      }
-
-      updateMutation.mutate({
-        id: initialPackage.package_id,
-        payload: updatedPayload as PackageSchemaType,
-      });
-    } else {
-      createMutation.mutate(data);
     }
+
+    if (Object.keys(updatedPayload).length === 0) {
+      toast.info("Tidak ada perubahan");
+      return;
+    }
+
+    updateMutation.mutate({
+      id: packageId,
+      payload: updatedPayload as PackageSchemaType,
+    });
   };
 
   return (
@@ -213,4 +206,6 @@ export default function PackageForm({
       </form>
     </FormProvider>
   );
-}
+};
+
+export default PackageFormUpdate;

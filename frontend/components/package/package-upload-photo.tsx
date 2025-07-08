@@ -4,38 +4,47 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
+import { imageUrl } from "@/config/api";
+
+interface UploadPackagePhotoProps {
+  photo: File | null;
+  onChange: (file: File) => void;
+  initialImageUrl?: string;
+}
 
 export default function UploadPackagePhoto({
   photo,
   onChange,
-}: {
-  photo: File | null;
-  onChange: (file: File) => void;
-}) {
-  const [preview, setPreview] = useState<string | null>(
-    photo ? URL.createObjectURL(photo) : null
-  );
+  initialImageUrl,
+}: UploadPackagePhotoProps) {
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (preview) {
-        URL.revokeObjectURL(preview);
+      // Clean up old preview
+      if (localPreview) {
+        URL.revokeObjectURL(localPreview);
       }
 
       const newPreview = URL.createObjectURL(file);
-      setPreview(newPreview);
+      setLocalPreview(newPreview);
       onChange(file);
     }
   };
+
+  const previewUrl =
+    localPreview ??
+    (photo ? URL.createObjectURL(photo) : null) ??
+    (initialImageUrl ? `${imageUrl}/${initialImageUrl}` : null);
 
   return (
     <div className="space-y-2">
       <Label>Upload Foto Package</Label>
       <Input type="file" accept="image/*" onChange={handleFile} />
-      {preview && (
+      {previewUrl && (
         <Image
-          src={preview}
+          src={previewUrl}
           alt="Preview"
           width={128}
           height={128}
