@@ -23,35 +23,93 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPackageService } from "@/services/admin/package/createPackage";
 import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import { updatePackageService } from "@/services/admin/package/updatePackage";
 
 interface PackageFormProps {
   users: { id: string; name: string }[];
+  initialPackage?: Partial<PackageSchemaType> & { package_id?: string };
 }
 
 type PackageSchemaType = z.infer<typeof PackageSchema>;
 
-export default function PackageForm({ users }: PackageFormProps) {
+export default function PackageForm({
+  users,
+  initialPackage,
+}: PackageFormProps) {
   const methods = useForm<PackageSchemaType>({
     resolver: zodResolver(PackageSchema),
     defaultValues: {
-      package_description: "",
-      package_type: PackageType.Document,
+      package_description: initialPackage?.package_description || "",
+      package_type: initialPackage?.package_type || PackageType.Document,
       package_image: undefined as unknown as File,
-      user_id: "",
+      user_id: initialPackage?.user_id || "",
     },
   });
 
   const { control, handleSubmit, watch, reset } = methods;
   const image = watch("package_image");
 
-  const onSubmit = async (data: PackageSchemaType) => {
-    const result = await createPackageService(data);
-
-    if (result.status === true) {
-      toast.success(result.message);
+  const createMutation = useMutation({
+    mutationFn: createPackageService,
+    onSuccess: (res) => {
+      toast.success(res.message);
       reset();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  console.log(initialPackage?.package_image);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: { id: string; payload: PackageSchemaType }) =>
+      updatePackageService(data.id, data.payload),
+    onSuccess: (result) => {
+      toast.success(result.message);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const onSubmit = (data: PackageSchemaType) => {
+    if (initialPackage?.package_id) {
+      const updatedPayload: Partial<PackageSchemaType> = {};
+
+      for (const key in data) {
+        const typedKey = key as keyof PackageSchemaType;
+        const newValue = data[typedKey];
+        const oldValue = initialPackage[typedKey];
+
+        const isFileField = typedKey === "package_image";
+        if (isFileField) {
+          if (newValue instanceof File && newValue.size > 0) {
+            updatedPayload[typedKey] =
+              newValue as PackageSchemaType[typeof typedKey];
+          }
+        } else if (newValue !== oldValue) {
+          if (typedKey === "package_type") {
+            updatedPayload[typedKey] = newValue as PackageType;
+          } else {
+            updatedPayload[typedKey] =
+              newValue as PackageSchemaType[typeof typedKey];
+          }
+        }
+      }
+
+      if (Object.keys(updatedPayload).length === 0) {
+        toast.info("Tidak ada perubahan");
+        return;
+      }
+
+      updateMutation.mutate({
+        id: initialPackage.package_id,
+        payload: updatedPayload as PackageSchemaType,
+      });
     } else {
-      toast.error(result.error);
+      createMutation.mutate(data);
     }
   };
 
@@ -67,6 +125,11 @@ export default function PackageForm({ users }: PackageFormProps) {
                 <UploadPackagePhoto
                   photo={image}
                   onChange={(file) => field.onChange(file)}
+                  initialImageUrl={
+                    typeof initialPackage?.package_image === "string"
+                      ? initialPackage.package_image
+                      : undefined
+                  }
                 />
               </FormControl>
               <FormMessage />

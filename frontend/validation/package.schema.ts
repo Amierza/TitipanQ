@@ -6,6 +6,13 @@ export enum PackageType {
   Other = "other",
 }
 
+export enum PackageStatus {
+  Received = "received",
+  Delivered = "delivered",
+  Completed = "completed",
+  Expired = "expired",
+}
+
 export const PackageSchema = z.object({
   package_description: z
     .string()
@@ -22,4 +29,17 @@ export const PackageSchema = z.object({
     required_error: "Tipe paket harus diisi",
   }),
   user_id: z.string().uuid({ message: "User ID harus berupa UUID yang valid" }),
+});
+
+export const UpdatePackageSchema = z.object({
+  package_description: z
+    .string()
+    .min(1, { message: "Deskripsi paket tidak boleh kosong" }),
+  package_type: z.nativeEnum(PackageType, {
+    required_error: "Tipe paket harus diisi",
+  }),
+  user_id: z.string().uuid({ message: "User ID harus berupa UUID yang valid" }),
+  package_status: z.nativeEnum(PackageStatus, {
+    required_error: "Status paket harus diisi",
+  }),
 });

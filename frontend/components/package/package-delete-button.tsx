@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default function DeletePackageButton({ packageId }: { packageId: string }) {
-  const handleDelete = () => {
-    alert(`Delete package ${packageId}`); // ganti dengan fungsi API call nanti
-  };
-
+export default function DeletePackageButton({
+  onClick,
+}: {
+  onClick: () => void;
+}) {
   return (
-    <Button variant="destructive" size="icon" onClick={handleDelete}>
+    <Button variant="destructive" size="icon" onClick={onClick}>
       <Trash size={16} />
     </Button>
   );
