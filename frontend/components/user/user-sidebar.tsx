@@ -14,18 +14,35 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { getUserProfileService } from "@/services/client/get-user-profile-by-id";
 
 export function UserSidebar() {
   const pathname = usePathname();
 
-  // Mock user data - replace with real data from context/session
-  const userData = {
-    name: "Sergio Conceicao",
-    email: "sergio.concei@email.com",
-    avatar: "/avatars/01.png", // or null if not available
-    role: "Employee",
-    unit: "PT Barcelona Group",
-  };
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: getUserProfileService,
+  });
+
+  // Handling loading & error state
+  if (isLoading || !data) {
+    return (
+      <aside className="w-64 h-screen bg-white border-r shadow-sm flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading user data...</p>
+      </aside>
+    );
+  }
+
+  if (!data.status || isError) {
+    return (
+      <aside className="w-64 h-screen bg-white border-r shadow-sm flex items-center justify-center">
+        <p className="text-sm text-red-500">Failed to load user</p>
+      </aside>
+    );
+  }
+
+  const user = data.data;
 
   const mainMenu = [
     { name: "My Packages", href: "/client/package", icon: PackageSearch },
@@ -43,18 +60,20 @@ export function UserSidebar() {
   ];
 
   const handleLogout = () => {
-    console.log("Logout clicked");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    window.location.href = "/login";
   };
 
   return (
     <aside className="w-64 h-screen bg-white border-r shadow-sm flex flex-col">
-      {/* User Profile Section */}
+      {/* User Info */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-3 mb-3">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={userData.avatar} alt={userData.name} />
+            <AvatarImage src="/avatars/01.png" alt={user.user_name} />
             <AvatarFallback className="bg-blue-100 text-black">
-              {userData.name
+              {user.user_name
                 .split(" ")
                 .map((n) => n[0])
                 .join("")
@@ -62,30 +81,30 @@ export function UserSidebar() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate">{userData.name}</h3>
+            <h3 className="font-semibold text-sm truncate">
+              {user.user_name}
+            </h3>
             <p className="text-xs text-muted-foreground truncate">
-              {userData.email}
+              {user.user_email}
             </p>
           </div>
         </div>
-
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">
-            {userData.role}
+            {user.role.role_name}
           </Badge>
           <Badge variant="outline" className="text-xs">
-            {userData.unit}
+            {user.company.company_name}
           </Badge>
         </div>
       </div>
 
-      {/* Navigation Menu */}
+      {/* Navigation */}
       <div className="flex-1 p-4">
         <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
           Main Menu
         </h2>
         <nav className="space-y-1">
-          {/* Main Menu Items */}
           {mainMenu.map((item, i) => (
             <Link
               key={i}
@@ -110,10 +129,8 @@ export function UserSidebar() {
             </Link>
           ))}
 
-          {/* Separator */}
           <Separator className="my-4" />
 
-          {/* Settings Menu */}
           {bottomMenu.map((item, i) => (
             <Link
               key={`bottom-${i}`}
@@ -134,7 +151,6 @@ export function UserSidebar() {
             </Link>
           ))}
 
-          {/* Logout Button */}
           <Button
             onClick={handleLogout}
             variant="ghost"
