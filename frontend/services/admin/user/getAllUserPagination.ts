@@ -5,17 +5,22 @@ import { ErrorResponse } from "@/types/error";
 import { AllUserResponse } from "@/types/user.type";
 import { AxiosError } from "axios";
 
-export const getAllUserService = async (): Promise<
-  AllUserResponse | ErrorResponse
-> => {
+export const getAllUserPaginationService = async ({
+  page,
+}: {
+  page?: number;
+}): Promise<AllUserResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axiosAdminConfig.get(`${baseUrl}/admin/get-all-user?pagination=${false}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    });
+    const response = await axiosAdminConfig.get(
+      `${baseUrl}/admin/get-all-user?page=${page}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
+    );
 
     if (response.status === 200) {
       return response.data as AllUserResponse;

@@ -13,14 +13,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import UserForm from "../user/user-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllUserService } from "@/services/admin/user/getAllUser";
 import UserTable from "../user/user-table";
 import { User } from "@/types/user.type";
 import { deleteUserService } from "@/services/admin/user/deleteUser";
 import { toast } from "sonner";
-// import { updateUserService } from "@/services/admin/user/updateUser";
+import { getAllUserPaginationService } from "@/services/admin/user/getAllUserPagination";
 
 const UserSettingsSection = () => {
+  const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -31,24 +31,8 @@ const UserSettingsSection = () => {
     setIsFormOpen(true);
   };
 
-//   const { mutate: updateUser } = useMutation({
-//     mutationFn: updateUserService,
-//     onSuccess: (result) => {
-//       if (result.status) {
-//         toast.success(result.message);
-//         queryClient.invalidateQueries({ queryKey: ["user"] });
-//       } else {
-//         toast.error(result.message);
-//       }
-//     },
-//     onError: (error) => {
-//       toast.error(error.message);
-//     },
-//   });
-
   const handleEdit = (user: User) => {
     setSelectedUser(user);
-    // updateUser(user.user_id, )
     setIsFormOpen(true);
   };
 
@@ -80,8 +64,8 @@ const UserSettingsSection = () => {
   };
 
   const { data: userData } = useQuery({
-    queryKey: ["user"],
-    queryFn: getAllUserService,
+    queryKey: ["user", page],
+    queryFn: () => getAllUserPaginationService({ page }),
   });
 
   if (!userData) return <p>Loading...</p>;
@@ -120,6 +104,9 @@ const UserSettingsSection = () => {
 
           <UserTable
             users={userData.data}
+            page={page}
+            setPage={setPage}
+            totalPages={userData.meta.max_page}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />

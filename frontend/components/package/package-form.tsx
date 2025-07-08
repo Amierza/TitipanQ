@@ -52,9 +52,13 @@ export default function PackageForm({
 
   const createMutation = useMutation({
     mutationFn: createPackageService,
-    onSuccess: (res) => {
-      toast.success(res.message);
-      reset();
+    onSuccess: (result) => {
+      if (result.status) {
+        toast.success(result.message);
+        reset();
+      } else {
+        toast.error(result.message);
+      }
     },
     onError: (error) => {
       toast.error(error.message);
