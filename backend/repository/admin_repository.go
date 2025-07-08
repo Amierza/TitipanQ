@@ -20,6 +20,7 @@ type (
 		GetPermissionsByRoleID(ctx context.Context, tx *gorm.DB, roleID string) ([]string, bool, error)
 		GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error)
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
+		GetAllUser(ctx context.Context) ([]entity.User, error)
 		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error)
 		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
 		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
@@ -130,6 +131,29 @@ func (ar *AdminRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, comp
 
 	return company, true, nil
 }
+func (ar *AdminRepository) GetAllUser(ctx context.Context) ([]entity.User, error) {
+	var users []entity.User
+
+	var adminIDs []uuid.UUID
+	if err := ar.db.WithContext(ctx).Model(&entity.Role{}).Where("name != ?", "admin").Pluck("id", &adminIDs).Error; err != nil {
+		return nil, err
+	}
+
+	err := ar.db.WithContext(ctx).
+		Model(&entity.User{}).
+		Where("role_id IN (?)", adminIDs).
+		Preload("Company").
+		Preload("Role").
+		Order("created_at DESC").
+		Find(&users).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = ar.db
@@ -210,7 +234,7 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 		req.Page = 1
 	}
 
-	query := tx.WithContext(ctx).Model(&entity.Package{})
+	query := tx.WithContext(ctx).Model(&entity.Package{}).Preload("User")
 
 	if req.Search != "" {
 		searchValue := "%" + strings.ToLower(req.Search) + "%"
@@ -258,7 +282,7 @@ func (ar *AdminRepository) GetAllPackageHistoryWithPagination(ctx context.Contex
 		req.Page = 1
 	}
 
-	query := tx.WithContext(ctx).Model(&entity.PackageHistory{}).Where("package_id = ?", pkgID)
+	query := tx.WithContext(ctx).Model(&entity.PackageHistory{}).Preload("ChangedByUser").Where("package_id = ?", pkgID)
 
 	if err := query.Count(&count).Error; err != nil {
 		return dto.PackageHistoryPaginationRepositoryResponse{}, err

@@ -227,7 +227,7 @@ type (
 		Status      entity.Status `json:"package_status"`
 		DeliveredAt *time.Time    `json:"package_delivered_at"`
 		ExpiredAt   *time.Time    `json:"package_expired_at"`
-		UserID      uuid.UUID     `json:"user_id"`
+		User        UserResponse  `json:"user"`
 		entity.TimeStamp
 	}
 	PackagePaginationResponse struct {
@@ -251,7 +251,7 @@ type (
 	PackageHistoryResponse struct {
 		ID        uuid.UUID     `json:"history_id"`
 		Status    entity.Status `json:"history_status"`
-		ChangedBy uuid.UUID     `json:"changed_by"`
+		ChangedBy UserResponse  `json:"changed_by"`
 		CreatedAt time.Time     `json:"created_at"`
 	}
 	PackageHistoryPaginationResponse struct {
