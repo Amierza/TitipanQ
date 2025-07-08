@@ -5,6 +5,13 @@ import axios, { AxiosError } from "axios";
 import { baseUrl } from "@/config/api";
 import { LoginResponse } from "@/types/auth";
 import { LoginSchema } from "@/validation/auth.schema";
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  user_id: string;
+  role_id: string;
+  // tambahkan field lain jika perlu
+}
 
 export const loginUserService = async (
   data: z.infer<typeof LoginSchema>
@@ -18,9 +25,17 @@ export const loginUserService = async (
 
     if (response.status === 200) {
       const successResponse = response.data as LoginResponse;
-      localStorage.setItem("access_token", successResponse.data.access_token);
-      localStorage.setItem("refresh_token", successResponse.data.refresh_token);
-      return response.data as LoginResponse;
+
+      const accessToken = successResponse.data.access_token;
+      const refreshToken = successResponse.data.refresh_token;
+
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+
+      const decoded = jwtDecode<JwtPayload>(accessToken);
+      localStorage.setItem("user_id", decoded.user_id);
+
+      return successResponse;
     } else {
       return response.data as ErrorResponse;
     }

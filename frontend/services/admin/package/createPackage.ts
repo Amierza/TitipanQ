@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
+import axiosAdminConfig from "@/services/auth/auth.config";
 import { ErrorResponse } from "@/types/error";
-import { PackageResponse } from "@/types/package/allPackage";
-import axios, { AxiosError } from "axios";
+import { PackageResponse } from "@/types/package.type";
+import { PackageSchema } from "@/validation/package.schema";
+import { AxiosError } from "axios";
+import { z } from "zod";
 
-export const getPackageService = async (
-  packageId: string
+export const createPackageService = async (
+  data: z.infer<typeof PackageSchema>
 ): Promise<PackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.get(
-      `${baseUrl}/admin/delete-package/${packageId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      }
-    );
+    const response = await axiosAdminConfig.post(`${baseUrl}/admin/create-package`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+        Accept: "application/json",
+      },
+    });
 
     if (response.status === 200) {
       return response.data as PackageResponse;
@@ -31,7 +32,7 @@ export const getPackageService = async (
       status: false,
       message:
         axiosError.response?.data?.message ||
-        "Terjadi kesalahan saat melakukan hapus data paket.",
+        "Terjadi kesalahan saat melakukan pembuatan data paket.",
       timestamp: new Date().toISOString(),
       error: axiosError.message || "Unknown error",
     };
