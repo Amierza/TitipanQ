@@ -19,13 +19,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
-import { getAllPackageService } from "@/services/admin/package/getAllPackage";
 import { getAllUserService } from "@/services/admin/user/getAllUser";
+import { getAllPackageService } from "@/services/admin/package/getAllPackage";
+import { useState } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
 
 const HomePage = () => {
+  const [page, setPage] = useState(1);
   const { data: packageData } = useQuery({
-    queryKey: ["packageData"],
-    queryFn: getAllPackageService,
+    queryKey: ["packageData", page],
+    queryFn: () => getAllPackageService({ page }),
   });
 
   const { data: userData } = useQuery({
@@ -61,11 +71,15 @@ const HomePage = () => {
     const variant =
       status === "received"
         ? "default"
-        : status === "picked Up"
-        ? "secondary"
+        : status === "completed"
+        ? "success"
+        : status === "delivered"
+        ? "warning"
         : "destructive";
     return <Badge variant={variant}>{status}</Badge>;
   };
+
+  console.log(packageData.meta.max_page);
 
   return (
     <SidebarInset>
@@ -142,7 +156,9 @@ const HomePage = () => {
               <TableBody>
                 {combinedData.map((pkg, index) => (
                   <TableRow key={index}>
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                      {(page - 1) * packageData.meta.per_page + (index + 1)}
+                    </TableCell>
                     <TableCell>{pkg.user_name}</TableCell>
                     <TableCell>{pkg.company_name}</TableCell>
                     <TableCell>{pkg.package_type}</TableCell>
@@ -151,6 +167,47 @@ const HomePage = () => {
                 ))}
               </TableBody>
             </Table>
+
+            {packageData?.meta && (
+              <div className="mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        className="cursor-pointer"
+                        onClick={() => page > 1 && setPage((prev) => prev - 1)}
+                      />
+                    </PaginationItem>
+
+                    {Array.from(
+                      { length: packageData.meta.max_page },
+                      (_, index) => (
+                        <PaginationItem key={index}>
+                          <PaginationLink
+                            isActive={page === index + 1}
+                            onClick={() => {
+                              setPage(index + 1);
+                            }}
+                          >
+                            {index + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        className="cursor-pointer"
+                        onClick={() =>
+                          page < packageData.meta.max_page &&
+                          setPage((prev) => prev + 1)
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

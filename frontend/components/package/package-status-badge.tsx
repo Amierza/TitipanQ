@@ -13,12 +13,12 @@ export function PackageStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "received":
       icon = Clock;
-      color = "bg-yellow-500 text-white";
+      color = "bg-blue-500 text-white";
       label = "Received";
       break;
     case "delivered":
       icon = PackageCheck;
-      color = "bg-blue-500 text-white";
+      color = "bg-yellow-500 text-white";
       label = "Delivered";
       break;
     case "completed":

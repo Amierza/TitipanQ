@@ -72,7 +72,11 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
     mutationFn: (data: { id: string; payload: PackageSchemaType }) =>
       updatePackageService(data.id, data.payload),
     onSuccess: (result) => {
-      toast.success(result.message);
+      if (result.status) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
       queryClient.invalidateQueries({ queryKey: ["package"] });
       router.back();
     },

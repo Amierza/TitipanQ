@@ -5,17 +5,22 @@ import { ErrorResponse } from "@/types/error";
 import { AllPackageResponse } from "@/types/package.type";
 import { AxiosError } from "axios";
 
-export const getAllPackageService = async (): Promise<
-  AllPackageResponse | ErrorResponse
-> => {
+export const getAllPackageService = async ({
+  page,
+}: {
+  page?: number;
+}): Promise<AllPackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axiosAdminConfig.get(`${baseUrl}/admin/get-all-package`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    });
+    const response = await axiosAdminConfig.get(
+      `${baseUrl}/admin/get-all-package?page=${page}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
+    );
 
     if (response.status === 200) {
       return response.data as AllPackageResponse;
