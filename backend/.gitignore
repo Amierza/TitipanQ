@@ -1,5 +1,8 @@
 *.env
 storage/
-assets/
 volumes/
 .vscode/
+assets/**
+!assets/
+!assets/package/
+!assets/package/.gitkeep

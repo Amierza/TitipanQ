@@ -372,7 +372,23 @@ func (us *UserService) ReadAllPackageWithPagination(ctx context.Context, req dto
 			Status:      pkg.Status,
 			DeliveredAt: pkg.DeliveredAt,
 			ExpiredAt:   pkg.ExpiredAt,
-			UserID:      *pkg.UserID,
+			User: dto.UserResponse{
+				ID:          pkg.User.ID,
+				Name:        pkg.User.Name,
+				Email:       pkg.User.Email,
+				Password:    pkg.User.Password,
+				PhoneNumber: pkg.User.PhoneNumber,
+				Address:     pkg.User.Address,
+				Company: dto.CompanyResponse{
+					ID:      pkg.User.CompanyID,
+					Name:    pkg.User.Company.Name,
+					Address: pkg.User.Company.Address,
+				},
+				Role: dto.RoleResponse{
+					ID:   pkg.User.RoleID,
+					Name: pkg.User.Role.Name,
+				},
+			},
 			TimeStamp: entity.TimeStamp{
 				CreatedAt: pkg.CreatedAt,
 				UpdatedAt: pkg.UpdatedAt,
@@ -406,7 +422,23 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 		Status:      pkg.Status,
 		DeliveredAt: pkg.DeliveredAt,
 		ExpiredAt:   pkg.ExpiredAt,
-		UserID:      *pkg.UserID,
+		User: dto.UserResponse{
+			ID:          pkg.User.ID,
+			Name:        pkg.User.Name,
+			Email:       pkg.User.Email,
+			Password:    pkg.User.Password,
+			PhoneNumber: pkg.User.PhoneNumber,
+			Address:     pkg.User.Address,
+			Company: dto.CompanyResponse{
+				ID:      pkg.User.CompanyID,
+				Name:    pkg.User.Company.Name,
+				Address: pkg.User.Company.Address,
+			},
+			Role: dto.RoleResponse{
+				ID:   pkg.User.RoleID,
+				Name: pkg.User.Role.Name,
+			},
+		},
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: pkg.CreatedAt,
 			UpdatedAt: pkg.UpdatedAt,
@@ -428,9 +460,25 @@ func (us *UserService) ReadAllPackageHistoryWithPagination(ctx context.Context, 
 	var datas []dto.PackageHistoryResponse
 	for _, pkgH := range dataWithPaginate.PackageHistories {
 		data := dto.PackageHistoryResponse{
-			ID:        pkgH.ID,
-			Status:    pkgH.Status,
-			ChangedBy: *pkgH.ChangedBy,
+			ID:     pkgH.ID,
+			Status: pkgH.Status,
+			ChangedBy: dto.UserResponse{
+				ID:          pkgH.ChangedByUser.ID,
+				Name:        pkgH.ChangedByUser.Name,
+				Email:       pkgH.ChangedByUser.Email,
+				Password:    pkgH.ChangedByUser.Password,
+				PhoneNumber: pkgH.ChangedByUser.PhoneNumber,
+				Address:     pkgH.ChangedByUser.Address,
+				Company: dto.CompanyResponse{
+					ID:      pkgH.ChangedByUser.CompanyID,
+					Name:    pkgH.ChangedByUser.Company.Name,
+					Address: pkgH.ChangedByUser.Company.Address,
+				},
+				Role: dto.RoleResponse{
+					ID:   pkgH.ChangedByUser.RoleID,
+					Name: pkgH.ChangedByUser.Role.Name,
+				},
+			},
 			CreatedAt: pkgH.CreatedAt,
 		}
 		datas = append(datas, data)

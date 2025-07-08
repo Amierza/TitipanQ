@@ -112,6 +112,23 @@ func (ah *AdminHandler) CreateUser(ctx *gin.Context) {
 	ctx.AbortWithStatusJSON(http.StatusOK, res)
 }
 func (ah *AdminHandler) ReadAllUser(ctx *gin.Context) {
+	paginationParam := ctx.DefaultQuery("pagination", "true")
+	usePagination := paginationParam != "false"
+
+	if !usePagination {
+		// Tanpa pagination
+		result, err := ah.adminService.ReadAllUserNoPagination(ctx.Request.Context())
+		if err != nil {
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_USER, err.Error(), nil)
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+			return
+		}
+
+		res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_LIST_USER, result)
+		ctx.JSON(http.StatusOK, res)
+		return
+	}
+
 	var payload dto.PaginationRequest
 	if err := ctx.ShouldBind(&payload); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)

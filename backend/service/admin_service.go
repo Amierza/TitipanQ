@@ -27,6 +27,7 @@ type (
 
 		// User
 		CreateUser(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error)
+		ReadAllUserNoPagination(ctx context.Context) ([]dto.UserResponse, error)
 		ReadAllUserWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.UserPaginationResponse, error)
 		GetDetailUser(ctx context.Context, userID string) (dto.UserResponse, error)
 		UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error)
@@ -219,6 +220,36 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 	}
 
 	return res, nil
+}
+func (as *AdminService) ReadAllUserNoPagination(ctx context.Context) ([]dto.UserResponse, error) {
+	users, err := as.adminRepo.GetAllUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var datas []dto.UserResponse
+	for _, user := range users {
+		data := dto.UserResponse{
+			ID:          user.ID,
+			Name:        user.Name,
+			Email:       user.Email,
+			Password:    user.Password,
+			PhoneNumber: user.PhoneNumber,
+			Address:     user.Address,
+		}
+		data.Company = dto.CompanyResponse{
+			ID:      user.CompanyID,
+			Name:    user.Company.Name,
+			Address: user.Company.Address,
+		}
+		data.Role = dto.RoleResponse{
+			ID:   user.RoleID,
+			Name: user.Role.Name,
+		}
+		datas = append(datas, data)
+	}
+
+	return datas, nil
 }
 func (as *AdminService) ReadAllUserWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.UserPaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllUserWithPagination(ctx, nil, req)
@@ -467,7 +498,8 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		Status:      entity.Received,
 		Image:       req.Image,
 		ExpiredAt:   helpers.PtrTime(now.AddDate(0, 3, 0)),
-		UserID:      &req.UserID,
+		UserID:      &user.ID,
+		User:        user,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: now,
 			UpdatedAt: now,
@@ -503,7 +535,23 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		Status:      pkg.Status,
 		DeliveredAt: pkg.DeliveredAt,
 		ExpiredAt:   pkg.ExpiredAt,
-		UserID:      *pkg.UserID,
+		User: dto.UserResponse{
+			ID:          user.ID,
+			Name:        user.Name,
+			Email:       user.Email,
+			Password:    user.Password,
+			PhoneNumber: user.PhoneNumber,
+			Address:     user.Address,
+			Company: dto.CompanyResponse{
+				ID:      user.CompanyID,
+				Name:    user.Company.Name,
+				Address: user.Company.Address,
+			},
+			Role: dto.RoleResponse{
+				ID:   user.RoleID,
+				Name: user.Role.Name,
+			},
+		},
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: now,
 			UpdatedAt: now,
@@ -526,7 +574,23 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 			Status:      pkg.Status,
 			DeliveredAt: pkg.DeliveredAt,
 			ExpiredAt:   pkg.ExpiredAt,
-			UserID:      *pkg.UserID,
+			User: dto.UserResponse{
+				ID:          pkg.User.ID,
+				Name:        pkg.User.Name,
+				Email:       pkg.User.Email,
+				Password:    pkg.User.Password,
+				PhoneNumber: pkg.User.PhoneNumber,
+				Address:     pkg.User.Address,
+				Company: dto.CompanyResponse{
+					ID:      pkg.User.CompanyID,
+					Name:    pkg.User.Company.Name,
+					Address: pkg.User.Company.Address,
+				},
+				Role: dto.RoleResponse{
+					ID:   pkg.User.RoleID,
+					Name: pkg.User.Role.Name,
+				},
+			},
 			TimeStamp: entity.TimeStamp{
 				CreatedAt: pkg.CreatedAt,
 				UpdatedAt: pkg.UpdatedAt,
@@ -560,7 +624,23 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, pkgID string) (dto
 		Status:      pkg.Status,
 		DeliveredAt: pkg.DeliveredAt,
 		ExpiredAt:   pkg.ExpiredAt,
-		UserID:      *pkg.UserID,
+		User: dto.UserResponse{
+			ID:          pkg.User.ID,
+			Name:        pkg.User.Name,
+			Email:       pkg.User.Email,
+			Password:    pkg.User.Password,
+			PhoneNumber: pkg.User.PhoneNumber,
+			Address:     pkg.User.Address,
+			Company: dto.CompanyResponse{
+				ID:      pkg.User.CompanyID,
+				Name:    pkg.User.Company.Name,
+				Address: pkg.User.Company.Address,
+			},
+			Role: dto.RoleResponse{
+				ID:   pkg.User.RoleID,
+				Name: pkg.User.Role.Name,
+			},
+		},
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: pkg.CreatedAt,
 			UpdatedAt: pkg.UpdatedAt,
@@ -582,9 +662,25 @@ func (as *AdminService) ReadAllPackageHistoryWithPagination(ctx context.Context,
 	var datas []dto.PackageHistoryResponse
 	for _, pkgH := range dataWithPaginate.PackageHistories {
 		data := dto.PackageHistoryResponse{
-			ID:        pkgH.ID,
-			Status:    pkgH.Status,
-			ChangedBy: *pkgH.ChangedBy,
+			ID:     pkgH.ID,
+			Status: pkgH.Status,
+			ChangedBy: dto.UserResponse{
+				ID:          pkgH.ChangedByUser.ID,
+				Name:        pkgH.ChangedByUser.Name,
+				Email:       pkgH.ChangedByUser.Email,
+				Password:    pkgH.ChangedByUser.Password,
+				PhoneNumber: pkgH.ChangedByUser.PhoneNumber,
+				Address:     pkgH.ChangedByUser.Address,
+				Company: dto.CompanyResponse{
+					ID:      pkgH.ChangedByUser.CompanyID,
+					Name:    pkgH.ChangedByUser.Company.Name,
+					Address: pkgH.ChangedByUser.Company.Address,
+				},
+				Role: dto.RoleResponse{
+					ID:   pkgH.ChangedByUser.RoleID,
+					Name: pkgH.ChangedByUser.Role.Name,
+				},
+			},
 			CreatedAt: pkgH.CreatedAt,
 		}
 		datas = append(datas, data)
@@ -778,7 +874,23 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		Status:      deletedPackage.Status,
 		DeliveredAt: deletedPackage.DeliveredAt,
 		ExpiredAt:   deletedPackage.ExpiredAt,
-		UserID:      *deletedPackage.UserID,
+		User: dto.UserResponse{
+			ID:          deletedPackage.User.ID,
+			Name:        deletedPackage.User.Name,
+			Email:       deletedPackage.User.Email,
+			Password:    deletedPackage.User.Password,
+			PhoneNumber: deletedPackage.User.PhoneNumber,
+			Address:     deletedPackage.User.Address,
+			Company: dto.CompanyResponse{
+				ID:      deletedPackage.User.CompanyID,
+				Name:    deletedPackage.User.Company.Name,
+				Address: deletedPackage.User.Company.Address,
+			},
+			Role: dto.RoleResponse{
+				ID:   deletedPackage.User.RoleID,
+				Name: deletedPackage.User.Role.Name,
+			},
+		},
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: deletedPackage.CreatedAt,
 			UpdatedAt: deletedPackage.UpdatedAt,
