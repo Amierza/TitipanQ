@@ -1,23 +1,57 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   PackageSearch,
-  History,
   MessageSquareText,
   Settings,
   LogOut,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
 import { getUserProfileService } from "@/services/client/get-user-profile-by-id";
 
-export function UserSidebar() {
+const mainMenuItems = [
+  {
+    title: "My Packages",
+    href: "/client/package",
+    icon: PackageSearch,
+  },
+  {
+    title: "Ask In Whatsapp",
+    href: "https://wa.me/6282332384036",
+    icon: MessageSquareText,
+    external: true,
+  },
+];
+
+const settingsMenuItems = [
+  {
+    title: "Account Settings",
+    href: "/client/edit-account",
+    icon: Settings,
+  },
+];
+
+export function UserSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   const { data, isLoading, isError } = useQuery({
@@ -25,142 +59,131 @@ export function UserSidebar() {
     queryFn: getUserProfileService,
   });
 
-  // Handling loading & error state
-  if (isLoading || !data) {
-    return (
-      <aside className="w-64 h-screen bg-white border-r shadow-sm flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading user data...</p>
-      </aside>
-    );
-  }
-
-  if (!data.status || isError) {
-    return (
-      <aside className="w-64 h-screen bg-white border-r shadow-sm flex items-center justify-center">
-        <p className="text-sm text-red-500">Failed to load user</p>
-      </aside>
-    );
-  }
-
-  const user = data.data;
-
-  const mainMenu = [
-    { name: "My Packages", href: "/client/package", icon: PackageSearch },
-    { name: "History", href: "/client/history", icon: History },
-    {
-      name: "Ask In Whatsapp",
-      href: "https://wa.me/6282332384036",
-      icon: MessageSquareText,
-      external: true,
-    },
-  ];
-
-  const bottomMenu = [
-    { name: "Account Settings", href: "/client/edit-account", icon: Settings },
-  ];
-
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     window.location.href = "/login";
   };
 
+  // Loading state
+  if (isLoading || !data) {
+    return (
+      <Sidebar {...props}>
+        <SidebarHeader className="flex items-center justify-center px-4 py-3 border-b">
+          <p className="text-sm text-muted-foreground">Loading user data...</p>
+        </SidebarHeader>
+      </Sidebar>
+    );
+  }
+
+  // Error state
+  if (!data.status || isError) {
+    return (
+      <Sidebar {...props}>
+        <SidebarHeader className="flex items-center justify-center px-4 py-3 border-b">
+          <p className="text-sm text-red-500">Failed to load user</p>
+        </SidebarHeader>
+      </Sidebar>
+    );
+  }
+
+  const user = data.data;
+
   return (
-    <aside className="w-64 h-screen bg-white border-r shadow-sm flex flex-col">
-      {/* User Info */}
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-3 mb-3">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src="/avatars/01.png" alt={user.user_name} />
-            <AvatarFallback className="bg-blue-100 text-black">
-              {user.user_name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate">
-              {user.user_name}
-            </h3>
-            <p className="text-xs text-muted-foreground truncate">
-              {user.user_email}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
-            {user.role.role_name}
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            {user.company.company_name}
-          </Badge>
-        </div>
+    <Sidebar {...props}>
+    <SidebarHeader className="flex flex-col items-center justify-center gap-3 px-4 py-5 border-b">
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-sm font-medium truncate">
+          {user.user_name}
+        </span>
+        <span className="text-xs text-muted-foreground truncate">
+          {user.user_email}
+        </span>
       </div>
+      <Badge variant="outline" className="text-xs mt-2 py-3">
+        {user.company.company_name}
+      </Badge>
+    </SidebarHeader>
 
-      {/* Navigation */}
-      <div className="flex-1 p-4">
-        <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-          Main Menu
-        </h2>
-        <nav className="space-y-1">
-          {mainMenu.map((item, i) => (
-            <Link
-              key={i}
-              href={item.href}
-              target={item.external ? "_blank" : "_self"}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-sm",
-                pathname === item.href &&
-                  "bg-white text-black font-medium border border-black"
-              )}
-            >
-              <item.icon
-                className={cn(
-                  "w-4 h-4",
-                  pathname === item.href ? "text-black" : "text-gray-500"
-                )}
-              />
-              {item.name}
-              {item.external && (
-                <span className="ml-auto text-xs text-muted-foreground">↗</span>
-              )}
-            </Link>
-          ))}
+      {/* Sidebar Content */}
+      <SidebarContent>
+        {/* Main Menu */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainMenuItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <SidebarMenuItem
+                    key={item.href}
+                    className={isActive ? "bg-muted text-primary" : ""}
+                  >
+                    <SidebarMenuButton asChild>
+                      <Link
+                        href={item.href}
+                        target={item.external ? "_blank" : "_self"}
+                        className="flex items-center gap-3"
+                      >
+                        <item.icon className="size-4" />
+                        {item.title}
+                        {item.external && (
+                          <span className="ml-auto text-xs text-muted-foreground">↗</span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-          <Separator className="my-4" />
+        {/* Settings Menu */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {settingsMenuItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <SidebarMenuItem
+                    key={item.href}
+                    className={isActive ? "bg-muted text-primary" : ""}
+                  >
+                    <SidebarMenuButton asChild>
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-3"
+                      >
+                        <item.icon className="size-4" />
+                        {item.title}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+              
+              {/* Logout Button */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Button
+                    onClick={handleLogout}
+                    variant="ghost"
+                    className="w-full justify-start gap-3 px-3 py-2 hover:bg-red-50 hover:text-red-700 text-sm h-auto"
+                  >
+                    <LogOut className="size-4" />
+                    Log Out
+                  </Button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-          {bottomMenu.map((item, i) => (
-            <Link
-              key={`bottom-${i}`}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-sm",
-                pathname === item.href &&
-                  "bg-white text-black font-medium border border-black"
-              )}
-            >
-              <item.icon
-                className={cn(
-                  "w-4 h-4",
-                  pathname === item.href ? "text-black" : "text-gray-500"
-                )}
-              />
-              {item.name}
-            </Link>
-          ))}
-
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="w-full justify-start gap-3 px-3 py-2 hover:bg-red-50 hover:text-red-700 text-sm mt-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Log Out
-          </Button>
-        </nav>
-      </div>
-    </aside>
+      {/* Sidebar Rail (collapse button, optional) */}
+      <SidebarRail />
+    </Sidebar>
   );
 }
