@@ -16,6 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Combobox,
+  ComboboxButton,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from "@headlessui/react";
+import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
+import clsx from "clsx";
 import UploadPackagePhoto from "./package-upload-photo";
 import { z } from "zod";
 import { PackageSchema, PackageType } from "@/validation/package.schema";
@@ -25,6 +34,7 @@ import { createPackageService } from "@/services/admin/package/createPackage";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { updatePackageService } from "@/services/admin/package/updatePackage";
+import { useState } from "react";
 
 interface PackageFormProps {
   users: { id: string; name: string }[];
@@ -37,6 +47,7 @@ export default function PackageForm({
   users,
   initialPackage,
 }: PackageFormProps) {
+  const [query, setQuery] = useState<string>("");
   const methods = useForm<PackageSchemaType>({
     resolver: zodResolver(PackageSchema),
     defaultValues: {
@@ -144,26 +155,80 @@ export default function PackageForm({
         <FormField
           control={control}
           name="user_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Select User</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih pengguna" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const selectedUser =
+              users.find((u) => u.id === field.value) ?? null;
+
+            return (
+              <FormItem>
+                <FormLabel>Select user</FormLabel>
+
+                <Combobox<{ id: string; name: string } | null>
+                  value={selectedUser}
+                  onChange={(user) => {
+                    field.onChange(user?.id ?? "");
+                    setQuery(user?.name ?? "");
+                  }}
+                >
+                  <div className="relative">
+                    <ComboboxInput
+                      className="w-full rounded-lg border px-3 py-2 text-sm"
+                      displayValue={(
+                        user: { id: string; name: string } | null
+                      ) => (user ? user.name : "")}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search user…"
+                    />
+                    <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                      <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                    </ComboboxButton>
+                  </div>
+
+                  {/* List */}
+                  <ComboboxOptions className="mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none">
+                    {users
+                      .filter((u) =>
+                        u.name.toLowerCase().includes(query.toLowerCase())
+                      )
+                      .map((u) => (
+                        <ComboboxOption
+                          key={u.id}
+                          value={u}
+                          className={({ active }) =>
+                            clsx(
+                              "relative cursor-pointer select-none py-2 pl-10 pr-4",
+                              active
+                                ? "bg-blue-100 text-blue-900"
+                                : "text-gray-900"
+                            )
+                          }
+                        >
+                          {({ selected }) => (
+                            <>
+                              <span
+                                className={clsx(
+                                  "block truncate",
+                                  selected && "font-medium"
+                                )}
+                              >
+                                {u.name}
+                              </span>
+                              {selected && (
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                  <CheckIcon className="h-5 w-5" />
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </ComboboxOption>
+                      ))}
+                  </ComboboxOptions>
+                </Combobox>
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField

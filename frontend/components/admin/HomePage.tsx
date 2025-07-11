@@ -30,6 +30,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../ui/pagination";
+import PackageCardDashboard from "../package/package-card-dashboard";
+import { ArrowRight } from "lucide-react";
 
 const HomePage = () => {
   const [page, setPage] = useState(1);
@@ -125,6 +127,18 @@ const HomePage = () => {
           </Card>
         </div>
 
+        <div className="space-y-4">
+          <div className="flex gap-4 items-center justify-between px-6">
+            <h2 className="text-2xl font-bold">Newest Package</h2>
+            <ArrowRight className="text-base"/>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {packageData.data.slice(0, 5).map((pkg) => (
+              <PackageCardDashboard key={pkg.package_id} pkg={pkg} />
+            ))}
+          </div>
+        </div>
+
         {/* Package Table */}
         <Card>
           <CardHeader>
@@ -148,7 +162,9 @@ const HomePage = () => {
                       {(page - 1) * packageData.meta.per_page + (index + 1)}
                     </TableCell>
                     <TableCell>{pkg.user.user_name}</TableCell>
-                    <TableCell>{pkg.user.company.company_name || "Unknown"}</TableCell>
+                    <TableCell>
+                      {pkg.user.company.company_name || "Unknown"}
+                    </TableCell>
                     <TableCell>{pkg.package_type}</TableCell>
                     <TableCell>{getStatusBadge(pkg.package_status)}</TableCell>
                   </TableRow>
