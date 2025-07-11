@@ -148,7 +148,7 @@ const HomePage = () => {
                       {(page - 1) * packageData.meta.per_page + (index + 1)}
                     </TableCell>
                     <TableCell>{pkg.user.user_name}</TableCell>
-                    <TableCell>{pkg.user.company.company_name}</TableCell>
+                    <TableCell>{pkg.user.company.company_name || "Unknown"}</TableCell>
                     <TableCell>{pkg.package_type}</TableCell>
                     <TableCell>{getStatusBadge(pkg.package_status)}</TableCell>
                   </TableRow>
