@@ -86,7 +86,7 @@ const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
                 <td className="p-3">
                   <UserInfo name={pkg.user.user_name} email={pkg.user.user_email} />
                 </td>
-                <td className="p-3">{pkg.user.company.company_name}</td>
+                <td className="p-3">{pkg.user.company.company_name || "Unknown"}</td>
                 <td className="p-3">
                   <PackageStatusBadge status={pkg.package_status} />
                 </td>
