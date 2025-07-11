@@ -48,16 +48,6 @@ const HomePage = () => {
   if (packageData.status === false) return <p>Failed to fetch data</p>;
   if (userData.status === false) return <p>Failed to fetch data</p>;
 
-  const combinedData =
-    packageData?.data?.map((pkg) => {
-      const user = userData?.data?.find((user) => user.user_id === pkg.user_id);
-      return {
-        ...pkg,
-        user_name: user?.user_name || "Unknown",
-        company_name: user?.company?.company_name || "Unknown",
-      };
-    }) ?? [];
-
   const receivedPackage =
     packageData.data?.filter((p) => p.package_status === "received") ?? [];
   const deliveredPackage =
@@ -78,8 +68,6 @@ const HomePage = () => {
         : "destructive";
     return <Badge variant={variant}>{status}</Badge>;
   };
-
-  console.log(packageData.meta.max_page);
 
   return (
     <SidebarInset>
@@ -154,13 +142,13 @@ const HomePage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {combinedData.map((pkg, index) => (
+                {packageData.data.map((pkg, index) => (
                   <TableRow key={index}>
                     <TableCell>
                       {(page - 1) * packageData.meta.per_page + (index + 1)}
                     </TableCell>
-                    <TableCell>{pkg.user_name}</TableCell>
-                    <TableCell>{pkg.company_name}</TableCell>
+                    <TableCell>{pkg.user.user_name}</TableCell>
+                    <TableCell>{pkg.user.company.company_name}</TableCell>
                     <TableCell>{pkg.package_type}</TableCell>
                     <TableCell>{getStatusBadge(pkg.package_status)}</TableCell>
                   </TableRow>

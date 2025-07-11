@@ -5,7 +5,6 @@ import { UserInfo } from "./user/user-info";
 import { PackageStatusBadge } from "./package/package-status-badge";
 import { useQuery } from "@tanstack/react-query";
 import { getAllPackageService } from "@/services/admin/package/getAllPackage";
-import { getAllUserService } from "@/services/admin/user/getAllUser";
 import { imageUrl } from "@/config/api";
 import { useState } from "react";
 import {
@@ -26,14 +25,8 @@ const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
     queryFn: () => getAllPackageService({ page }),
   });
 
-  const { data: userData } = useQuery({
-    queryKey: ["userData"],
-    queryFn: getAllUserService,
-  });
   if (!packageData) return <p>Loading...</p>;
-  if (!userData) return <p>Loading...</p>;
   if (packageData.status === false) return <p>Failed to fetch data</p>;
-  if (userData.status === false) return <p>Failed to fetch data</p>;
 
   const itemPerPage = packageData.meta.per_page;
 
@@ -42,19 +35,8 @@ const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
       (p) => p.package_status === "completed" || p.package_status === "expired"
     ) ?? [];
 
-  const combinedData =
-    dataPackage?.map((pkg) => {
-      const user = userData?.data?.find((user) => user.user_id === pkg.user_id);
-      return {
-        ...pkg,
-        user_name: user?.user_name || "Unknown",
-        user_email: user?.user_email || "Unknown",
-        company_name: user?.company?.company_name || "Unknown",
-      };
-    }) ?? [];
-
-  const filteredData = combinedData.filter((pkg) =>
-    [pkg.user_name, pkg.package_description, pkg.company_name].some((val) =>
+  const filteredData = dataPackage.filter((pkg) =>
+    [pkg.user.user_name, pkg.package_description, pkg.user.company.company_name].some((val) =>
       val.toLowerCase().includes(query)
     )
   );
@@ -102,9 +84,9 @@ const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
                 </td>
                 <td className="p-3">{pkg.package_description}</td>
                 <td className="p-3">
-                  <UserInfo name={pkg.user_name} email={pkg.user_email} />
+                  <UserInfo name={pkg.user.user_name} email={pkg.user.user_email} />
                 </td>
-                <td className="p-3">{pkg.company_name}</td>
+                <td className="p-3">{pkg.user.company.company_name}</td>
                 <td className="p-3">
                   <PackageStatusBadge status={pkg.package_status} />
                 </td>

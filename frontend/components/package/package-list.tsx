@@ -75,28 +75,17 @@ const PackageList = () => {
     return `${imageUrl}/package/${imagePath}`;
   };
 
-  console.log(packageData);
-
   if (!packageData) return <p>Loading...</p>;
   if (!userData) return <p>Loading...</p>;
   if (packageData.status === false) return <p>Failed to fetch data</p>;
   if (userData.status === false) return <p>Failed to fetch data</p>;
 
-  const receivedPackage = packageData.data.filter(
-    (pack) => pack.package_status === "received"
+  const filteredPackage = packageData.data.filter(
+    (pack) =>
+      pack.package_status !== "expired" && pack.package_status !== "completed"
   );
 
-  const combinedData =
-    receivedPackage?.map((pkg) => {
-      const user = userData?.data?.find((user) => user.user_id === pkg.user_id);
-      return {
-        ...pkg,
-        user_name: user?.user_name || "Unknown",
-        company_name: user?.company?.company_name || "Unknown",
-      };
-    }) ?? [];
-
-  if (combinedData.length === 0) {
+  if (filteredPackage.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-lg border">
         <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -119,7 +108,7 @@ const PackageList = () => {
 
   return (
     <div className="space-y-4">
-      {combinedData.map((pkg) => (
+      {filteredPackage.map((pkg) => (
         <div
           key={pkg.package_id}
           className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
@@ -157,7 +146,7 @@ const PackageList = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    <span>{pkg.user_name}</span>
+                    <span>{pkg.user.user_name}</span>
                   </div>
                 </div>
 
