@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useState } from "react";
+
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -8,81 +11,82 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { updateUserProfile } from "@/services/client/update-user";
 
-type UserData = {
-  id: string;
-  user_name: string;
-  user_email: string;
-  user_password: string;
-  user_phone_number: string;
-  user_address: string;
-  company_name: string;
-  company_id: string;
-};
+const phoneNumberRegex = /^(?:\+62|62|0)8[1-9][0-9]{6,10}$/;
+
+export const UserEditSchema = z.object({
+  user_name: z.string().min(3, "Name must have at least 3 characters"),
+  user_email: z.string().email({ message: "Email is not valid" }),
+  user_phone_number: z
+    .string()
+    .regex(phoneNumberRegex, "Phone number format is not valid"),
+  user_password: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.length === 0 || val.length >= 3, {
+      message: "Password must have at least 3 characters",
+    }),
+  user_address: z.string({ required_error: "Address is required" }),
+  company_id: z.string(),
+});
+
+type UserFormData = z.infer<typeof UserEditSchema>;
 
 type Props = {
-  user: UserData;
-  onSave?: (userData: UserData) => void;
+  user: {
+    id: string;
+    user_name: string;
+    user_email: string;
+    user_password: string;
+    user_phone_number: string;
+    user_address: string;
+    company_name: string;
+    company_id: string;
+  };
+  onSave?: (userData: any) => void;
 };
 
 export function UserEditForm({ user, onSave }: Props) {
-  const [formData, setFormData] = useState({ ...user });
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<UserFormData>({
+    resolver: zodResolver(UserEditSchema),
+    defaultValues: {
+      user_name: user.user_name,
+      user_email: user.user_email,
+      user_password: "",
+      user_phone_number: user.user_phone_number,
+      user_address: user.user_address,
+      company_id: user.company_id,
+    },
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.user_name.trim()) newErrors.user_name = "Name is required";
-    if (!formData.user_email.trim()) newErrors.user_email = "Email is required";
-    if (!formData.user_phone_number.trim()) newErrors.user_phone_number = "Phone number is required";
-    if (!formData.user_address.trim()) newErrors.user_address = "Address is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    setIsLoading(true);
-
+  const onSubmit = async (data: UserFormData) => {
     try {
       const payload: any = {
-        user_name: formData.user_name,
-        user_phone_number: formData.user_phone_number,
-        user_address: formData.user_address,
-        company_id: user.company_id,
+        user_name: data.user_name,
+        user_phone_number: data.user_phone_number,
+        user_address: data.user_address,
+        company_id: data.company_id,
       };
 
-      // Kirim email hanya jika berubah
-      if (formData.user_email !== user.user_email) {
-        payload.user_email = formData.user_email;
+      if (data.user_email !== user.user_email) {
+        payload.user_email = data.user_email;
       }
 
-      // Kirim password hanya jika tidak kosong
-      if (formData.user_password.trim()) {
-        payload.user_password = formData.user_password;
+      if (data.user_password && data.user_password.trim()) {
+        payload.user_password = data.user_password;
       }
 
       console.log("Payload ke API:", payload);
       await updateUserProfile(payload);
 
-      onSave?.(formData);
+      onSave?.(data);
       toast.success("Profile updated successfully!");
     } catch (error: any) {
       console.error("Detail error:", error.response?.data || error.message);
       toast.error(error.response?.data?.message || "Failed to update profile.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -92,69 +96,56 @@ export function UserEditForm({ user, onSave }: Props) {
         <CardTitle>Edit Profile</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="user_name">Full Name *</Label>
-              <Input
-                id="user_name"
-                name="user_name"
-                value={formData.user_name}
-                onChange={handleChange}
-              />
+              <Input id="user_name" {...register("user_name")} />
+              {errors.user_name && (
+                <p className="text-red-500 text-sm">{errors.user_name.message}</p>
+              )}
             </div>
 
             <div>
               <Label htmlFor="user_email">Email *</Label>
-              <Input
-                id="user_email"
-                name="user_email"
-                value={formData.user_email}
-                onChange={handleChange}
-              />
-              {errors.user_email && <p className="text-red-500 text-sm">{errors.user_email}</p>}
+              <Input id="user_email" {...register("user_email")} />
+              {errors.user_email && (
+                <p className="text-red-500 text-sm">{errors.user_email.message}</p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="user_phone_number">Phone Number *</Label>
-              <Input
-                id="user_phone_number"
-                name="user_phone_number"
-                value={formData.user_phone_number}
-                onChange={handleChange}
-              />
+              <Input id="user_phone_number" {...register("user_phone_number")} />
+              {errors.user_phone_number && (
+                <p className="text-red-500 text-sm">{errors.user_phone_number.message}</p>
+              )}
             </div>
 
             <div>
               <Label htmlFor="user_password">Password (optional)</Label>
-              <Input
-                id="user_password"
-                name="user_password"
-                type="password"
-                value={formData.user_password}
-                onChange={handleChange}
-              />
+              <Input id="user_password" type="password" {...register("user_password")} />
+                {errors.user_password && (
+                    <p className="text-red-500 text-sm">{errors.user_password.message}</p>
+                  )}
             </div>
           </div>
 
           <div>
             <Label htmlFor="user_address">Address *</Label>
-            <Input
-              id="user_address"
-              name="user_address"
-              value={formData.user_address}
-              onChange={handleChange}
-            />
+            <Input id="user_address" {...register("user_address")} />
+            {errors.user_address && (
+              <p className="text-red-500 text-sm">{errors.user_address.message}</p>
+            )}
           </div>
 
           <div>
             <Label htmlFor="company_name">Company *</Label>
             <Input
               id="company_name"
-              name="company_name"
-              value={formData.company_name}
+              value={user.company_name}
               readOnly
               disabled
               className="bg-gray-100 cursor-not-allowed"
@@ -162,16 +153,8 @@ export function UserEditForm({ user, onSave }: Props) {
           </div>
 
           <div className="flex gap-4 pt-4">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setFormData({ ...user })}
-              disabled={isLoading}
-            >
-              Reset
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

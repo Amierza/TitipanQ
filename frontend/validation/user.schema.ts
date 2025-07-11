@@ -12,3 +12,20 @@ export const UserSchema = z.object({
   user_address: z.string({ required_error: "Address is required" }).optional(),
   company_id: z.string({ required_error: "Company is required" }).optional(),
 });
+
+export const UserEditSchema = z.object({
+  user_name: z.string().min(3, "Name must have at least 3 characters"),
+  user_email: z.string().email({ message: "Email is not valid" }),
+  user_phone_number: z
+    .string()
+    .regex(phoneNumberRegex, "Phone number format is not valid"),
+  user_password: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || val.length >= 3, {
+      message: "Password must have at least 3 characters",
+    }),
+  user_address: z.string({ required_error: "Address is required" }),
+  company_id: z.string(),
+});

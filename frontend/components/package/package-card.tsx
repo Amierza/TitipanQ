@@ -35,7 +35,6 @@ export function PackageCard({
       {/* Header */}
       <CardHeader className="pb-1 pt-4 px-4">
         <div className="flex flex-col items-start gap-0.5">
-          <StatusBadge status={item.package_status} />
           <span className="text-xs text-muted-foreground font-mono">
             #{item.package_id}
           </span>

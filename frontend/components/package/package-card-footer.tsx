@@ -54,12 +54,6 @@ export function PackageCardFooter({
 
   return (
     <div className="space-y-2">
-      {/* Status Utama */}
-      <div className={`flex items-center gap-2 text-sm ${meta.colorClass}`}>
-        {meta.icon}
-        <span className="font-medium">{meta.label}</span>
-      </div>
-
       {/* Riwayat Status */}
       <div className="space-y-1 text-xs text-muted-foreground">
         {sorted.map((history) => {
