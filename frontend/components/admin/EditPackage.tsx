@@ -87,7 +87,7 @@ const EditPackageSection = () => {
                 package_type: isValidPackageType(packageDetail.package_type)
                   ? packageDetail.package_type
                   : PackageType.Other,
-                user_id: packageDetail.user_id,
+                user_id: packageDetail.user.user_id,
                 package_status: packageDetail.package_status as PackageStatus,
               }}
             />
