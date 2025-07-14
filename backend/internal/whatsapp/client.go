@@ -151,14 +151,25 @@ func handleIncomingMessage(userPhone, message string) {
 		}
 		handlePackageCheck(userPhone, intentResult.TrackingCode)
 
-	case "greeting":
-		SendTextMessage(userPhone, "👋 Halo! Saya adalah asisten TitipanQ. Ketik *cek paket <id>* untuk mengetahui status paketmu.")
-
-	case "thanks":
-		SendTextMessage(userPhone, "🙏 Sama-sama! Senang bisa membantu. Jika kamu ingin cek status paket, ketik saja *cek paket <id>* ya.")
+	case "greeting", "thanks", "unknown":
+		data := map[string]string{
+			"intent": intentResult.Intent,
+		}
+		naturalMsg, err := chatbotNLPService.GenerateNaturalResponse(intentResult.Intent, data)
+		if err != nil {
+			switch intentResult.Intent {
+			case "greeting":
+				naturalMsg = "👋 Hai! Aku TitipanQ, asisten kamu untuk cek status paket. Kamu bisa ketik *cek paket <tracking_code>* atau *paket hari ini*."
+			case "thanks":
+				naturalMsg = "🙏 Sama-sama! Senang bisa bantu. Jangan sungkan kalau mau cek paket lagi ya!"
+			default:
+				naturalMsg = "🤔 Maaf, aku belum paham maksudmu. Kamu bisa coba ketik *cek paket PACKxxxxx* atau *paket saya hari ini*."
+			}
+		}
+		SendTextMessage(userPhone, naturalMsg)
 
 	default:
-		SendTextMessage(userPhone, "🤔 Maaf, saya tidak mengerti maksud kamu. Coba ketik *cek paket <id>*.")
+		SendTextMessage(userPhone, "🤔 Maaf, aku belum paham maksud kamu. Coba ketik *cek paket PACKxxxxx*.")
 	}
 }
 
@@ -170,8 +181,14 @@ func handleTotalAllPackage(userPhone string) {
 		return
 	}
 
-	msg := fmt.Sprintf("📦 Kamu memiliki total *%d* paket yang tercatat dalam sistem.", totalPackages)
-	SendTextMessage(userPhone, msg)
+	data := map[string]string{
+		"total": fmt.Sprintf("%d", totalPackages),
+	}
+	naturalMsg, err := chatbotNLPService.GenerateNaturalResponse("total_all_package", data)
+	if err != nil {
+		naturalMsg = fmt.Sprintf("📦 Kamu memiliki total *%d* paket yang tercatat dalam sistem.", totalPackages)
+	}
+	SendTextMessage(userPhone, naturalMsg)
 }
 
 func handleListPackageAll(userPhone string) {
@@ -182,12 +199,21 @@ func handleListPackageAll(userPhone string) {
 		return
 	}
 
-	msg := "📦 Daftar semua paket kamu:\n"
+	list := ""
 	for i, p := range packages {
-		msg += fmt.Sprintf("%d. *%s* - %s\n", i+1, p.TrackingCode, p.Description)
+		list += fmt.Sprintf("%d. %s - %s\n", i+1, p.TrackingCode, p.Description)
 	}
-	msg += "\nKetik *cek paket <tracking_code>* untuk melihat detail."
-	SendTextMessage(userPhone, msg)
+
+	data := map[string]string{
+		"count": fmt.Sprintf("%d", len(packages)),
+		"list":  list,
+	}
+	naturalMsg, err := chatbotNLPService.GenerateNaturalResponse("list_package_all", data)
+	if err != nil {
+		naturalMsg = fmt.Sprintf("📦 Daftar semua paket kamu:\n%s\n\nKetik *cek paket <tracking_code>* untuk lihat detail.", list)
+	}
+
+	SendTextMessage(userPhone, naturalMsg)
 }
 
 func handleListPackageToday(userPhone string) {
@@ -197,12 +223,21 @@ func handleListPackageToday(userPhone string) {
 		return
 	}
 
-	msg := "📦 Berikut paket kamu hari ini:\n"
+	list := ""
 	for i, p := range packages {
-		msg += fmt.Sprintf("%d. %s - %s\n", i+1, p.TrackingCode, p.Description)
+		list += fmt.Sprintf("%d. %s - %s\n", i+1, p.TrackingCode, p.Description)
 	}
-	msg += "\nKetik *cek paket <tracking_code>* untuk melihat detail."
-	SendTextMessage(userPhone, msg)
+
+	data := map[string]string{
+		"count": fmt.Sprintf("%d", len(packages)),
+		"list":  list,
+	}
+	naturalMsg, err := chatbotNLPService.GenerateNaturalResponse("list_package_today", data)
+	if err != nil {
+		naturalMsg = fmt.Sprintf("📦 Berikut daftar paket kamu hari ini:\n%s\n\nKetik *cek paket <tracking_code>* untuk lihat detail.", list)
+	}
+
+	SendTextMessage(userPhone, naturalMsg)
 }
 
 func handlePackageCheck(userPhone, trackingCode string) {
@@ -221,14 +256,24 @@ func handlePackageCheck(userPhone, trackingCode string) {
 		return
 	}
 
-	msg := fmt.Sprintf(
-		"📦 Paket *%s* berstatus *%s*.\nDeskripsi: %s\nDiterima: %s",
-		pkg.TrackingCode,
-		pkg.Status,
-		pkg.Description,
-		pkg.TimeStamp.CreatedAt.Format("02 Jan 2006"),
-	)
-	SendTextMessage(userPhone, msg)
+	data := map[string]string{
+		"tracking_code": pkg.TrackingCode,
+		"description":   pkg.Description,
+		"status":        string(pkg.Status),
+		"received_at":   pkg.TimeStamp.CreatedAt.Format("02 Jan 2006"),
+	}
+	naturalMsg, err := chatbotNLPService.GenerateNaturalResponse("check_package", data)
+	if err != nil {
+		naturalMsg = fmt.Sprintf(
+			"📦 Paket *%s* berstatus *%s*.\nDeskripsi: %s\nDiterima: %s",
+			pkg.TrackingCode,
+			pkg.Status,
+			pkg.Description,
+			pkg.TimeStamp.CreatedAt.Format("02 Jan 2006"),
+		)
+	}
+
+	SendTextMessage(userPhone, naturalMsg)
 }
 
 // ========== SEND MESSAGE ==========

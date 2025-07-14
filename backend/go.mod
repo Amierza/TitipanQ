@@ -4,6 +4,9 @@ go 1.23.2
 
 require (
 	github.com/Amierza/go-boiler-plate v0.0.0-20250526164707-fd2ed403ab06
+	github.com/robfig/cron/v3 v3.0.1
+	github.com/sashabaranov/go-openai v1.40.3
+	go.mau.fi/whatsmeow v0.0.0-20250701221811-9adf672adc90
 	golang.org/x/crypto v0.39.0
 	gorm.io/gorm v1.30.0
 )
@@ -35,16 +38,13 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20250508124226-395b08cebbdb // indirect
-	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
-	github.com/sashabaranov/go-openai v1.40.3 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.mau.fi/libsignal v0.2.0 // indirect
 	go.mau.fi/util v0.8.8 // indirect
-	go.mau.fi/whatsmeow v0.0.0-20250701221811-9adf672adc90 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476 // indirect
 	golang.org/x/net v0.41.0 // indirect

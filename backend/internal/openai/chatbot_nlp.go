@@ -10,6 +10,7 @@ import (
 
 type IChatbotNLPService interface {
 	GetIntent(message string) (*ChatbotIntentResult, error)
+	GenerateNaturalResponse(intent string, data map[string]string) (string, error)
 }
 
 type ChatbotIntentResult struct {
@@ -71,4 +72,27 @@ func (s *chatbotNLPService) GetIntent(message string) (*ChatbotIntentResult, err
 		return nil, err
 	}
 	return &result, nil
+}
+
+func (s *chatbotNLPService) GenerateNaturalResponse(intent string, data map[string]string) (string, error) {
+	userMsg := fmt.Sprintf(`Tolong buatkan respons WhatsApp yang natural untuk intent "%s" dengan data berikut: %v. Balas dengan gaya santai, profesional, dan tidak terlalu panjang.`, intent, data)
+
+	resp, err := s.client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		Model: openai.GPT4oMini,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    "system",
+				Content: "Kamu adalah chatbot asisten pengiriman paket. Buat balasan WhatsApp yang ramah dan informatif.",
+			},
+			{
+				Role:    "user",
+				Content: userMsg,
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Choices[0].Message.Content, nil
 }
