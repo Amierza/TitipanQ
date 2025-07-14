@@ -7,7 +7,6 @@ import (
 
 	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +22,7 @@ type (
 		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
 		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
 		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
-		GetAllPackageHistoryWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, pkgID uuid.UUID) (dto.PackageHistoryPaginationRepositoryResponse, error)
+		GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error)
 
 		// Create
 		Register(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -185,44 +184,23 @@ func (ur *UserRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID
 
 	return user, true, nil
 }
-func (ur *UserRepository) GetAllPackageHistoryWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, pkgID uuid.UUID) (dto.PackageHistoryPaginationRepositoryResponse, error) {
+func (ur *UserRepository) GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error) {
 	if tx == nil {
 		tx = ur.db
 	}
 
-	var packageHistories []entity.PackageHistory
-	var err error
-	var count int64
+	var (
+		packageHistories []entity.PackageHistory
+		err              error
+	)
 
-	if req.PerPage == 0 {
-		req.PerPage = 10
+	query := tx.WithContext(ctx).Model(&entity.PackageHistory{}).Preload("ChangedByUser").Where("package_id = ?", pkgID)
+
+	if err := query.Order("created_at DESC").Find(&packageHistories).Error; err != nil {
+		return []entity.PackageHistory{}, err
 	}
 
-	if req.Page == 0 {
-		req.Page = 1
-	}
-
-	query := tx.WithContext(ctx).Model(&entity.PackageHistory{}).Where("package_id = ?", pkgID)
-
-	if err := query.Count(&count).Error; err != nil {
-		return dto.PackageHistoryPaginationRepositoryResponse{}, err
-	}
-
-	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&packageHistories).Error; err != nil {
-		return dto.PackageHistoryPaginationRepositoryResponse{}, err
-	}
-
-	totalPage := int64(math.Ceil(float64(count) / float64(req.PerPage)))
-
-	return dto.PackageHistoryPaginationRepositoryResponse{
-		PackageHistories: packageHistories,
-		PaginationResponse: dto.PaginationResponse{
-			Page:    req.Page,
-			PerPage: req.PerPage,
-			MaxPage: totalPage,
-			Count:   count,
-		},
-	}, err
+	return packageHistories, err
 }
 
 // Create

@@ -13,8 +13,8 @@ type IChatbotNLPService interface {
 }
 
 type ChatbotIntentResult struct {
-	Intent    string `json:"intent"`
-	PackageID string `json:"package_id"`
+	Intent       string `json:"intent"`
+	TrackingCode string `json:"package_tracking_code"`
 }
 
 type chatbotNLPService struct {
@@ -36,13 +36,18 @@ func (s *chatbotNLPService) GetIntent(message string) (*ChatbotIntentResult, err
 				Content: `You are a helpful assistant for a package delivery company.
 
 				Given a user's message, extract:
-				- intent: one of [check_package, greeting, unknown]
-				- package_id: a UUID (e.g., 550e8400-e29b-41d4-a716-446655440000) if mentioned.
+				- intent: one of [total_all_package, check_package, list_package_today, list_package_all, thanks, greeting, unknown]
+				- package_id: a UUID or custom tracking code (e.g., PAC_123456) if mentioned.
 
-				Return a strict JSON like:
-				{"intent": "check_package", "package_id": "e567f33a-3678-4f6e-8939-217347e805d5"}
+				Examples:
+				"total keseluruhan paket saya berapa?" => intent: total_all_package
+				"paket saya hari ini apa?" => intent: list_package_today
+				"semua paket saya apa aja" => intent: list_package_all
+				"cek paket PACK123456" => intent: check_package
 
-				If no UUID is present, set package_id to an empty string.`,
+				Return JSON like:
+				{"intent": "check_package", "package_tracking_code": "PACK123456"}
+				{"intent": "list_package_today", "package_tracking_code": ""}`,
 			},
 			{
 				Role:    "user",

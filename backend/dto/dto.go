@@ -122,14 +122,14 @@ var (
 	ErrDeleteUserByID           = errors.New("failed delete user by id")
 	ErrGetUserIDFromToken       = errors.New("failed get user id from token")
 	// Package & Package History
-	ErrCreatePackage                      = errors.New("failed create package")
-	ErrCreatePackageHistory               = errors.New("failed create package history")
-	ErrGetAllPackageWithPagination        = errors.New("failed get list package with pagination")
-	ErrGetAllPackageHistoryWithPagination = errors.New("failed get list package history with pagination")
-	ErrPackageNotFound                    = errors.New("failed package not found")
-	ErrInvalidPackageType                 = errors.New("failed invalid package type")
-	ErrInvalidPackageStatus               = errors.New("failed invalid package status")
-	ErrUpdatePackage                      = errors.New("failed update package")
+	ErrCreatePackage               = errors.New("failed create package")
+	ErrCreatePackageHistory        = errors.New("failed create package history")
+	ErrGetAllPackageWithPagination = errors.New("failed get list package with pagination")
+	ErrGetAllPackageHistory        = errors.New("failed get list package history")
+	ErrPackageNotFound             = errors.New("failed package not found")
+	ErrInvalidPackageType          = errors.New("failed invalid package type")
+	ErrInvalidPackageStatus        = errors.New("failed invalid package status")
+	ErrUpdatePackage               = errors.New("failed update package")
 	// Company
 	ErrGetCompanyByID              = errors.New("failed get company by id")
 	ErrCreateCompany               = errors.New("failed to create company")
@@ -220,14 +220,15 @@ type (
 		FileReader  multipart.File        `json:"filereader,omitempty"`
 	}
 	PackageResponse struct {
-		ID          uuid.UUID     `json:"package_id"`
-		Description string        `json:"package_description"`
-		Image       string        `json:"package_image"`
-		Type        entity.Type   `json:"package_type"`
-		Status      entity.Status `json:"package_status"`
-		DeliveredAt *time.Time    `json:"package_delivered_at"`
-		ExpiredAt   *time.Time    `json:"package_expired_at"`
-		User        UserResponse  `json:"user"`
+		ID           uuid.UUID     `json:"package_id"`
+		TrackingCode string        `json:"package_tracking_code"`
+		Description  string        `json:"package_description"`
+		Image        string        `json:"package_image"`
+		Type         entity.Type   `json:"package_type"`
+		Status       entity.Status `json:"package_status"`
+		DeliveredAt  *time.Time    `json:"package_delivered_at"`
+		ExpiredAt    *time.Time    `json:"package_expired_at"`
+		User         UserResponse  `json:"user"`
 		entity.TimeStamp
 	}
 	PackagePaginationResponse struct {
@@ -253,14 +254,6 @@ type (
 		Status    entity.Status `json:"history_status"`
 		ChangedBy UserResponse  `json:"changed_by"`
 		CreatedAt time.Time     `json:"created_at"`
-	}
-	PackageHistoryPaginationResponse struct {
-		PaginationResponse
-		Data []PackageHistoryResponse `json:"data"`
-	}
-	PackageHistoryPaginationRepositoryResponse struct {
-		PaginationResponse
-		PackageHistories []entity.PackageHistory
 	}
 	UpdatePackageResponse struct {
 		ID          uuid.UUID     `json:"package_id"`

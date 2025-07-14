@@ -178,27 +178,14 @@ func (uh *UserHandler) GetDetailPackage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 func (uh *UserHandler) GetAllPackageHistory(ctx *gin.Context) {
-	var payload dto.PaginationRequest
-	pkgIdStr := ctx.Param("id")
-	if err := ctx.ShouldBind(&payload); err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
-		return
-	}
-
-	result, err := uh.userService.ReadAllPackageHistoryWithPagination(ctx, payload, pkgIdStr)
+	pkgID := ctx.Param("id")
+	result, err := uh.userService.ReadAllPackageHistory(ctx, pkgID)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE_HISTORY, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	res := utils.Response{
-		Status:   true,
-		Messsage: dto.MESSAGE_SUCCESS_GET_LIST_PACKAGE_HISTORY,
-		Data:     result.Data,
-		Meta:     result.PaginationResponse,
-	}
-
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_LIST_PACKAGE_HISTORY, result)
 	ctx.JSON(http.StatusOK, res)
 }

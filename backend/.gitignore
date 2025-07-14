@@ -6,3 +6,5 @@ assets/**
 !assets/
 !assets/package/
 !assets/package/.gitkeep
+!assets/barcode/
+!assets/barcode/.gitkeep
