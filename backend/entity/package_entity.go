@@ -14,6 +14,7 @@ type Package struct {
 	TrackingCode string     `gorm:"unique,not null" json:"package_tracking_code"`
 	Description  string     `gorm:"type:text" json:"package_description"`
 	Image        string     `gorm:"type:text" json:"package_image"`
+	Barcode      string     `gorm:"type:text" json:"package_barcode_image"`
 	Type         Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
 	Status       Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
 	DeliveredAt  *time.Time `json:"package_delivered_at"`

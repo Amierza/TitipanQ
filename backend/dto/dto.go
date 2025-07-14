@@ -224,6 +224,7 @@ type (
 		TrackingCode string        `json:"package_tracking_code"`
 		Description  string        `json:"package_description"`
 		Image        string        `json:"package_image"`
+		BarcodeImage string        `json:"package_barcode_image"`
 		Type         entity.Type   `json:"package_type"`
 		Status       entity.Status `json:"package_status"`
 		DeliveredAt  *time.Time    `json:"package_delivered_at"`
