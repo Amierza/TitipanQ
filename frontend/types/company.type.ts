@@ -1,4 +1,4 @@
-import { SuccessResponse } from "./sucess";
+import { Meta, SuccessResponse } from "./sucess";
 
 export type Company = {
   company_id: string;
@@ -8,4 +8,6 @@ export type Company = {
 
 export type CompanyResponse = SuccessResponse<Company>;
 
-export type AllCompanyResponse = SuccessResponse<Company[]>;
+export type AllCompanyResponse = SuccessResponse<Company[]> & {
+  meta: Meta;
+};

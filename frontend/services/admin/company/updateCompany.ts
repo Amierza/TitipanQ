@@ -4,13 +4,16 @@ import { ErrorResponse } from "@/types/error";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import axiosAdminConfig from "@/services/auth/auth.config";
-import { CompanySchema } from "@/validation/company.schema";
 import { CompanyResponse } from "@/types/company.type";
+import { CompanySchema } from "@/validation/company.schema";
 
-export const updatePackageService = async (
-  companyId: string,
-  data: Partial<z.infer<typeof CompanySchema>>
-): Promise<CompanyResponse | ErrorResponse> => {
+export const updateCompanyService = async ({
+  companyId,
+  data,
+}: {
+  companyId: string;
+  data: Partial<z.infer<typeof CompanySchema>>;
+}): Promise<CompanyResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
     const response = await axiosAdminConfig.patch(
@@ -19,7 +22,7 @@ export const updatePackageService = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           Accept: "application/json",
         },
       }
@@ -37,7 +40,7 @@ export const updatePackageService = async (
       status: false,
       message:
         axiosError.response?.data?.message ||
-        "Terjadi kesalahan saat melakukan pembaruan data perusahaan.",
+        "Terjadi kesalahan saat melakukan pembaruan data user.",
       timestamp: new Date().toISOString(),
       error: axiosError.message || "Unknown error",
     };

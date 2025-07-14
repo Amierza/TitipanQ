@@ -8,6 +8,7 @@ import {
   History,
   LayoutDashboard,
   User,
+  Building,
   LogOut,
 } from "lucide-react";
 
@@ -46,6 +47,11 @@ const menuItems = [
     title: "User Account Settings",
     href: "/admin/user-settings",
     icon: User,
+  },
+  {
+    title: "Companies",
+    href: "/admin/companies",
+    icon: Building,
   },
   {
     title: "Logout",
