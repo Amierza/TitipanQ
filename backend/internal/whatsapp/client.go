@@ -75,7 +75,6 @@ func InitClient() error {
 		}
 	}
 
-	// Graceful shutdown
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -117,6 +116,12 @@ func reconnectClient() {
 // ========== HANDLER LOGIC ==========
 
 func handleIncomingMessage(userPhone, message string) {
+	user, err := chatbotRepo.FindByPhone(userPhone, nil)
+	if err != nil || user == nil {
+		fmt.Println("[ChatBot] Pengirim tidak terdaftar, abaikan pesan dari:", userPhone)
+		return
+	}
+
 	if chatbotNLPService == nil {
 		SendTextMessage(userPhone, "❌ Sistem belum siap.")
 		return
@@ -130,23 +135,78 @@ func handleIncomingMessage(userPhone, message string) {
 	}
 
 	switch intentResult.Intent {
+	case "total_all_package":
+		handleTotalAllPackage(userPhone)
+
+	case "list_package_today":
+		handleListPackageToday(userPhone)
+
+	case "list_package_all":
+		handleListPackageAll(userPhone)
+
 	case "check_package":
-		if intentResult.PackageID == "" {
-			SendTextMessage(userPhone, "❌ Mohon sertakan ID paket. Contoh: cek paket 123")
+		if intentResult.TrackingCode == "" {
+			SendTextMessage(userPhone, "❌ Mohon sertakan kode paket. Contoh: cek paket PACK123456")
 			return
 		}
-		handlePackageCheck(userPhone, intentResult.PackageID)
+		handlePackageCheck(userPhone, intentResult.TrackingCode)
 
 	case "greeting":
 		SendTextMessage(userPhone, "👋 Halo! Saya adalah asisten TitipanQ. Ketik *cek paket <id>* untuk mengetahui status paketmu.")
+
+	case "thanks":
+		SendTextMessage(userPhone, "🙏 Sama-sama! Senang bisa membantu. Jika kamu ingin cek status paket, ketik saja *cek paket <id>* ya.")
 
 	default:
 		SendTextMessage(userPhone, "🤔 Maaf, saya tidak mengerti maksud kamu. Coba ketik *cek paket <id>*.")
 	}
 }
 
-func handlePackageCheck(userPhone, packageID string) {
-	fmt.Println("[ChatBot] Mencari paket:", packageID, "dari", userPhone)
+func handleTotalAllPackage(userPhone string) {
+	totalPackages, err := chatbotRepo.CountTotalAllPackagesByUserPhone(userPhone, nil)
+	if err != nil {
+		fmt.Println("[ChatBot] Gagal mengambil jumlah total paket untuk nomor:", userPhone)
+		SendTextMessage(userPhone, "❌ Terjadi kesalahan saat memeriksa jumlah paket kamu.")
+		return
+	}
+
+	msg := fmt.Sprintf("📦 Kamu memiliki total *%d* paket yang tercatat dalam sistem.", totalPackages)
+	SendTextMessage(userPhone, msg)
+}
+
+func handleListPackageAll(userPhone string) {
+	packages, err := chatbotRepo.FindAllPackagesByUserPhone(userPhone, nil)
+	if err != nil || len(packages) == 0 {
+		fmt.Println("[ChatBot] Tidak ada paket ditemukan")
+		SendTextMessage(userPhone, "📦 Tidak ada paket yang ditemukan atas nomor ini.")
+		return
+	}
+
+	msg := "📦 Daftar semua paket kamu:\n"
+	for i, p := range packages {
+		msg += fmt.Sprintf("%d. *%s* - %s\n", i+1, p.TrackingCode, p.Description)
+	}
+	msg += "\nKetik *cek paket <tracking_code>* untuk melihat detail."
+	SendTextMessage(userPhone, msg)
+}
+
+func handleListPackageToday(userPhone string) {
+	packages, err := chatbotRepo.FindTodayPackagesByUserPhone(userPhone, nil)
+	if err != nil || len(packages) == 0 {
+		SendTextMessage(userPhone, "📦 Tidak ada paket hari ini.")
+		return
+	}
+
+	msg := "📦 Berikut paket kamu hari ini:\n"
+	for i, p := range packages {
+		msg += fmt.Sprintf("%d. %s - %s\n", i+1, p.TrackingCode, p.Description)
+	}
+	msg += "\nKetik *cek paket <tracking_code>* untuk melihat detail."
+	SendTextMessage(userPhone, msg)
+}
+
+func handlePackageCheck(userPhone, trackingCode string) {
+	fmt.Println("[ChatBot] Mencari paket:", trackingCode, "dari", userPhone)
 
 	if chatbotRepo == nil {
 		fmt.Println("[ChatBot] Repository belum di-inject")
@@ -154,7 +214,7 @@ func handlePackageCheck(userPhone, packageID string) {
 		return
 	}
 
-	pkg, err := chatbotRepo.FindByID(packageID)
+	pkg, err := chatbotRepo.FindByTrackingCode(trackingCode, nil)
 	if err != nil || pkg == nil {
 		fmt.Println("[ChatBot] Paket tidak ditemukan")
 		SendTextMessage(userPhone, "❌ Paket tidak ditemukan.")
@@ -163,7 +223,7 @@ func handlePackageCheck(userPhone, packageID string) {
 
 	msg := fmt.Sprintf(
 		"📦 Paket *%s* berstatus *%s*.\nDeskripsi: %s\nDiterima: %s",
-		pkg.ID,
+		pkg.TrackingCode,
 		pkg.Status,
 		pkg.Description,
 		pkg.TimeStamp.CreatedAt.Format("02 Jan 2006"),

@@ -40,7 +40,7 @@ type (
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
 		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userIDStr string) (dto.PackagePaginationResponse, error)
 		GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error)
-		ReadAllPackageHistoryWithPagination(ctx context.Context, req dto.PaginationRequest, pkgIDStr string) (dto.PackageHistoryPaginationResponse, error)
+		ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error)
 		UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error)
 		DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error)
 
@@ -492,18 +492,23 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 	}
 
 	pkg := entity.Package{
-		ID:          uuid.New(),
-		Description: req.Description,
-		Type:        req.Type,
-		Status:      entity.Received,
-		Image:       req.Image,
-		ExpiredAt:   helpers.PtrTime(now.AddDate(0, 3, 0)),
-		UserID:      &user.ID,
-		User:        user,
+		ID:           uuid.New(),
+		TrackingCode: fmt.Sprintf("PACK%s", time.Now().Format("060102150405")),
+		Description:  req.Description,
+		Type:         req.Type,
+		Status:       entity.Received,
+		Image:        req.Image,
+		ExpiredAt:    helpers.PtrTime(now.AddDate(0, 3, 0)),
+		UserID:       &user.ID,
+		User:         user,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: now,
 			UpdatedAt: now,
 		},
+	}
+
+	if err := helpers.GenerateBarcodeFile(pkg.TrackingCode); err != nil {
+		log.Println("Gagal generate barcode:", err)
 	}
 
 	if err := as.adminRepo.CreatePackage(ctx, nil, pkg); err != nil {
@@ -528,13 +533,14 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 	}
 
 	return dto.PackageResponse{
-		ID:          pkg.ID,
-		Description: pkg.Description,
-		Image:       pkg.Image,
-		Type:        pkg.Type,
-		Status:      pkg.Status,
-		DeliveredAt: pkg.DeliveredAt,
-		ExpiredAt:   pkg.ExpiredAt,
+		ID:           pkg.ID,
+		TrackingCode: pkg.TrackingCode,
+		Description:  pkg.Description,
+		Image:        pkg.Image,
+		Type:         pkg.Type,
+		Status:       pkg.Status,
+		DeliveredAt:  pkg.DeliveredAt,
+		ExpiredAt:    pkg.ExpiredAt,
 		User: dto.UserResponse{
 			ID:          user.ID,
 			Name:        user.Name,
@@ -567,13 +573,14 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 	var datas []dto.PackageResponse
 	for _, pkg := range dataWithPaginate.Packages {
 		data := dto.PackageResponse{
-			ID:          pkg.ID,
-			Description: pkg.Description,
-			Image:       pkg.Image,
-			Type:        pkg.Type,
-			Status:      pkg.Status,
-			DeliveredAt: pkg.DeliveredAt,
-			ExpiredAt:   pkg.ExpiredAt,
+			ID:           pkg.ID,
+			TrackingCode: pkg.TrackingCode,
+			Description:  pkg.Description,
+			Image:        pkg.Image,
+			Type:         pkg.Type,
+			Status:       pkg.Status,
+			DeliveredAt:  pkg.DeliveredAt,
+			ExpiredAt:    pkg.ExpiredAt,
 			User: dto.UserResponse{
 				ID:          pkg.User.ID,
 				Name:        pkg.User.Name,
@@ -617,13 +624,14 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, pkgID string) (dto
 	}
 
 	return dto.PackageResponse{
-		ID:          pkg.ID,
-		Description: pkg.Description,
-		Image:       pkg.Image,
-		Type:        pkg.Type,
-		Status:      pkg.Status,
-		DeliveredAt: pkg.DeliveredAt,
-		ExpiredAt:   pkg.ExpiredAt,
+		ID:           pkg.ID,
+		TrackingCode: pkg.TrackingCode,
+		Description:  pkg.Description,
+		Image:        pkg.Image,
+		Type:         pkg.Type,
+		Status:       pkg.Status,
+		DeliveredAt:  pkg.DeliveredAt,
+		ExpiredAt:    pkg.ExpiredAt,
 		User: dto.UserResponse{
 			ID:          pkg.User.ID,
 			Name:        pkg.User.Name,
@@ -648,19 +656,14 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, pkgID string) (dto
 		},
 	}, nil
 }
-func (as *AdminService) ReadAllPackageHistoryWithPagination(ctx context.Context, req dto.PaginationRequest, pkgIDStr string) (dto.PackageHistoryPaginationResponse, error) {
-	pkgID, err := uuid.Parse(pkgIDStr)
+func (as *AdminService) ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error) {
+	dataWithPaginate, err := as.adminRepo.GetAllPackageHistory(ctx, nil, pkgID)
 	if err != nil {
-		return dto.PackageHistoryPaginationResponse{}, dto.ErrParseUUID
-	}
-
-	dataWithPaginate, err := as.adminRepo.GetAllPackageHistoryWithPagination(ctx, nil, req, pkgID)
-	if err != nil {
-		return dto.PackageHistoryPaginationResponse{}, dto.ErrGetAllPackageHistoryWithPagination
+		return []dto.PackageHistoryResponse{}, dto.ErrGetAllPackageHistory
 	}
 
 	var datas []dto.PackageHistoryResponse
-	for _, pkgH := range dataWithPaginate.PackageHistories {
+	for _, pkgH := range dataWithPaginate {
 		data := dto.PackageHistoryResponse{
 			ID:     pkgH.ID,
 			Status: pkgH.Status,
@@ -683,18 +686,11 @@ func (as *AdminService) ReadAllPackageHistoryWithPagination(ctx context.Context,
 			},
 			CreatedAt: pkgH.CreatedAt,
 		}
+
 		datas = append(datas, data)
 	}
 
-	return dto.PackageHistoryPaginationResponse{
-		Data: datas,
-		PaginationResponse: dto.PaginationResponse{
-			Page:    dataWithPaginate.Page,
-			PerPage: dataWithPaginate.PerPage,
-			MaxPage: dataWithPaginate.MaxPage,
-			Count:   dataWithPaginate.Count,
-		},
-	}, nil
+	return datas, nil
 }
 func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error) {
 	token := ctx.Value("Authorization").(string)

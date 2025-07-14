@@ -42,7 +42,7 @@ func BuildResponseFailed(message string, err string, data any) Response {
 func BuildReceivedMessage(p *entity.Package) string {
 	return fmt.Sprintf(
 		"📦 Paket dengan kode *%s* telah diterima oleh kantor TitipanQ pada *%s*.\n\nDeskripsi: %s\n\nKami akan segera memprosesnya.",
-		p.ID.String(),
+		p.TrackingCode,
 		p.TimeStamp.CreatedAt.Format("02 Jan 2006"),
 		p.Description,
 	)
