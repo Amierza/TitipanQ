@@ -6,4 +6,6 @@ export type Company = {
   company_address: string;
 };
 
-export type AllCompanyResponse = SuccessResponse<Company[]>
+export type CompanyResponse = SuccessResponse<Company>;
+
+export type AllCompanyResponse = SuccessResponse<Company[]>;

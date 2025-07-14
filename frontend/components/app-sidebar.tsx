@@ -38,7 +38,7 @@ const menuItems = [
     icon: Package,
   },
   {
-    title: "Pickup History",
+    title: "Package List",
     href: "/admin/history",
     icon: History,
   },
