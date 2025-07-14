@@ -5,7 +5,7 @@ import { CompanyResponse } from "@/types/company.type";
 import { ErrorResponse } from "@/types/error";
 import { AxiosError } from "axios";
 
-export const deletePackageService = async (
+export const deleteCompanyService = async (
   companyId: string
 ): Promise<CompanyResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");

@@ -15,7 +15,6 @@ export const createCompanyService = async (
     const response = await axiosAdminConfig.post(`${baseUrl}/admin/create-company`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
         Accept: "application/json",
       },
     });

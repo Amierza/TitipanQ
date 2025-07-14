@@ -133,7 +133,7 @@ const HomePage = () => {
             <ArrowRight className="text-base"/>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {packageData.data.slice(0, 5).map((pkg) => (
+            {packageData.data.slice(0, 4).map((pkg) => (
               <PackageCardDashboard key={pkg.package_id} pkg={pkg} />
             ))}
           </div>

@@ -5,11 +5,8 @@ import { AllCompanyResponse } from "@/types/company.type";
 import { ErrorResponse } from "@/types/error";
 import { AxiosError } from "axios";
 
-export const getAllCompanyPaginationService = async ({
-  page,
-}: {
-  page?: number;
-}): Promise<AllCompanyResponse | ErrorResponse> => {
+export const getAllCompanyPaginationService = async (page?: number):
+  Promise<AllCompanyResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
     const response = await axiosAdminConfig.get(
