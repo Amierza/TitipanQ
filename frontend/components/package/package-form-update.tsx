@@ -146,7 +146,7 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Select User</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} disabled value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih pengguna" />

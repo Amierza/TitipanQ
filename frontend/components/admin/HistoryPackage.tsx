@@ -11,9 +11,20 @@ import { Separator } from "@/components/ui/separator";
 import HistoryTable from "../history-table";
 import { useState } from "react";
 import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const HistoryPackageSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [companyFilter, setCompanyFilter] = useState<string | undefined>();
 
   return (
     <SidebarInset>
@@ -27,7 +38,7 @@ const HistoryPackageSection = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">Package History</BreadcrumbLink>
+              <BreadcrumbLink href="#">List Package</BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -39,7 +50,7 @@ const HistoryPackageSection = () => {
           {/* Title + Deskripsi */}
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-              Package History
+              List Package
             </h1>
             <p className="text-gray-600">
               View picked-up or expired packages from all companies
@@ -56,6 +67,34 @@ const HistoryPackageSection = () => {
               className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
             />
           </div>
+
+          <Select onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Status</SelectLabel>
+                <SelectItem value="picked-up">Picked Up</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
+          <Select onValueChange={setCompanyFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by company" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Company</SelectLabel>
+                <SelectItem value="company-a">Company A</SelectItem>
+                <SelectItem value="company-b">Company B</SelectItem>
+                <SelectItem value="company-c">Company C</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
 
           {/* Table */}
           <div className="flex-1">
