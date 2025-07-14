@@ -16,7 +16,15 @@ import {
   PaginationPrevious,
 } from "./ui/pagination";
 
-const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
+const HistoryTable = ({
+  searchQuery,
+  statusFilter,
+  companyFilter,
+}: {
+  searchQuery: string;
+  statusFilter?: string;
+  companyFilter?: string;
+}) => {
   const query = searchQuery.toLowerCase();
   const [page, setPage] = useState(1);
 
@@ -30,16 +38,22 @@ const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
 
   const itemPerPage = packageData.meta.per_page;
 
-  const dataPackage =
-    packageData.data?.filter(
-      (p) => p.package_status === "completed" || p.package_status === "expired"
-    ) ?? [];
+  const filteredData = packageData.data.filter((pkg) => {
+    const macthesSearchFilter =
+      pkg.user.user_name.toLowerCase().includes(query) ||
+      pkg.package_description.toLowerCase().includes(query);
 
-  const filteredData = dataPackage.filter((pkg) =>
-    [pkg.user.user_name, pkg.package_description, pkg.user.company.company_name].some((val) =>
-      val.toLowerCase().includes(query)
-    )
-  );
+    const matchesStatusFilter = statusFilter
+      ? pkg.package_status.toLowerCase() === statusFilter.toLowerCase()
+      : true;
+
+    const matchesCompanyFilter = companyFilter
+      ? pkg.user.company.company_id.toLowerCase() ===
+        companyFilter.toLowerCase()
+      : true;
+
+    return macthesSearchFilter && matchesStatusFilter && matchesCompanyFilter;
+  });
 
   const totalPage = Math.ceil(filteredData.length / itemPerPage);
 
@@ -84,9 +98,14 @@ const HistoryTable = ({ searchQuery }: { searchQuery: string }) => {
                 </td>
                 <td className="p-3">{pkg.package_description}</td>
                 <td className="p-3">
-                  <UserInfo name={pkg.user.user_name} email={pkg.user.user_email} />
+                  <UserInfo
+                    name={pkg.user.user_name}
+                    email={pkg.user.user_email}
+                  />
                 </td>
-                <td className="p-3">{pkg.user.company.company_name || "Unknown"}</td>
+                <td className="p-3">
+                  {pkg.user.company.company_name || "Unknown"}
+                </td>
                 <td className="p-3">
                   <PackageStatusBadge status={pkg.package_status} />
                 </td>
