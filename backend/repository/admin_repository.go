@@ -23,6 +23,7 @@ type (
 		GetAllUser(ctx context.Context) ([]entity.User, error)
 		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error)
 		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
+		GetPackageByTrackingCode(ctx context.Context, tx *gorm.DB, trackingCode string) (entity.Package, bool, error)
 		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
 		GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
@@ -153,7 +154,6 @@ func (ar *AdminRepository) GetAllUser(ctx context.Context) ([]entity.User, error
 
 	return users, nil
 }
-
 func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = ar.db
@@ -210,12 +210,24 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 		tx = ar.db
 	}
 
-	var user entity.Package
-	if err := tx.WithContext(ctx).Preload("User").Where("id = ?", pkgID).Take(&user).Error; err != nil {
+	var pkg entity.Package
+	if err := tx.WithContext(ctx).Preload("User").Where("id = ?", pkgID).Take(&pkg).Error; err != nil {
 		return entity.Package{}, false, err
 	}
 
-	return user, true, nil
+	return pkg, true, nil
+}
+func (ar *AdminRepository) GetPackageByTrackingCode(ctx context.Context, tx *gorm.DB, trackingCode string) (entity.Package, bool, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var pkg entity.Package
+	if err := tx.WithContext(ctx).Preload("User").Where("tracking_code = ?", trackingCode).Take(&pkg).Error; err != nil {
+		return entity.Package{}, false, err
+	}
+
+	return pkg, true, nil
 }
 func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error) {
 	if tx == nil {
@@ -234,7 +246,7 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 		req.Page = 1
 	}
 
-	query := tx.WithContext(ctx).Model(&entity.Package{}).Preload("User")
+	query := tx.WithContext(ctx).Model(&entity.Package{}).Preload("User.Company").Preload("User.Role")
 
 	if req.Search != "" {
 		searchValue := "%" + strings.ToLower(req.Search) + "%"

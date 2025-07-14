@@ -39,7 +39,7 @@ type (
 		// Package
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
 		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userIDStr string) (dto.PackagePaginationResponse, error)
-		GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error)
+		GetDetailPackage(ctx context.Context, identifier string) (dto.PackageResponse, error)
 		ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error)
 		UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error)
 		DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error)
@@ -491,9 +491,17 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		return dto.PackageResponse{}, dto.ErrUserNotFound
 	}
 
+	trackingCode := fmt.Sprintf("PACK%s", time.Now().Format("060102150405"))
+
+	fileNameBarcode, err := helpers.GenerateBarcodeFile(trackingCode)
+	if err != nil {
+		log.Println("Gagal generate barcode:", err)
+	}
+
 	pkg := entity.Package{
 		ID:           uuid.New(),
-		TrackingCode: fmt.Sprintf("PACK%s", time.Now().Format("060102150405")),
+		TrackingCode: trackingCode,
+		Barcode:      fileNameBarcode,
 		Description:  req.Description,
 		Type:         req.Type,
 		Status:       entity.Received,
@@ -505,10 +513,6 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 			CreatedAt: now,
 			UpdatedAt: now,
 		},
-	}
-
-	if err := helpers.GenerateBarcodeFile(pkg.TrackingCode); err != nil {
-		log.Println("Gagal generate barcode:", err)
 	}
 
 	if err := as.adminRepo.CreatePackage(ctx, nil, pkg); err != nil {
@@ -537,6 +541,7 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		TrackingCode: pkg.TrackingCode,
 		Description:  pkg.Description,
 		Image:        pkg.Image,
+		BarcodeImage: pkg.Barcode,
 		Type:         pkg.Type,
 		Status:       pkg.Status,
 		DeliveredAt:  pkg.DeliveredAt,
@@ -577,6 +582,7 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 			TrackingCode: pkg.TrackingCode,
 			Description:  pkg.Description,
 			Image:        pkg.Image,
+			BarcodeImage: pkg.Barcode,
 			Type:         pkg.Type,
 			Status:       pkg.Status,
 			DeliveredAt:  pkg.DeliveredAt,
@@ -617,8 +623,16 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 		},
 	}, nil
 }
-func (as *AdminService) GetDetailPackage(ctx context.Context, pkgID string) (dto.PackageResponse, error) {
-	pkg, _, err := as.adminRepo.GetPackageByID(ctx, nil, pkgID)
+func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string) (dto.PackageResponse, error) {
+	var pkg entity.Package
+	var err error
+
+	if _, parseErr := uuid.Parse(identifier); parseErr == nil {
+		pkg, _, err = as.adminRepo.GetPackageByID(ctx, nil, identifier)
+	} else {
+		pkg, _, err = as.adminRepo.GetPackageByTrackingCode(ctx, nil, identifier)
+	}
+
 	if err != nil {
 		return dto.PackageResponse{}, dto.ErrPackageNotFound
 	}
@@ -628,6 +642,7 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, pkgID string) (dto
 		TrackingCode: pkg.TrackingCode,
 		Description:  pkg.Description,
 		Image:        pkg.Image,
+		BarcodeImage: pkg.Barcode,
 		Type:         pkg.Type,
 		Status:       pkg.Status,
 		DeliveredAt:  pkg.DeliveredAt,
@@ -863,13 +878,14 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 	}
 
 	res := dto.PackageResponse{
-		ID:          deletedPackage.ID,
-		Description: deletedPackage.Description,
-		Image:       deletedPackage.Image,
-		Type:        deletedPackage.Type,
-		Status:      deletedPackage.Status,
-		DeliveredAt: deletedPackage.DeliveredAt,
-		ExpiredAt:   deletedPackage.ExpiredAt,
+		ID:           deletedPackage.ID,
+		Description:  deletedPackage.Description,
+		Image:        deletedPackage.Image,
+		BarcodeImage: deletedPackage.Barcode,
+		Type:         deletedPackage.Type,
+		Status:       deletedPackage.Status,
+		DeliveredAt:  deletedPackage.DeliveredAt,
+		ExpiredAt:    deletedPackage.ExpiredAt,
 		User: dto.UserResponse{
 			ID:          deletedPackage.User.ID,
 			Name:        deletedPackage.User.Name,

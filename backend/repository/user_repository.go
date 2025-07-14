@@ -145,7 +145,7 @@ func (ur *UserRepository) GetAllPackageWithPagination(ctx context.Context, tx *g
 		req.Page = 1
 	}
 
-	query := tx.WithContext(ctx).Model(&entity.Package{}).Where("user_id = ? ", userID)
+	query := tx.WithContext(ctx).Model(&entity.Package{}).Where("user_id = ? ", userID).Preload("User.Company").Preload("User.Role")
 
 	if req.Search != "" {
 		searchValue := "%" + strings.ToLower(req.Search) + "%"
