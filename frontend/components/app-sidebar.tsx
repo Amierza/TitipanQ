@@ -38,7 +38,7 @@ const menuItems = [
     icon: Package,
   },
   {
-    title: "Pickup History",
+    title: "Package List",
     href: "/admin/history",
     icon: History,
   },
@@ -62,7 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Sidebar Header */}
       <SidebarHeader className="flex items-center gap-3 px-4 py-3 border-b">
         <Avatar>
-          <AvatarFallback>U</AvatarFallback>
+          <AvatarFallback>A</AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <span className="text-sm font-medium">Admin TitipanQ</span>
@@ -103,7 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       {/* Sidebar Rail (collapse button, optional) */}
-      <SidebarRail />
+      <SidebarRail/>
     </Sidebar>
   );
 }

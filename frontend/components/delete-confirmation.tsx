@@ -2,13 +2,13 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { UserData } from "../lib/data/dummy-user"
+import { User } from "@/types/user.type"
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   onConfirm: () => void
-  user: UserData | null
+  user: User | null
 }
 
 export function DeleteConfirmation({ isOpen, onClose, onConfirm, user }: Props) {
@@ -19,7 +19,7 @@ export function DeleteConfirmation({ isOpen, onClose, onConfirm, user }: Props) 
           <DialogTitle>Confirm Delete</DialogTitle>
         </DialogHeader>
         <div className="text-sm text-gray-700">
-          Are you sure you want to delete user <strong>{user?.name}</strong>?
+          Are you sure you want to delete user <strong>{user?.user_name}</strong>?
         </div>
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline" onClick={onClose}>

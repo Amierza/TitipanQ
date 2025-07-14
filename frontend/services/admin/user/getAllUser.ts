@@ -1,26 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
+import axiosAdminConfig from "@/services/auth/auth.config";
 import { ErrorResponse } from "@/types/error";
-import { PackageResponse } from "@/types/package/allPackage";
-import { PackageSchema } from "@/validation/package.schema";
-import axios, { AxiosError } from "axios";
-import { z } from "zod";
+import { AllUserResponse } from "@/types/user.type";
+import { AxiosError } from "axios";
 
-export const createPackageService = async (
-  data: z.infer<typeof PackageSchema>
-): Promise<PackageResponse | ErrorResponse> => {
+export const getAllUserService = async (): Promise<
+  AllUserResponse | ErrorResponse
+> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.post(`${baseUrl}/admin/create-package`, data, {
+    const response = await axiosAdminConfig.get(`${baseUrl}/admin/get-all-user?pagination=${false}`, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
         Accept: "application/json",
       },
     });
 
     if (response.status === 200) {
-      return response.data as PackageResponse;
+      return response.data as AllUserResponse;
     } else {
       return response.data as ErrorResponse;
     }
@@ -31,7 +29,7 @@ export const createPackageService = async (
       status: false,
       message:
         axiosError.response?.data?.message ||
-        "Terjadi kesalahan saat melakukan pembuatan data paket.",
+        "Terjadi kesalahan saat melakukan pengambilan data user.",
       timestamp: new Date().toISOString(),
       error: axiosError.message || "Unknown error",
     };

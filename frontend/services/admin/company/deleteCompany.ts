@@ -1,31 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from "@/config/api";
+import axiosAdminConfig from "@/services/auth/auth.config";
+import { CompanyResponse } from "@/types/company.type";
 import { ErrorResponse } from "@/types/error";
-import { PackageResponse } from "@/types/package/allPackage";
-import { PackageSchema } from "@/validation/package.schema";
-import axios, { AxiosError } from "axios";
-import { z } from "zod";
+import { AxiosError } from "axios";
 
-export const updatePackageService = async (
-  packageId: string,
-  data: Partial<z.infer<typeof PackageSchema>>
-): Promise<PackageResponse | ErrorResponse> => {
+export const deletePackageService = async (
+  companyId: string
+): Promise<CompanyResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
-    const response = await axios.post(
-      `${baseUrl}/admin/update-package/${packageId}`,
-      data,
+    const response = await axiosAdminConfig.delete(
+      `${baseUrl}/admin/delete-company/${companyId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
           Accept: "application/json",
         },
       }
     );
 
     if (response.status === 200) {
-      return response.data as PackageResponse;
+      return response.data as CompanyResponse;
     } else {
       return response.data as ErrorResponse;
     }
@@ -36,7 +32,7 @@ export const updatePackageService = async (
       status: false,
       message:
         axiosError.response?.data?.message ||
-        "Terjadi kesalahan saat melakukan pembaruan data paket.",
+        "Terjadi kesalahan saat melakukan hapus data perusahaan.",
       timestamp: new Date().toISOString(),
       error: axiosError.message || "Unknown error",
     };

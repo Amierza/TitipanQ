@@ -1,15 +1,14 @@
-import { Search } from "lucide-react"
-
-import { Label } from "@/components/ui/label"
+import { Search } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarInput,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export function SearchForm({ ...props }: React.ComponentProps<"form">) {
   return (
-    <form {...props}>
+    <form id="search-form" {...props}>
       <SidebarGroup className="py-0">
         <SidebarGroupContent className="relative">
           <Label htmlFor="search" className="sr-only">
@@ -17,6 +16,7 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
           </Label>
           <SidebarInput
             id="search"
+            name="search"
             placeholder="Search the docs..."
             className="pl-8"
           />
@@ -24,5 +24,6 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
         </SidebarGroupContent>
       </SidebarGroup>
     </form>
-  )
+  );
 }
+

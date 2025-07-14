@@ -6,15 +6,40 @@ export enum PackageType {
   Other = "other",
 }
 
+export enum PackageStatus {
+  Received = "received",
+  Delivered = "delivered",
+  Completed = "completed",
+  Expired = "expired",
+}
+
 export const PackageSchema = z.object({
   package_description: z
     .string()
     .min(1, { message: "Deskripsi paket tidak boleh kosong" }),
   package_image: z
-    .string()
-    .url({ message: "Gambar paket harus berupa URL yang valid" }),
+    .instanceof(File)
+    .refine((file) => file.size > 0, {
+      message: "Gambar tidak boleh kosong",
+    })
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: "Ukuran gambar maksimal 5MB",
+    }),
   package_type: z.nativeEnum(PackageType, {
     required_error: "Tipe paket harus diisi",
   }),
   user_id: z.string().uuid({ message: "User ID harus berupa UUID yang valid" }),
+});
+
+export const UpdatePackageSchema = z.object({
+  package_description: z
+    .string()
+    .min(1, { message: "Deskripsi paket tidak boleh kosong" }),
+  package_type: z.nativeEnum(PackageType, {
+    required_error: "Tipe paket harus diisi",
+  }),
+  user_id: z.string().uuid({ message: "User ID harus berupa UUID yang valid" }),
+  package_status: z.nativeEnum(PackageStatus, {
+    required_error: "Status paket harus diisi",
+  }),
 });

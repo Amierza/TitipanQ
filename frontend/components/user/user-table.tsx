@@ -3,59 +3,121 @@
 
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { UserStatusBadge } from "./user-status-badge";
-import { UserData } from "@/lib/data/dummy-user";
+import { User } from "@/types/user.type";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
 
 interface Props {
-  users: UserData[];
-  onEdit: (user: UserData) => void;
-  onDelete: (user: UserData) => void;
+  users: User[];
+  page: number;
+  setPage: (page: number) => void;
+  totalPages: number;
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
 }
 
-export function UserTable({ users, onEdit, onDelete }: Props) {
+const UserTable = ({
+  users,
+  page,
+  setPage,
+  totalPages,
+  onEdit,
+  onDelete,
+}: Props) => {
+  const userPerPage = 10;
+  const currentPage = page ?? 1;
+  const paginatedUsers = users;
+
   return (
-    <div className="overflow-x-auto border rounded-xl bg-white">
-      <table className="min-w-full table-auto text-sm">
-        <thead className="bg-black text-white">
-          <tr>
-            <th className="p-3 text-left">Name</th>
-            <th className="p-3 text-left">Email</th>
-            <th className="p-3 text-left">Company</th>
-            <th className="p-3 text-left">Role</th>
-            <th className="p-3 text-left">Status</th>
-            <th className="p-3 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="border-b hover:bg-gray-100">
-              <td className="p-3 font-medium text-gray-800">{user.name}</td>
-              <td className="p-3 text-gray-600">{user.email}</td>
-              <td className="p-3">{user.company}</td>
-              <td className="p-3 capitalize">{user.role}</td>
-              <td className="p-3">
-                <UserStatusBadge isActive={user.active} />
-              </td>
-              <td className="p-3 space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onEdit(user)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => onDelete(user)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </td>
+    <>
+      <div className="overflow-x-auto border rounded-xl bg-white">
+        <table className="min-w-full table-auto text-sm">
+          <thead className="bg-black text-white">
+            <tr>
+              <th className="p-3 text-left">No.</th>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Email</th>
+              <th className="p-3 text-left">Company</th>
+              <th className="p-3 text-left">Role</th>
+              <th className="p-3 text-left">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {paginatedUsers.map((user, index) => (
+              <tr key={user.user_id} className="border-b hover:bg-gray-100">
+                <td className="p-3 font-medium text-gray-800">
+                  {(currentPage - 1) * userPerPage + (index + 1)}
+                </td>
+                <td className="p-3 font-medium text-gray-800">
+                  {user.user_name}
+                </td>
+                <td className="p-3 text-gray-600">{user.user_email}</td>
+                <td className="p-3">{user.company.company_name}</td>
+                <td className="p-3 capitalize">{user.role.role_name}</td>
+                <td className="p-3 space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onEdit(user)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => onDelete(user)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {users && (
+        <div className="mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  className="cursor-pointer"
+                  onClick={() => page > 1 && setPage(page - 1)}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }, (_, index) => (
+                <PaginationItem key={index}>
+                  <PaginationLink
+                    isActive={page === index + 1}
+                    onClick={() => {
+                      setPage(index + 1);
+                    }}
+                  >
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  className="cursor-pointer"
+                  onClick={() => page < totalPages && setPage(page + 1)}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </>
   );
-}
+};
+
+export default UserTable;
