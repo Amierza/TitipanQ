@@ -457,22 +457,10 @@ func (us *UserService) ReadAllPackageHistory(ctx context.Context, pkgID string) 
 		data := dto.PackageHistoryResponse{
 			ID:     pkgH.ID,
 			Status: pkgH.Status,
-			ChangedBy: dto.UserResponse{
-				ID:          pkgH.ChangedByUser.ID,
-				Name:        pkgH.ChangedByUser.Name,
-				Email:       pkgH.ChangedByUser.Email,
-				Password:    pkgH.ChangedByUser.Password,
-				PhoneNumber: pkgH.ChangedByUser.PhoneNumber,
-				Address:     pkgH.ChangedByUser.Address,
-				Company: dto.CompanyResponse{
-					ID:      pkgH.ChangedByUser.CompanyID,
-					Name:    pkgH.ChangedByUser.Company.Name,
-					Address: pkgH.ChangedByUser.Company.Address,
-				},
-				Role: dto.RoleResponse{
-					ID:   pkgH.ChangedByUser.RoleID,
-					Name: pkgH.ChangedByUser.Role.Name,
-				},
+			ChangedBy: dto.UserResponseCustom{
+				ID:    pkgH.ChangedByUser.ID,
+				Name:  pkgH.ChangedByUser.Name,
+				Email: pkgH.ChangedByUser.Email,
 			},
 			CreatedAt: pkgH.CreatedAt,
 		}
