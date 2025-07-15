@@ -211,7 +211,7 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 	}
 
 	var pkg entity.Package
-	if err := tx.WithContext(ctx).Preload("User").Where("id = ?", pkgID).Take(&pkg).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("User.Company").Preload("User.Role").Where("id = ?", pkgID).Take(&pkg).Error; err != nil {
 		return entity.Package{}, false, err
 	}
 
@@ -223,7 +223,7 @@ func (ar *AdminRepository) GetPackageByTrackingCode(ctx context.Context, tx *gor
 	}
 
 	var pkg entity.Package
-	if err := tx.WithContext(ctx).Preload("User").Where("tracking_code = ?", trackingCode).Take(&pkg).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("User.Company").Preload("User.Role").Where("tracking_code = ?", trackingCode).Take(&pkg).Error; err != nil {
 		return entity.Package{}, false, err
 	}
 
