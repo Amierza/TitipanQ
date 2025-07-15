@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { UserInfo } from "./user/user-info";
 import { PackageStatusBadge } from "./package/package-status-badge";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllPackageService } from "@/services/admin/package/getAllPackage";
 import { imageUrl } from "@/config/api";
 import { useState } from "react";
@@ -14,7 +14,16 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "./ui/pagination";
+} from "@/components/ui/pagination";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import DeletePackageButton from "./package/package-delete-button";
+import { deletePackageService } from "@/services/admin/package/deletePackage";
+import { toast } from "sonner";
+import { Package } from "@/types/package.type";
+import DeleteConfirmationPackage from "./package/delete-confirmation-package";
 
 const HistoryTable = ({
   searchQuery,
@@ -26,12 +35,29 @@ const HistoryTable = ({
   companyFilter?: string;
 }) => {
   const query = searchQuery.toLowerCase();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(
+    null
+  );
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const router = useRouter();
 
   const { data: packageData } = useQuery({
     queryKey: ["packageData", page],
     queryFn: () => getAllPackageService({ page }),
   });
+
+  const { mutate: deletePackage } = useMutation({
+    mutationFn: deletePackageService,
+    onSuccess: (result) => {
+      toast.success(result.message)
+      queryClient.invalidateQueries({ queryKey: ["packageData"] })
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    }
+  })
 
   if (!packageData) return <p>Loading...</p>;
   if (packageData.status === false) return <p>Failed to fetch data</p>;
@@ -49,11 +75,23 @@ const HistoryTable = ({
 
     const matchesCompanyFilter = companyFilter
       ? pkg.user.company.company_id.toLowerCase() ===
-        companyFilter.toLowerCase()
+      companyFilter.toLowerCase()
       : true;
 
     return macthesSearchFilter && matchesStatusFilter && matchesCompanyFilter;
   });
+
+  const handleDelete = (pkg: Package) => {
+    setSelectedPackage(pkg);
+    setIsDeleteOpen(true);
+  };
+
+  const confirmDelete = (pkg: Package) => {
+    if (selectedPackage) {
+      deletePackage(pkg.package_id);
+    }
+    setIsDeleteOpen(false);
+  };
 
   const totalPage = Math.ceil(filteredData.length / itemPerPage);
 
@@ -81,7 +119,8 @@ const HistoryTable = ({
               <th className="p-3 text-left">Recipient</th>
               <th className="p-3 text-left">Company</th>
               <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Date</th>
+              <th className="p-3 text-left">Detail</th>
+              <th className="p-3 text-left">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -110,7 +149,19 @@ const HistoryTable = ({
                   <PackageStatusBadge status={pkg.package_status} />
                 </td>
                 <td className="p-3">
-                  {new Date(pkg.package_expired_at).toLocaleDateString()}
+                  <Link href={"#"} className="text-blue-500 underline">Detail</Link>
+                </td>
+                <td className="p-3">
+                  <div className="flex gap-2">
+                    <Button
+                      variant={"ghost"}
+                      onClick={() => router.push(`/admin/package/edit/${pkg.package_id}`)}
+                      className="bg-amber-400 hover:text-white hover:bg-amber-500 text-white p-2 rounded-md"
+                    >
+                      <Pencil className="transition-transform" />
+                    </Button>
+                    <DeletePackageButton onClick={() => handleDelete(pkg)} />
+                  </div>
                 </td>
               </tr>
             ))}
@@ -152,6 +203,15 @@ const HistoryTable = ({
               </PaginationItem>
             </PaginationContent>
           </Pagination>
+
+          <DeleteConfirmationPackage
+            isOpen={isDeleteOpen}
+            onClose={() => setIsDeleteOpen(false)}
+            onConfirm={() => {
+              if (selectedPackage) confirmDelete(selectedPackage);
+            }}
+            pkg={selectedPackage}
+          />
         </div>
       )}
     </>

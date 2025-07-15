@@ -1,8 +1,8 @@
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import NewPackageSection from "@/components/admin/NewPackage";
-import { SidebarProvider } from "@/components/ui/sidebar";
 
-export default function NewPackagePage() {
+export default function PackagePage() {
   return (
     <SidebarProvider>
       <AppSidebar />

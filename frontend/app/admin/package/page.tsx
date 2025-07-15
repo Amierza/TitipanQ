@@ -1,13 +1,13 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import ManagePackageSection from "@/components/admin/ManagePackage";
+import HistoryPackageSection from "@/components/admin/HistoryPackage";
 
-export default function PackagePage() {
+export default function PackageHistoryPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
 
-      <ManagePackageSection />
+      <HistoryPackageSection />
     </SidebarProvider>
   );
 }
