@@ -682,22 +682,10 @@ func (as *AdminService) ReadAllPackageHistory(ctx context.Context, pkgID string)
 		data := dto.PackageHistoryResponse{
 			ID:     pkgH.ID,
 			Status: pkgH.Status,
-			ChangedBy: dto.UserResponse{
-				ID:          pkgH.ChangedByUser.ID,
-				Name:        pkgH.ChangedByUser.Name,
-				Email:       pkgH.ChangedByUser.Email,
-				Password:    pkgH.ChangedByUser.Password,
-				PhoneNumber: pkgH.ChangedByUser.PhoneNumber,
-				Address:     pkgH.ChangedByUser.Address,
-				Company: dto.CompanyResponse{
-					ID:      pkgH.ChangedByUser.CompanyID,
-					Name:    pkgH.ChangedByUser.Company.Name,
-					Address: pkgH.ChangedByUser.Company.Address,
-				},
-				Role: dto.RoleResponse{
-					ID:   pkgH.ChangedByUser.RoleID,
-					Name: pkgH.ChangedByUser.Role.Name,
-				},
+			ChangedBy: dto.UserResponseCustom{
+				ID:    pkgH.ChangedByUser.ID,
+				Name:  pkgH.ChangedByUser.Name,
+				Email: pkgH.ChangedByUser.Email,
 			},
 			CreatedAt: pkgH.CreatedAt,
 		}
@@ -718,6 +706,11 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	IDChanger, err := uuid.Parse(userId)
 	if err != nil {
 		return dto.UpdatePackageResponse{}, dto.ErrParseUUID
+	}
+
+	changer, flag, err := as.adminRepo.GetUserByID(ctx, nil, IDChanger.String())
+	if err != nil || !flag {
+		return dto.UpdatePackageResponse{}, dto.ErrUserNotFound
 	}
 
 	p, flag, err := as.adminRepo.GetPackageByID(ctx, nil, req.ID)
@@ -849,16 +842,30 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		return dto.UpdatePackageResponse{}, dto.ErrCreatePackageHistory
 	}
 
+	client := dto.UserResponseCustom{
+		ID:    *p.UserID,
+		Name:  p.User.Name,
+		Email: p.User.Email,
+	}
+
+	admin := dto.UserResponseCustom{
+		ID:    changer.ID,
+		Name:  changer.Name,
+		Email: changer.Email,
+	}
+
 	return dto.UpdatePackageResponse{
-		ID:          p.ID,
-		Description: p.Description,
-		Image:       p.Image,
-		Type:        p.Type,
-		Status:      p.Status,
-		DeliveredAt: p.DeliveredAt,
-		ExpiredAt:   p.ExpiredAt,
-		UserID:      *p.UserID,
-		ChangedBy:   *history.ChangedBy,
+		ID:           p.ID,
+		TrackingCode: p.TrackingCode,
+		Description:  p.Description,
+		Image:        p.Image,
+		BarcodeImage: p.Barcode,
+		Type:         p.Type,
+		Status:       p.Status,
+		DeliveredAt:  p.DeliveredAt,
+		ExpiredAt:    p.ExpiredAt,
+		User:         client,
+		ChangedBy:    admin,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: p.UpdatedAt,
@@ -879,6 +886,7 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 
 	res := dto.PackageResponse{
 		ID:           deletedPackage.ID,
+		TrackingCode: deletedPackage.TrackingCode,
 		Description:  deletedPackage.Description,
 		Image:        deletedPackage.Image,
 		BarcodeImage: deletedPackage.Barcode,

@@ -250,22 +250,29 @@ type (
 		FileHeader  *multipart.FileHeader `json:"fileheader,omitempty"`
 		FileReader  multipart.File        `json:"filereader,omitempty"`
 	}
+	UserResponseCustom struct {
+		ID    uuid.UUID `json:"user_id"`
+		Name  string    `json:"user_name"`
+		Email string    `json:"user_email"`
+	}
 	PackageHistoryResponse struct {
-		ID        uuid.UUID     `json:"history_id"`
-		Status    entity.Status `json:"history_status"`
-		ChangedBy UserResponse  `json:"changed_by"`
-		CreatedAt time.Time     `json:"created_at"`
+		ID        uuid.UUID          `json:"history_id"`
+		Status    entity.Status      `json:"history_status"`
+		ChangedBy UserResponseCustom `json:"changed_by"`
+		CreatedAt time.Time          `json:"created_at"`
 	}
 	UpdatePackageResponse struct {
-		ID          uuid.UUID     `json:"package_id"`
-		Description string        `json:"package_description"`
-		Image       string        `json:"package_image"`
-		Type        entity.Type   `json:"package_type"`
-		Status      entity.Status `json:"package_status"`
-		DeliveredAt *time.Time    `json:"package_delivered_at"`
-		ExpiredAt   *time.Time    `json:"package_expired_at"`
-		UserID      uuid.UUID     `json:"user_id"`
-		ChangedBy   uuid.UUID     `json:"change_by"`
+		ID           uuid.UUID          `json:"package_id"`
+		TrackingCode string             `json:"package_tracking_code"`
+		Description  string             `json:"package_description"`
+		Image        string             `json:"package_image"`
+		BarcodeImage string             `json:"package_barcode_image"`
+		Type         entity.Type        `json:"package_type"`
+		Status       entity.Status      `json:"package_status"`
+		DeliveredAt  *time.Time         `json:"package_delivered_at"`
+		ExpiredAt    *time.Time         `json:"package_expired_at"`
+		User         UserResponseCustom `json:"user_id"`
+		ChangedBy    UserResponseCustom `json:"changed_by"`
 		entity.TimeStamp
 	}
 	DeletePackageRequest struct {
