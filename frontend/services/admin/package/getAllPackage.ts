@@ -40,3 +40,36 @@ export const getAllPackageService = async ({
     };
   }
 };
+
+export const getAllPackageWithoutPaginationService = async ():
+  Promise<AllPackageResponse | ErrorResponse> => {
+  const token = localStorage.getItem("access_token");
+  try {
+    const response = await axiosAdminConfig.get(
+      `${baseUrl}/admin/get-all-package?pagination=false`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      return response.data as AllPackageResponse;
+    } else {
+      return response.data as ErrorResponse;
+    }
+  } catch (error) {
+    const axiosError = error as AxiosError<any>;
+
+    return {
+      status: false,
+      message:
+        axiosError.response?.data?.message ||
+        "Terjadi kesalahan saat melakukan pengambilan data paket.",
+      timestamp: new Date().toISOString(),
+      error: axiosError.message || "Unknown error",
+    };
+  }
+};

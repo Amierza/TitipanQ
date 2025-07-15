@@ -69,9 +69,11 @@ const HistoryTable = ({
       pkg.user.user_name.toLowerCase().includes(query) ||
       pkg.package_description.toLowerCase().includes(query);
 
-    const matchesStatusFilter = statusFilter
-      ? pkg.package_status.toLowerCase() === statusFilter.toLowerCase()
-      : true;
+    const matchesStatusFilter =
+      !statusFilter || statusFilter === "all"
+        ? true
+        : pkg.package_status.toLowerCase() === statusFilter.toLowerCase();
+
 
     const matchesCompanyFilter = companyFilter
       ? pkg.user.company.company_id.toLowerCase() ===
@@ -149,7 +151,7 @@ const HistoryTable = ({
                   <PackageStatusBadge status={pkg.package_status} />
                 </td>
                 <td className="p-3">
-                  <Link href={"#"} className="text-blue-500 underline">Detail</Link>
+                  <Link href={`/admin/package/${pkg.package_id}`} className="text-blue-500 underline">Detail</Link>
                 </td>
                 <td className="p-3">
                   <div className="flex gap-2">

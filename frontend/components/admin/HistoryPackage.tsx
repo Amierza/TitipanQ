@@ -43,7 +43,7 @@ import { useRouter } from "next/navigation";
 
 const HistoryPackageSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [companyFilter, setCompanyFilter] = useState<string | undefined>();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -56,8 +56,6 @@ const HistoryPackageSection = () => {
 
   if (!companyData) return <p>Failed to fetch company data</p>;
   if (!companyData.status) return <p>Failed to fetch company data</p>;
-
-  console.log(companyFilter);
 
   return (
     <SidebarInset>
@@ -114,6 +112,7 @@ const HistoryPackageSection = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Status</SelectLabel>
+                    <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="received">Received</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>

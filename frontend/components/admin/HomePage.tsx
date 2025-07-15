@@ -9,35 +9,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { getAllUserService } from "@/services/admin/user/getAllUser";
-import { getAllPackageService } from "@/services/admin/package/getAllPackage";
-import { useState } from "react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "../ui/pagination";
 import PackageCardDashboard from "../package/package-card-dashboard";
 import { ArrowRight } from "lucide-react";
+import { getAllPackageWithoutPaginationService } from "@/services/admin/package/getAllPackage";
 
 const HomePage = () => {
-  const [page, setPage] = useState(1);
   const { data: packageData } = useQuery({
-    queryKey: ["packageData", page],
-    queryFn: () => getAllPackageService({ page }),
+    queryKey: ["packageData"],
+    queryFn: () => getAllPackageWithoutPaginationService(),
   });
 
   const { data: userData } = useQuery({
@@ -58,18 +39,6 @@ const HomePage = () => {
     packageData.data?.filter((p) => p.package_status === "completed") ?? [];
   const expiredPackage =
     packageData.data?.filter((p) => p.package_status === "expired") ?? [];
-
-  const getStatusBadge = (status: string) => {
-    const variant =
-      status === "received"
-        ? "default"
-        : status === "completed"
-        ? "success"
-        : status === "delivered"
-        ? "warning"
-        : "destructive";
-    return <Badge variant={variant}>{status}</Badge>;
-  };
 
   return (
     <SidebarInset>
@@ -130,7 +99,7 @@ const HomePage = () => {
         <div className="space-y-4">
           <div className="flex gap-4 items-center justify-between px-6">
             <h2 className="text-2xl font-bold">Newest Package</h2>
-            <ArrowRight className="text-base"/>
+            <ArrowRight className="text-base" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {packageData.data.slice(0, 4).map((pkg) => (
@@ -138,82 +107,6 @@ const HomePage = () => {
             ))}
           </div>
         </div>
-
-        {/* Package Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Package List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>No</TableHead>
-                  <TableHead>Recipient Name</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {packageData.data.map((pkg, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      {(page - 1) * packageData.meta.per_page + (index + 1)}
-                    </TableCell>
-                    <TableCell>{pkg.user.user_name}</TableCell>
-                    <TableCell>
-                      {pkg.user.company.company_name || "Unknown"}
-                    </TableCell>
-                    <TableCell>{pkg.package_type}</TableCell>
-                    <TableCell>{getStatusBadge(pkg.package_status)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {packageData?.meta && (
-              <div className="mt-4">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        className="cursor-pointer"
-                        onClick={() => page > 1 && setPage((prev) => prev - 1)}
-                      />
-                    </PaginationItem>
-
-                    {Array.from(
-                      { length: packageData.meta.max_page },
-                      (_, index) => (
-                        <PaginationItem key={index}>
-                          <PaginationLink
-                            isActive={page === index + 1}
-                            onClick={() => {
-                              setPage(index + 1);
-                            }}
-                          >
-                            {index + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      )
-                    )}
-
-                    <PaginationItem>
-                      <PaginationNext
-                        className="cursor-pointer"
-                        onClick={() =>
-                          page < packageData.meta.max_page &&
-                          setPage((prev) => prev + 1)
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </SidebarInset>
   );

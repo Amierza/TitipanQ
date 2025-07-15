@@ -10,6 +10,7 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import PackageList from "@/components/package/package-list";
+import Link from "next/link";
 
 const ManagePackageSection = () => {
   return (
@@ -37,9 +38,9 @@ const ManagePackageSection = () => {
               </h1>
               <p className="text-gray-600">Manage and track all packages</p>
             </div>
-            <a href="/admin/package/new">
+            <Link href="/admin/package/new">
               <Button>+ Add Package</Button>
-            </a>
+            </Link>
           </div>
 
           <PackageList />

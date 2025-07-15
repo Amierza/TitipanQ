@@ -3,8 +3,10 @@ import { User } from "./user.type";
 
 export type Package = {
   package_id: string;
+  package_tracking_code: string;
   package_description: string;
   package_image: string;
+  package_barcode_image: string;
   package_type: string;
   package_status: string;
   package_delivered_at: string;
@@ -13,7 +15,7 @@ export type Package = {
   created_at: string
   updated_at: string;
   deleted_at: null;
-};
+};           
 
 export type PackageResponse = SuccessResponse<Package>;
 
