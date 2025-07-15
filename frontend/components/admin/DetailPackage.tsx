@@ -33,7 +33,7 @@ const DetailPackageSection = () => {
   const getFullImageBarcodeUrl = (imagePath: string) => {
     if (!imagePath) return "/assets/default_image.jpg";
     if (imagePath.startsWith("http")) return imagePath;
-    return `${imageUrl}/package/${imagePath}`;
+    return `${imageUrl}/barcode/${imagePath}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -123,8 +123,8 @@ const DetailPackageSection = () => {
                         src={getFullImageBarcodeUrl(packageData.data.package_barcode_image)}
                         alt={`Barcode of ${packageData.data.package_description}`}
                         width={300}
-                        height={150}
-                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                        height={200}
+                        className="w-full p-2 h-32 object-cover rounded-lg border border-gray-200"
                       />
                     </div>
                   </div>

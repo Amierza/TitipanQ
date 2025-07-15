@@ -23,6 +23,15 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import UploadPackagePhoto from "./package-upload-photo";
@@ -35,6 +44,12 @@ import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { updatePackageService } from "@/services/admin/package/updatePackage";
 import { useState } from "react";
+import Image from "next/image";
+import { PackageResponse } from "@/types/package.type";
+import { imageUrl } from "@/config/api";
+import { useRouter } from "next/navigation";
+import { Download } from "lucide-react";
+import saveAs from "file-saver";
 
 interface PackageFormProps {
   users: { id: string; name: string }[];
@@ -47,7 +62,10 @@ export default function PackageForm({
   users,
   initialPackage,
 }: PackageFormProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [responseData, setResponseData] = useState<PackageResponse>()
   const [query, setQuery] = useState<string>("");
+  const router = useRouter();
   const methods = useForm<PackageSchemaType>({
     resolver: zodResolver(PackageSchema),
     defaultValues: {
@@ -65,7 +83,9 @@ export default function PackageForm({
     mutationFn: createPackageService,
     onSuccess: (result) => {
       if (result.status) {
-        toast.success(result.message);
+        toast.success(result.message)
+        setResponseData(result);
+        setIsDialogOpen(true);
         reset();
       } else {
         toast.error(result.message);
@@ -75,8 +95,6 @@ export default function PackageForm({
       toast.error(error.message);
     },
   });
-
-  console.log(initialPackage?.package_image);
 
   const updateMutation = useMutation({
     mutationFn: (data: { id: string; payload: PackageSchemaType }) =>
@@ -88,6 +106,35 @@ export default function PackageForm({
       toast.error(error.message);
     },
   });
+
+  const getFullImageBarcodeUrl = (imagePath: string) => {
+    if (!imagePath) return "/assets/default_image.jpg";
+    if (imagePath.startsWith("http")) return imagePath;
+    return `${imageUrl}/barcode/${imagePath}`;
+  };
+
+
+  const handleDownloadImage = async (imageName?: string) => {
+    if (!imageName) {
+      toast.error("No image available");
+      return;
+    }
+
+    try {
+      const url = imageName.startsWith("http")
+        ? imageName
+        : `${imageUrl}/barcode/${imageName}`;
+
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error("Failed to fetch image");
+
+      const blob = await res.blob();
+      saveAs(blob, imageName.replace(/.*[\\/]/, "") || "barcode.png");
+    } catch (err) {
+      console.error(err);
+      toast.error("Download failed");
+    }
+  }
 
   const onSubmit = (data: PackageSchemaType) => {
     if (initialPackage?.package_id) {
@@ -270,7 +317,6 @@ export default function PackageForm({
             </FormItem>
           )}
         />
-
         <Button
           disabled={
             !methods.formState.isValid || methods.formState.isSubmitting
@@ -279,6 +325,42 @@ export default function PackageForm({
         >
           {methods.formState.isSubmitting ? "Loading..." : "Submit"}
         </Button>
+
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              router.replace("/admin/package");
+            }
+          }}>
+          <DialogContent className="flex sm:max-w-md justify-center">
+            <DialogHeader className="space-y-4">
+              <DialogTitle className="flex capitalize items-center justify-center">{responseData?.message}</DialogTitle>
+              <DialogDescription className="flex justify-center">
+                {responseData ? (
+                  <Image
+                    src={getFullImageBarcodeUrl(responseData.data.package_barcode_image)}
+                    height={300}
+                    width={300}
+                    alt="Barcode"
+                    className="mt-2 max-h-32"
+                  />
+                ) : (
+                  "No barcode available."
+                )}
+              </DialogDescription>
+              <Button onClick={() => handleDownloadImage(responseData?.data.package_barcode_image)} type="button" variant="secondary">
+                <Download />
+                Download
+              </Button>
+            </DialogHeader>
+            <DialogFooter className="flex justify-center">
+              <DialogClose asChild onClick={() => router.replace("/admin/package")}>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </form>
     </FormProvider>
   );
