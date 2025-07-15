@@ -1,7 +1,7 @@
 import { StatusBadge } from "../status-badge";
 import Image from "next/image";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import { CalendarX, FileText, User } from "lucide-react";
+import { FileText, User } from "lucide-react";
 import { Package } from "@/types/package.type";
 import { imageUrl } from "@/config/api";
 
@@ -21,9 +21,6 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
       <CardHeader className="px-4">
         <div className="flex flex-col items-start gap-2">
           <StatusBadge status={pkg.package_status} />
-          <span className="text-[10px] font-mono text-gray-500">
-            #{pkg.package_id}
-          </span>
         </div>
       </CardHeader>
 
@@ -34,9 +31,8 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
           alt={pkg.package_description}
           width={400}
           height={200}
-          className={`w-full h-[120px] object-cover rounded-lg transition ${
-            pkg.package_status === "expired" ? "grayscale" : ""
-          }`}
+          className={`w-full h-[120px] object-cover rounded-lg transition ${pkg.package_status === "expired" ? "grayscale" : ""
+            }`}
         />
       </div>
 
@@ -49,16 +45,17 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
             <span className="block font-semibold text-foreground mb-0.5">
               {pkg.user.user_name}
             </span>
-            {pkg.user.company.company_name !== "" && (
-              <p className="text-xs">
-                {pkg.user.company.company_name || "Company"}
-              </p>
-            )}
-            <p className="text-xs">
-              {pkg.user.company.company_address ||
-                pkg.user.user_address ||
-                "Address"}
-            </p>
+            {pkg.user.company.company_name !== "" ?
+              (
+                <p className="text-xs">
+                  {pkg.user.company.company_name}
+                </p>
+              ) :
+              (
+                <p className="text-xs">
+                  {pkg.user.user_address}
+                </p>
+              )}
           </div>
         </div>
 
@@ -72,25 +69,6 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
             <p className="text-sm">{pkg.package_description}</p>
           </div>
         </div>
-
-        {/* Tanggal Expired */}
-        {pkg.package_expired_at && (
-          <div className="flex items-start gap-2 text-muted-foreground">
-            <CalendarX className="w-4 h-4 mt-0.5" />
-            <div>
-              <span className="block font-semibold text-foreground mb-0.5">
-                Expired At
-              </span>
-              <p className="text-sm">
-                {new Date(pkg.package_expired_at).toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
