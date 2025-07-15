@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Package,
-  History,
   LayoutDashboard,
   User,
   Building,
@@ -34,14 +33,9 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Add Packages",
+    title: "Package",
     href: "/admin/package",
     icon: Package,
-  },
-  {
-    title: "Package List",
-    href: "/admin/history",
-    icon: History,
   },
   {
     title: "User Account Settings",

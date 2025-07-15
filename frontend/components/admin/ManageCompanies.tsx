@@ -186,14 +186,6 @@ const ManageCompaniesSection = () => {
               </Pagination>
             </div>
           )}
-          {/* <UserTable
-            users={userData.data}
-            page={page}
-            setPage={setPage}
-            totalPages={userData.meta.max_page}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          /> */}
 
           <CompanyForm
             key={selectedCompany?.company_id ?? "new"}

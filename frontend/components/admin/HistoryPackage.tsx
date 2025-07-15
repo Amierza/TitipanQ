@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/popover";
 import { useQuery } from "@tanstack/react-query";
 import { getAllCompanyService } from "@/services/admin/company/getAllCompany";
+import { useRouter } from "next/navigation";
 
 const HistoryPackageSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +47,7 @@ const HistoryPackageSection = () => {
   const [companyFilter, setCompanyFilter] = useState<string | undefined>();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const router = useRouter();
 
   const { data: companyData } = useQuery({
     queryKey: ["company"],
@@ -78,14 +80,18 @@ const HistoryPackageSection = () => {
       {/* Main Content */}
       <div className="p-4 md:p-8 h-full min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto h-full flex flex-col">
-          {/* Title + Deskripsi */}
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-              List Package
-            </h1>
-            <p className="text-gray-600">
-              View picked-up or expired packages from all companies
-            </p>
+          <div className="flex justify-between items-end mb-4">
+            {/* Title + Deskripsi */}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                List Package
+              </h1>
+              <p className="text-gray-600">
+                View picked-up or expired packages from all companies
+              </p>
+            </div>
+
+            <Button onClick={() => router.push("/admin/package/new")}>+ Add Package</Button>
           </div>
 
           <div className="flex flex-row justify-between gap-6">
@@ -95,7 +101,7 @@ const HistoryPackageSection = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by recipient or company"
+                placeholder="Search by recipient"
                 className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
               />
             </div>
@@ -126,8 +132,8 @@ const HistoryPackageSection = () => {
                   >
                     {value
                       ? companyData.data.find(
-                          (company) => company.company_id === value
-                        )?.company_name
+                        (company) => company.company_id === value
+                      )?.company_name
                       : "Select company..."}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
