@@ -21,7 +21,7 @@ func GenerateBarcodeFile(trackingCode string) (string, error) {
 	}
 
 	_ = os.MkdirAll("assets/barcode", os.ModePerm)
-	fileName := fmt.Sprintf("barcode_%s", trackingCode)
+	fileName := fmt.Sprintf("barcode_%s.png", trackingCode)
 	savePath := fmt.Sprintf("assets/barcode/%s", fileName)
 	file, err := os.Create(savePath + ".png")
 	if err != nil {
