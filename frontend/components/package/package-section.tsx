@@ -51,10 +51,6 @@ export function PackageSection({
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-        <Icon className={`w-5 h-5 ${iconClass}`} />
-        {title}
-      </h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((item) => (
           <PackageCard
