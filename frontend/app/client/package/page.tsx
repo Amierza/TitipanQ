@@ -2,26 +2,23 @@
 
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { PackageSection } from "@/components/package/package-section";
 import { PackageCardFooter } from "@/components/package/package-card-footer";
 import { getUserProfileService } from "@/services/client/get-user-profile-by-id";
 import { getUserPackages } from "@/services/client/get-user-packages";
 import { getUserPackageHistory } from "@/services/client/get-user-package-history";
 import { PackageItem } from "@/types/package";
-import { Package } from "lucide-react";
+import { Package, Clock, PackageCheck, CheckCircle, AlertTriangle } from "lucide-react";
 
 export default function UserDashboardPage() {
   // Step 1: Get user profile
-  const {
-    data: userProfile,
-    isLoading: isUserLoading,
-    isError: isUserError,
-  } = useQuery({
+  const { data: userProfile, isLoading: isUserLoading, isError: isUserError } = useQuery({
     queryKey: ["user-profile"],
     queryFn: getUserProfileService,
   });
-
   const userId = userProfile?.data?.user_id ?? "";
 
   // Step 2: Get user packages
@@ -41,15 +38,12 @@ export default function UserDashboardPage() {
       queryKey: ["package-history", pkg.package_id],
       queryFn: () => getUserPackageHistory(pkg.package_id),
       enabled: !!pkg.package_id,
-      staleTime: 5 * 60 * 1000, // 5 menit
+      staleTime: 5 * 60 * 1000,
     })),
   });
 
   // Step 4: Map histories by package_id
-  const histories: Record<
-    string,
-    Awaited<ReturnType<typeof getUserPackageHistory>>
-  > = {};
+  const histories: Record<string, Awaited<ReturnType<typeof getUserPackageHistory>>> = {};
   historyQueries.forEach((query, index) => {
     const pkgId = packages[index]?.package_id;
     if (query.isSuccess && pkgId) {
@@ -57,59 +51,42 @@ export default function UserDashboardPage() {
     }
   });
 
-  // Step 5: Handle loading and error states
-  const isLoadingHistories = historyQueries.some((q) => q.isLoading);
-  const isErrorHistories = historyQueries.some((q) => q.isError);
+  // Step 5: Handle loading & error states
+  const isLoading = isUserLoading || isPackagesLoading || historyQueries.some((q) => q.isLoading);
+  const isError = isUserError || isPackagesError || historyQueries.some((q) => q.isError);
 
-  const isLoading = isUserLoading || isPackagesLoading || isLoadingHistories;
-  const isError = isUserError || isPackagesError || isErrorHistories;
+  // Step 6: Define status order & meta
+  const statusOrder = ["delivered", "received", "completed", "expired"];
 
-  // Step 6: Get all unique statuses from packages
+  const statusMeta: Record<string, { label: string; badgeClass: string; cardClass: string }> = {
+    delivered: { label: "Delivered", badgeClass: "bg-blue-500", cardClass: "border-blue-200" },
+    received: { label: "Received", badgeClass: "bg-yellow-400 text-black", cardClass: "border-yellow-200" },
+    completed: { label: "Completed", badgeClass: "bg-green-500", cardClass: "border-green-200" },
+    expired: { label: "Expired", badgeClass: "bg-red-500", cardClass: "border-red-200" },
+    default: { label: "Other", badgeClass: "bg-gray-300 text-black", cardClass: "border-gray-200" },
+  };
+
+  const iconMap: Record<string, JSX.Element> = {
+    delivered: <PackageCheck className="w-5 h-5 text-blue-500" />,
+    received: <Clock className="w-5 h-5 text-yellow-500" />,
+    completed: <CheckCircle className="w-5 h-5 text-green-500" />,
+    expired: <AlertTriangle className="w-5 h-5 text-red-500" />,
+  };
+
+  // Step 7: Group packages by normalized status
   const groupedPackages = useMemo(() => {
     const map: Record<string, PackageItem[]> = {};
     packages.forEach((pkg) => {
-      if (!map[pkg.package_status]) {
-        map[pkg.package_status] = [];
-      }
-      map[pkg.package_status].push(pkg);
+      const status = pkg.package_status?.toLowerCase() ?? "default";
+      if (!map[status]) map[status] = [];
+      map[status].push(pkg);
     });
     return map;
   }, [packages]);
 
-  // Step 7: Status to badge + color map
-  const statusMeta: Record<
-    string,
-    { label: string; badgeClass: string; cardClass: string }
-  > = {
-    completed: {
-      label: "completed",
-      badgeClass: "bg-green-500",
-      cardClass: "border-green-200",
-    },
-    expired: {
-      label: "Expired",
-      badgeClass: "bg-red-500",
-      cardClass: "border-red-200",
-    },
-    delivered: {
-      label: "Delivered",
-      badgeClass: "bg-blue-500",
-      cardClass: "border-blue-200",
-    },
-    received: {
-      label: "Received",
-      badgeClass: "bg-yellow-400 text-black",
-      cardClass: "border-yellow-200",
-    },
-    // default fallback
-    default: {
-      label: "Other",
-      badgeClass: "bg-gray-300 text-black",
-      cardClass: "border-gray-200",
-    },
-  };
+  const hasAnyPackages = packages.length > 0;
 
-  // Step 8: UI States
+  // Step 8: Render
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[80vh] text-muted-foreground">
@@ -127,75 +104,72 @@ export default function UserDashboardPage() {
     );
   }
 
-  const hasAnyPackages = packages.length > 0;
-  const iconMap: Record<
-    string,
-    "received" | "delivered" | "completed" | "expired"
-  > = {
-    received: "received",
-    delivered: "delivered",
-    completed: "completed",
-    expired: "expired",
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">My Package</h1>
-          <p className="text-muted-foreground py-3">
-            Total {packages.length} packages
-          </p>
+          <p className="text-muted-foreground py-3">Total {packages.length} packages</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {Object.entries(groupedPackages).map(([status, items]) => (
-            <Badge
-              key={status}
-              variant="default"
-              className={`flex items-center gap-1 ${
-                statusMeta[status]?.badgeClass ?? statusMeta.default.badgeClass
-              }`}
-            >
-              {statusMeta[status]?.label ?? status} {items.length}
-            </Badge>
-          ))}
+          {statusOrder.map((status) => {
+            const meta = statusMeta[status] ?? statusMeta.default;
+            return (
+              <Badge key={status} variant="default" className={`flex items-center gap-1 ${meta.badgeClass}`}>
+                {meta.label} {groupedPackages[status]?.length ?? 0}
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
       {/* Sections */}
-      {Object.entries(groupedPackages).map(([status, items]) => {
+      {statusOrder.map((status) => {
         const meta = statusMeta[status] ?? statusMeta.default;
-        const icon = iconMap[status] ?? "received";
+        const icon = iconMap[status];
+        const items = groupedPackages[status] ?? [];
+
+        if (items.length === 0) return null;
+
+        const latestItems = [...items]
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 3);
 
         return (
-          <PackageSection
-            key={status}
-            title={`Package ${meta.label}`}
-            icon={icon}
-            items={items}
-            cardProps={{
-              topRightBadge: () => (
-                <Badge
-                  variant="default"
-                  className={`text-xs ${meta.badgeClass}`}
-                >
-                  {meta.label}
-                </Badge>
-              ),
-              cardClassName: `${meta.cardClass} hover:shadow-md transition-shadow`,
-              footer: (item) => (
-                <PackageCardFooter
-                  status={item.package_status}
-                  histories={histories[item.package_id] ?? []}
-                />
-              ),
-            }}
-          />
+          <div key={status} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {icon}
+                <h2 className="text-lg font-semibold">Package {meta.label}</h2>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={{ pathname: "/client/package/all-package", query: { status } }}>
+                  View All Packages
+                </Link>
+              </Button>
+            </div>
+            <PackageSection
+              title=""
+              icon={status}
+              items={latestItems}
+              cardProps={{
+                topRightBadge: () => (
+                  <Badge variant="default" className={`text-xs ${meta.badgeClass}`}>
+                    {meta.label}
+                  </Badge>
+                ),
+                cardClassName: `${meta.cardClass} hover:shadow-md transition-shadow`,
+                footer: (item) => (
+                  <PackageCardFooter status={item.package_status} histories={histories[item.package_id] ?? []} />
+                ),
+              }}
+            />
+          </div>
         );
       })}
 
-      {/* Empty */}
+      {/* Empty state */}
       {!hasAnyPackages && (
         <div className="text-center py-12 text-muted-foreground">
           <Package className="w-16 h-16 mx-auto mb-4" />
