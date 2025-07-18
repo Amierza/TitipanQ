@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { FileText, CalendarX } from "lucide-react";
 import Image from "next/image";
 import { ReactNode } from "react";
-import { StatusBadge } from "../status-badge";
+import { imageUrl } from "@/config/api";
 
 export interface PackageItem {
   package_id: string;
@@ -28,6 +28,14 @@ export function PackageCard({
   cardClassName = "",
   footer,
 }: Props) {
+
+  const getFullImageUrl = (imagePath: string) => {
+    if (!imagePath) return "/Images/default_image.jpg";
+
+    if (imagePath.startsWith("http")) return imagePath;
+
+    return `${imageUrl}/package/${imagePath}`;
+  };
   return (
     <Card
       className={`rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg ${cardClassName}`}
@@ -44,13 +52,12 @@ export function PackageCard({
       {/* Image */}
       <div className="relative px-4">
         <Image
-          src={item.package_image || "/assets/default_image.jpg"}
+          src={getFullImageUrl(item.package_image)}
           alt="Package"
           width={400}
           height={200}
-          className={`w-full h-36 object-cover rounded-lg transition ${
-            item.package_status === "expired" ? "grayscale" : ""
-          }`}
+          className={`w-full h-36 object-cover rounded-lg transition ${item.package_status === "expired" ? "grayscale" : ""
+            }`}
         />
         {topRightBadge && (
           <div className="absolute top-3 right-6">{topRightBadge}</div>
