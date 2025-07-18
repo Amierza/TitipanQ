@@ -12,12 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { PackageCardFooter } from "@/components/package/package-card-footer";
 import { 
   Package, 
-  Search, 
   Calendar, 
   Filter, 
   ArrowUpDown, 
-  Grid3X3, 
-  List,
+  Grid3X3,
   CheckCircle,
   Clock,
   Truck,
@@ -53,15 +51,15 @@ export default function AllPackagePage() {
   });
 
   const filteredPackages = useMemo(() => {
-    let result = packages
+    const result = packages
       .filter((pkg) =>
         initialStatus ? pkg.package_status === initialStatus : true
       )
       .filter((pkg) =>
-        searchTerm ? pkg.package_name.toLowerCase().includes(searchTerm.toLowerCase()) : true
+      searchTerm ? pkg.package_description.toLowerCase().includes(searchTerm.toLowerCase()) : true
       )
       .filter((pkg) =>
-        dateFilter ? pkg.created_at.startsWith(dateFilter) : true
+        dateFilter ? pkg.updated_at.startsWith(dateFilter) : true
       );
 
     // Apply sorting
@@ -73,7 +71,7 @@ export default function AllPackagePage() {
         result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         break;
       case "name":
-        result.sort((a, b) => a.package_name.localeCompare(b.package_name));
+        result.sort((a, b) => a.package_description.localeCompare(b.package_description));
         break;
     }
 

@@ -18,8 +18,10 @@ import { User } from "@/types/user.type";
 import { deleteUserService } from "@/services/admin/user/deleteUser";
 import { toast } from "sonner";
 import { getAllUserPaginationService } from "@/services/admin/user/getAllUserPagination";
+import { Input } from "../ui/input";
 
 const UserSettingsSection = () => {
+  const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -93,17 +95,25 @@ const UserSettingsSection = () => {
       <div className="p-4 md:p-8 h-full min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto h-full flex flex-col">
           <div className="mb-6 flex items-center justify-between">
-            <div>
+            <div className="space-y-2">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 User Account Settings
               </h1>
               <p className="text-gray-600">Manage all users and access roles</p>
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by recipient"
+                className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
+              />
             </div>
             <Button onClick={handleCreate}>+ Add User</Button>
           </div>
 
           <UserTable
             users={userData.data}
+            query={searchQuery}
             page={page}
             setPage={setPage}
             totalPages={userData.meta.max_page}
