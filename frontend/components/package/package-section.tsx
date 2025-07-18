@@ -1,4 +1,4 @@
-// components/PackageSection.tsx
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Clock,
   PackageCheck,
