@@ -30,11 +30,11 @@ const HistoryTable = ({
   statusFilter,
   companyFilter,
 }: {
-  searchQuery: string;
+  searchQuery?: string;
   statusFilter?: string;
   companyFilter?: string;
 }) => {
-  const query = searchQuery.toLowerCase();
+  const query = searchQuery?.toLowerCase() || "";
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(
@@ -47,6 +47,9 @@ const HistoryTable = ({
     queryKey: ["packageData", page],
     queryFn: () => getAllPackageService({ page }),
   });
+
+  // console.log("query : ", query)
+  console.log(packageData)
 
   const { mutate: deletePackage } = useMutation({
     mutationFn: deletePackageService,
@@ -63,9 +66,10 @@ const HistoryTable = ({
   if (packageData.status === false) return <p>Failed to fetch data</p>;
 
   const itemPerPage = packageData.meta.per_page;
+  console.log("item ", packageData.meta.count)
 
   const filteredData = packageData.data.filter((pkg) => {
-    const macthesSearchFilter =
+    const macthesSearchFilter = query === "" ? true :
       pkg.user.user_name.toLowerCase().includes(query) ||
       pkg.package_description.toLowerCase().includes(query);
 
@@ -74,11 +78,15 @@ const HistoryTable = ({
         ? true
         : pkg.package_status.toLowerCase() === statusFilter.toLowerCase();
 
-
     const matchesCompanyFilter = companyFilter
       ? pkg.user.company.company_id.toLowerCase() ===
       companyFilter.toLowerCase()
       : true;
+
+    console.log(pkg.user.user_name)
+    console.log(pkg.package_description)
+    console.log(statusFilter)
+    console.log(companyFilter)
 
     return macthesSearchFilter && matchesStatusFilter && matchesCompanyFilter;
   });
@@ -95,6 +103,8 @@ const HistoryTable = ({
     setIsDeleteOpen(false);
   };
 
+  console.log(filteredData)
+
   const totalPage = Math.ceil(filteredData.length / itemPerPage);
 
   const paginatedData = filteredData.slice(
@@ -109,6 +119,8 @@ const HistoryTable = ({
 
     return `${imageUrl}/package/${imagePath}`;
   };
+
+  console.log(totalPage)
 
   return (
     <>
