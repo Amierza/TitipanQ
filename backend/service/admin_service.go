@@ -586,6 +586,7 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID s
 			BarcodeImage: pkg.Barcode,
 			Type:         pkg.Type,
 			Status:       pkg.Status,
+			CompletedAt:  pkg.CompletedAt,
 			DeliveredAt:  pkg.DeliveredAt,
 			ExpiredAt:    pkg.ExpiredAt,
 			User: dto.UserResponse{
@@ -632,6 +633,7 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 			BarcodeImage: pkg.Barcode,
 			Type:         pkg.Type,
 			Status:       pkg.Status,
+			CompletedAt:  pkg.CompletedAt,
 			DeliveredAt:  pkg.DeliveredAt,
 			ExpiredAt:    pkg.ExpiredAt,
 			User: dto.UserResponse{
@@ -692,6 +694,7 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 		BarcodeImage: pkg.Barcode,
 		Type:         pkg.Type,
 		Status:       pkg.Status,
+		CompletedAt:  pkg.CompletedAt,
 		DeliveredAt:  pkg.DeliveredAt,
 		ExpiredAt:    pkg.ExpiredAt,
 		User: dto.UserResponse{
@@ -845,6 +848,10 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 				p.DeliveredAt = &now
 			}
 
+			if entity.Status(req.Status) == entity.Completed {
+				p.CompletedAt = &now
+			}
+
 			p.Status = entity.Status(req.Status)
 		}
 	}
@@ -909,6 +916,7 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		BarcodeImage: p.Barcode,
 		Type:         p.Type,
 		Status:       p.Status,
+		CompletedAt:  p.CompletedAt,
 		DeliveredAt:  p.DeliveredAt,
 		ExpiredAt:    p.ExpiredAt,
 		User:         client,
@@ -939,6 +947,7 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		BarcodeImage: deletedPackage.Barcode,
 		Type:         deletedPackage.Type,
 		Status:       deletedPackage.Status,
+		CompletedAt:  deletedPackage.CompletedAt,
 		DeliveredAt:  deletedPackage.DeliveredAt,
 		ExpiredAt:    deletedPackage.ExpiredAt,
 		User: dto.UserResponse{

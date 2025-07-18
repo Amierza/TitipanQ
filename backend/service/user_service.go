@@ -372,6 +372,7 @@ func (us *UserService) ReadAllPackage(ctx context.Context) ([]dto.PackageRespons
 			BarcodeImage: pkg.Barcode,
 			Type:         pkg.Type,
 			Status:       pkg.Status,
+			CompletedAt:  pkg.CompletedAt,
 			DeliveredAt:  pkg.DeliveredAt,
 			ExpiredAt:    pkg.ExpiredAt,
 			User: dto.UserResponse{
@@ -416,6 +417,7 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 		BarcodeImage: pkg.Barcode,
 		Type:         pkg.Type,
 		Status:       pkg.Status,
+		CompletedAt:  pkg.CompletedAt,
 		DeliveredAt:  pkg.DeliveredAt,
 		ExpiredAt:    pkg.ExpiredAt,
 		User: dto.UserResponse{
