@@ -38,6 +38,7 @@ type (
 
 		// Package
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
+		ReadAllPackageNoPagination(ctx context.Context, userID string) ([]dto.PackageResponse, error)
 		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userIDStr string) (dto.PackagePaginationResponse, error)
 		GetDetailPackage(ctx context.Context, identifier string) (dto.PackageResponse, error)
 		ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error)
@@ -568,6 +569,52 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 			UpdatedAt: now,
 		},
 	}, nil
+}
+func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID string) ([]dto.PackageResponse, error) {
+	packages, err := as.adminRepo.GetAllPackage(ctx, nil, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var datas []dto.PackageResponse
+	for _, pkg := range packages {
+		data := dto.PackageResponse{
+			ID:           pkg.ID,
+			TrackingCode: pkg.TrackingCode,
+			Description:  pkg.Description,
+			Image:        pkg.Image,
+			BarcodeImage: pkg.Barcode,
+			Type:         pkg.Type,
+			Status:       pkg.Status,
+			DeliveredAt:  pkg.DeliveredAt,
+			ExpiredAt:    pkg.ExpiredAt,
+			User: dto.UserResponse{
+				ID:          pkg.User.ID,
+				Name:        pkg.User.Name,
+				Email:       pkg.User.Email,
+				Password:    pkg.User.Password,
+				PhoneNumber: pkg.User.PhoneNumber,
+				Address:     pkg.User.Address,
+				Company: dto.CompanyResponse{
+					ID:      pkg.User.CompanyID,
+					Name:    pkg.User.Company.Name,
+					Address: pkg.User.Company.Address,
+				},
+				Role: dto.RoleResponse{
+					ID:   pkg.User.RoleID,
+					Name: pkg.User.Role.Name,
+				},
+			},
+			TimeStamp: entity.TimeStamp{
+				CreatedAt: pkg.CreatedAt,
+				UpdatedAt: pkg.UpdatedAt,
+				DeletedAt: pkg.DeletedAt,
+			},
+		}
+		datas = append(datas, data)
+	}
+
+	return datas, nil
 }
 func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userID string) (dto.PackagePaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllPackageWithPagination(ctx, nil, req, userID)

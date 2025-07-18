@@ -142,27 +142,14 @@ func (uh *UserHandler) UpdateUser(ctx *gin.Context) {
 
 // Package
 func (uh *UserHandler) ReadAllPackage(ctx *gin.Context) {
-	var payload dto.PaginationRequest
-	if err := ctx.ShouldBind(&payload); err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
-		return
-	}
-
-	result, err := uh.userService.ReadAllPackageWithPagination(ctx, payload)
+	result, err := uh.userService.ReadAllPackage(ctx)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	res := utils.Response{
-		Status:   true,
-		Messsage: dto.MESSAGE_SUCCESS_GET_LIST_PACKAGE,
-		Data:     result.Data,
-		Meta:     result.PaginationResponse,
-	}
-
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_LIST_PACKAGE, result)
 	ctx.JSON(http.StatusOK, res)
 }
 func (uh *UserHandler) GetDetailPackage(ctx *gin.Context) {

@@ -24,6 +24,7 @@ type (
 		GetAllUserWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.UserPaginationRepositoryResponse, error)
 		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
 		GetPackageByTrackingCode(ctx context.Context, tx *gorm.DB, trackingCode string) (entity.Package, bool, error)
+		GetAllPackage(ctx context.Context, tx *gorm.DB, userID string) ([]entity.Package, error)
 		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
 		GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
@@ -228,6 +229,28 @@ func (ar *AdminRepository) GetPackageByTrackingCode(ctx context.Context, tx *gor
 	}
 
 	return pkg, true, nil
+}
+func (ar *AdminRepository) GetAllPackage(ctx context.Context, tx *gorm.DB, userID string) ([]entity.Package, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var (
+		packages []entity.Package
+		err      error
+	)
+
+	query := tx.WithContext(ctx).Model(&entity.Package{}).Preload("User.Company").Preload("User.Role")
+
+	if userID != "" {
+		query = query.Where("user_id = ? ", userID)
+	}
+
+	if err := query.Order("created_at DESC").Find(&packages).Error; err != nil {
+		return []entity.Package{}, err
+	}
+
+	return packages, err
 }
 func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error) {
 	if tx == nil {
