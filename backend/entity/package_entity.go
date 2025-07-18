@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Amierza/TitipanQ/backend/helpers"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -30,6 +31,8 @@ type Package struct {
 }
 
 func (p *Package) BeforeCreate(tx *gorm.DB) error {
+	p.ExpiredAt = helpers.PtrTime(time.Now().AddDate(0, 3, 0))
+
 	if !IsValidType(p.Type) || !IsValidStatus(p.Status) {
 		return errors.New("invalid type or status")
 	}
