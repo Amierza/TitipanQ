@@ -507,7 +507,6 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		Type:         req.Type,
 		Status:       entity.Received,
 		Image:        req.Image,
-		ExpiredAt:    helpers.PtrTime(now.AddDate(0, 3, 0)),
 		UserID:       &user.ID,
 		User:         user,
 		TimeStamp: entity.TimeStamp{
@@ -859,6 +858,11 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	if req.DeliveredAt != nil && (p.DeliveredAt == nil || !p.DeliveredAt.Equal(*req.DeliveredAt)) {
 		descriptionChanges = append(descriptionChanges, "package delivered_at changed")
 		p.DeliveredAt = req.DeliveredAt
+	}
+
+	if req.CompletedAt != nil && (p.CompletedAt == nil || !p.CompletedAt.Equal(*req.CompletedAt)) {
+		descriptionChanges = append(descriptionChanges, "package completed_at changed")
+		p.CompletedAt = req.CompletedAt
 	}
 
 	if err := as.adminRepo.UpdatePackage(ctx, nil, p); err != nil {
