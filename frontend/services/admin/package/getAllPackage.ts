@@ -7,13 +7,15 @@ import { AxiosError } from "axios";
 
 export const getAllPackageService = async ({
   page,
+  per_page
 }: {
   page?: number;
+  per_page?: number
 }): Promise<AllPackageResponse | ErrorResponse> => {
   const token = localStorage.getItem("access_token");
   try {
     const response = await axiosAdminConfig.get(
-      `${baseUrl}/admin/get-all-package?page=${page}`,
+      `${baseUrl}/admin/get-all-package?page=${page}&per_page=${per_page}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

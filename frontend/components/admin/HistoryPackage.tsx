@@ -89,7 +89,7 @@ const HistoryPackageSection = () => {
               </p>
             </div>
 
-            <Button onClick={() => router.push("/admin/package/new")}>+ Add Package</Button>
+            <Button className="cursor-pointer" onClick={() => router.push("/admin/package/new")}>+ Add Package</Button>
           </div>
 
           <div className="flex flex-row justify-between gap-6">

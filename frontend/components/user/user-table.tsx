@@ -14,6 +14,7 @@ import {
 } from "../ui/pagination";
 
 interface Props {
+  query?: string;
   users: User[];
   page: number;
   setPage: (page: number) => void;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 const UserTable = ({
+  query = "",
   users,
   page,
   setPage,
@@ -30,9 +32,21 @@ const UserTable = ({
   onEdit,
   onDelete,
 }: Props) => {
-  const userPerPage = 10;
+  const itemPerPage = 10;
   const currentPage = page ?? 1;
-  const paginatedUsers = users;
+
+  const filteredData = users.filter((user) => {
+    const q = query.toLowerCase();
+    const name = user.user_name?.toLowerCase() ?? "";
+    const company = user.company?.company_name?.toLowerCase() ?? "";
+
+    return name.includes(q) || company.includes(q);
+  });
+
+  const paginatedUsers = filteredData.slice(
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage
+  );
 
   return (
     <>
@@ -49,57 +63,69 @@ const UserTable = ({
             </tr>
           </thead>
           <tbody>
-            {paginatedUsers.map((user, index) => (
-              <tr key={user.user_id} className="border-b hover:bg-gray-100">
-                <td className="p-3 font-medium text-gray-800">
-                  {(currentPage - 1) * userPerPage + (index + 1)}
-                </td>
-                <td className="p-3 font-medium text-gray-800">
-                  {user.user_name}
-                </td>
-                <td className="p-3 text-gray-600">{user.user_email}</td>
-                <td className="p-3">{user.company.company_name}</td>
-                <td className="p-3 capitalize">{user.role.role_name}</td>
-                <td className="p-3 space-x-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => onEdit(user)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => onDelete(user)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+            {paginatedUsers.length > 0 ? (
+              paginatedUsers.map((user, index) => (
+                <tr key={user.user_id} className="border-b hover:bg-gray-100">
+                  <td className="p-3 font-medium text-gray-800">
+                    {(currentPage - 1) * itemPerPage + (index + 1)}
+                  </td>
+                  <td className="p-3 font-medium text-gray-800">
+                    {user.user_name}
+                  </td>
+                  <td className="p-3 text-gray-600">{user.user_email}</td>
+                  <td className="p-3">{user.company?.company_name ?? "-"}</td>
+                  <td className="p-3 capitalize">
+                    {user.role?.role_name ?? "-"}
+                  </td>
+                  <td className="p-3 space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onEdit(user)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => onDelete(user)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="text-center py-6 text-gray-500 italic"
+                >
+                  No users found.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
-      {users && (
+      {totalPages > 1 && (
         <div className="mt-4">
           <Pagination>
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
                   className="cursor-pointer"
-                  onClick={() => page > 1 && setPage(page - 1)}
+                  onClick={() => currentPage > 1 && setPage(currentPage - 1)}
                 />
               </PaginationItem>
 
               {Array.from({ length: totalPages }, (_, index) => (
-                <PaginationItem key={index}>
+                <PaginationItem key={`page-${index + 1}`}>
                   <PaginationLink
-                    isActive={page === index + 1}
-                    onClick={() => {
-                      setPage(index + 1);
-                    }}
+                    isActive={currentPage === index + 1}
+                    onClick={() => setPage(index + 1)}
+                    className="cursor-pointer"
                   >
                     {index + 1}
                   </PaginationLink>
@@ -109,7 +135,9 @@ const UserTable = ({
               <PaginationItem>
                 <PaginationNext
                   className="cursor-pointer"
-                  onClick={() => page < totalPages && setPage(page + 1)}
+                  onClick={() =>
+                    currentPage < totalPages && setPage(currentPage + 1)
+                  }
                 />
               </PaginationItem>
             </PaginationContent>

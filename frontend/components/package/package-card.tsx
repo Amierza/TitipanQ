@@ -30,7 +30,7 @@ export function PackageCard({
 }: Props) {
 
   const getFullImageUrl = (imagePath: string) => {
-    if (!imagePath) return "/Images/default_image.jpg";
+    if (!imagePath) return "/assets/default_image.jpg";
 
     if (imagePath.startsWith("http")) return imagePath;
 
