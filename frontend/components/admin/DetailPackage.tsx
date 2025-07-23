@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import dayjs from 'dayjs'
 import { Badge } from "@/components/ui/badge";
 import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone } from "lucide-react";
+import { getAllHistoryPackageService } from "@/services/admin/package/getHistoryPackage";
 
 const DetailPackageSection = () => {
   const params = useParams();
@@ -22,8 +23,20 @@ const DetailPackageSection = () => {
     queryFn: () => getPackageService(packageId)
   })
 
+  const { data: historyPackageData } = useQuery({
+    queryKey: ["historyPackage", packageId],
+    queryFn: () => getAllHistoryPackageService(packageId),
+    enabled: !!packageId
+  })
+
   if (!packageData) return <p>Failed to fetch data</p>
   if (!packageData.status) return <p>Package not found</p>
+  if (!historyPackageData) return <p>Failed to fetch data</p>
+  if (!historyPackageData.status) return <p>Package not found</p>
+
+  const receivedHistory = historyPackageData.data.find((history) => history.history_status === "received")
+  const deliveredHistory = historyPackageData.data.find((history) => history.history_status === "delivered")
+  const completedHistory = historyPackageData.data.find((history) => history.history_status === "completed")
 
   const getFullImagePackageUrl = (imagePath: string) => {
     if (!imagePath) return "/assets/default_image.jpg";
@@ -133,15 +146,40 @@ const DetailPackageSection = () => {
               </Card>
 
               <Card className="shadow-sm">
-                <CardContent className="space-y-2 text-sm">
-                  <p>{`Received date : ${dayjs(packageData.data.created_at).format("DD-MM-YYYY")}`}</p>
-                  <p>
-                    {`Delivered date : ${dayjs(packageData.data.package_delivered_at).isValid()
+                <CardContent className="space-y-3 text-sm">
+                  <div>
+                    <p>
+                      {`Received date : ${dayjs(packageData.data.created_at).format("DD-MM-YYYY")}`}
+                    </p>
+                    {receivedHistory && (
+                      <p className="text-gray-400 text-xs">
+                        {`Changed by : ${receivedHistory.changed_by.user_name}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p>
+                      {`Delivered date : ${dayjs(packageData.data.package_delivered_at).isValid()
                         ? dayjs(packageData.data.package_delivered_at).format("DD-MM-YYYY")
                         : "-"
-                      }`}
-                  </p>
-                  <p>{`Complete date : ${packageData.data.package_status === "completed" ? dayjs(packageData.data.updated_at).format("DD-MM-YYYY") : "-"}`}</p>
+                        }`}
+                    </p>
+                    {deliveredHistory && (
+                      <p className="text-gray-400 text-xs">
+                        {`Changed by : ${deliveredHistory.changed_by.user_name}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p>{`Complete date : ${packageData.data.package_status === "completed" ? dayjs(packageData.data.updated_at).format("DD-MM-YYYY") : "-"}`}</p>
+                    {completedHistory && (
+                      <p className="text-gray-400 text-xs">
+                        {`Changed by : ${completedHistory.changed_by.user_name}`}
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
