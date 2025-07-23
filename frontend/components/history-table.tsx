@@ -30,15 +30,18 @@ const HistoryTable = ({
   searchQuery,
   statusFilter,
   companyFilter,
+  onSelectionChange,
 }: {
   searchQuery?: string;
   statusFilter?: string;
   companyFilter?: string;
+  onSelectionChange?: (selectedIds: string[]) => void;
 }) => {
   const query = searchQuery?.toLowerCase() || "";
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [selectedPackageId, setSelectedPackageId] = useState<string[]>([])
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const router = useRouter();
 
@@ -67,7 +70,8 @@ const HistoryTable = ({
     const matchesSearchFilter =
       !query ||
       pkg.user.user_name.toLowerCase().includes(query) ||
-      pkg.package_description.toLowerCase().includes(query);
+      pkg.package_description.toLowerCase().includes(query) ||
+      pkg.package_tracking_code.toLowerCase().includes(query);
 
     const matchesStatusFilter =
       !statusFilter || statusFilter === "all"
@@ -127,7 +131,18 @@ const HistoryTable = ({
               paginatedData.map((pkg) => (
                 <tr key={pkg.package_id} className="border-b hover:bg-gray-100">
                   <td className="p-3 text-center">
-                    <Checkbox className="cursor-pointer"/>
+                    <Checkbox 
+                      checked={selectedPackageId.includes(pkg.package_id)}
+                      onCheckedChange={(checked) => {
+                        const updateSelection = checked 
+                            ? [...selectedPackageId, pkg.package_id] 
+                            : selectedPackageId.filter((id) => id !== pkg.package_id)
+                        
+                        setSelectedPackageId(updateSelection)
+                        onSelectionChange?.(updateSelection)
+                      }}
+                      className="cursor-pointer"
+                    />
                   </td>
                   <td className="p-3">
                     <Image
