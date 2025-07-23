@@ -50,6 +50,7 @@ import { imageUrl } from "@/config/api";
 import { useRouter } from "next/navigation";
 import { Download } from "lucide-react";
 import saveAs from "file-saver";
+import { Input } from "@/components/ui/input";
 
 interface PackageFormProps {
   users: { id: string; name: string }[];
@@ -178,26 +179,44 @@ export default function PackageForm({
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={control}
-          name="package_image"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <UploadPackagePhoto
-                  photo={image}
-                  onChange={(file) => field.onChange(file)}
-                  initialImageUrl={
-                    typeof initialPackage?.package_image === "string"
-                      ? initialPackage.package_image
-                      : undefined
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex gap-6">
+          <FormField
+            control={control}
+            name="package_image"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <UploadPackagePhoto
+                    photo={image}
+                    onChange={(file) => field.onChange(file)}
+                    initialImageUrl={
+                      typeof initialPackage?.package_image === "string"
+                        ? initialPackage.package_image
+                        : undefined
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="user_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tracking Code</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="PACK******"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={control}

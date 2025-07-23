@@ -44,12 +44,6 @@ const DetailPackageSection = () => {
     return `${imageUrl}/package/${imagePath}`;
   };
 
-  const getFullImageBarcodeUrl = (imagePath: string) => {
-    if (!imagePath) return "/assets/default_image.jpg";
-    if (imagePath.startsWith("http")) return imagePath;
-    return `${imageUrl}/barcode/${imagePath}`;
-  };
-
   const getStatusBadge = (status: string) => {
     const variant =
       status === "received"
@@ -124,21 +118,6 @@ const DetailPackageSection = () => {
                         width={300}
                         height={200}
                         className="w-full h-48 object-cover rounded-lg border border-gray-200"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                      <Barcode className="w-4 h-4" />
-                      Barcode
-                    </h4>
-                    <div className="relative">
-                      <Image
-                        src={getFullImageBarcodeUrl(packageData.data.package_barcode_image)}
-                        alt={`Barcode of ${packageData.data.package_description}`}
-                        width={300}
-                        height={200}
-                        className="w-full p-2 h-32 object-cover rounded-lg border border-gray-200"
                       />
                     </div>
                   </div>
