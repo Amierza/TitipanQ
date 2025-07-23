@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const HistoryTable = ({
   searchQuery,
@@ -111,9 +112,10 @@ const HistoryTable = ({
         <table className="min-w-full table-auto bg-white text-sm">
           <thead className="bg-black text-white">
             <tr>
+              <th className="p-3 text-left">Check</th>
               <th className="p-3 text-left">Photo</th>
               <th className="p-3 text-left">Description</th>
-              <th className="p-3 text-left">Recipient</th>
+              <th className="p-3 text-left">Client</th>
               <th className="p-3 text-left">Company</th>
               <th className="p-3 text-left">Status</th>
               <th className="p-3 text-left">Detail</th>
@@ -124,6 +126,9 @@ const HistoryTable = ({
             {paginatedData.length > 0 ? (
               paginatedData.map((pkg) => (
                 <tr key={pkg.package_id} className="border-b hover:bg-gray-100">
+                  <td className="p-3 text-center">
+                    <Checkbox className="cursor-pointer"/>
+                  </td>
                   <td className="p-3">
                     <Image
                       src={getFullImageUrl(pkg.package_image)}

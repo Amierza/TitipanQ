@@ -89,7 +89,21 @@ const HistoryPackageSection = () => {
               </p>
             </div>
 
-            <Button className="cursor-pointer" onClick={() => router.push("/admin/package/new")}>+ Add Package</Button>
+            <div className="flex gap-4">
+              <Button 
+                className="cursor-pointer" 
+                onClick={() => router.push("/admin/package/new")}
+              >
+                + Add Package
+              </Button>
+              <Button 
+                variant={"ghost"} 
+                className="cursor-pointer bg-green-500 hover:bg-green-600" 
+                onClick={() => router.push("/admin/package/new")}
+              >
+                Update Package
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-row justify-between gap-6">
@@ -99,7 +113,7 @@ const HistoryPackageSection = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by recipient"
+                placeholder="Search by client or description"
                 className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
               />
             </div>
