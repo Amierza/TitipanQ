@@ -10,7 +10,6 @@ export interface PackageItem {
   package_image: string;
   package_type: string;
   package_status: string;
-  package_delivered_at: string;
   package_expired_at: string;
 }
 

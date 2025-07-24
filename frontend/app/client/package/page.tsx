@@ -92,12 +92,7 @@ export default function UserDashboardPage() {
   const isError = isUserError || isPackagesError;
 
   // Step 6: Define status order & meta - improved type safety
-  const statusOrder: PackageStatus[] = [
-    "received",
-    "delivered",
-    "completed",
-    "expired",
-  ];
+  const statusOrder: PackageStatus[] = ["received", "completed", "expired"];
 
   const statusMeta: Record<PackageStatus, StatusMeta> = {
     received: {
