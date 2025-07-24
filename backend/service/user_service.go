@@ -62,7 +62,7 @@ func (us *UserService) Register(ctx context.Context, req dto.CreateUserRequest) 
 		return dto.UserResponse{}, dto.ErrInvalidPassword
 	}
 
-	phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber, true)
+	phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
@@ -296,7 +296,7 @@ func (us *UserService) UpdateUser(ctx context.Context, req dto.UpdateUserRequest
 	}
 
 	if req.PhoneNumber != "" {
-		phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber, true)
+		phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
 		if err != nil {
 			return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 		}
@@ -369,7 +369,6 @@ func (us *UserService) ReadAllPackage(ctx context.Context) ([]dto.PackageRespons
 			TrackingCode: pkg.TrackingCode,
 			Description:  pkg.Description,
 			Image:        pkg.Image,
-			BarcodeImage: pkg.Barcode,
 			Type:         pkg.Type,
 			Status:       pkg.Status,
 			CompletedAt:  pkg.CompletedAt,
@@ -413,7 +412,6 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 		TrackingCode: pkg.TrackingCode,
 		Description:  pkg.Description,
 		Image:        pkg.Image,
-		BarcodeImage: pkg.Barcode,
 		Type:         pkg.Type,
 		Status:       pkg.Status,
 		CompletedAt:  pkg.CompletedAt,

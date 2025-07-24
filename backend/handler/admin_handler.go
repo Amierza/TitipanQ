@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
@@ -222,6 +223,15 @@ func (ah *AdminHandler) TriggerExpire(ctx *gin.Context) {
 // Package
 func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	var payload dto.CreatePackageRequest
+	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_MULTIPART_FORM, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	payload.TrackingCode = ctx.PostForm("package_tracking_code")
+	payload.Description = ctx.PostForm("package_description")
+
 	fileHeader, err := ctx.FormFile("package_image")
 	if err == nil {
 		file, err := fileHeader.Open()
@@ -236,8 +246,21 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 		payload.FileReader = file
 	}
 
-	payload.Description = ctx.PostForm("package_description")
 	payload.Type = entity.Type(ctx.PostForm("package_type"))
+
+	if quantityStr := ctx.PostForm("package_quantity"); quantityStr != "" {
+		if quantity64, err := strconv.ParseInt(quantityStr, 10, 64); err == nil {
+			payload.Quantity = int(quantity64)
+		} else {
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_QUANTITY, err.Error(), nil)
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+			return
+		}
+	}
+
+	payload.SenderName = ctx.PostForm("package_sender_name")
+	payload.SenderPhoneNumber = ctx.PostForm("package_sender_phone_number")
+	payload.SenderAddress = ctx.PostForm("package_sender_address")
 
 	userIDStr := ctx.PostForm("user_id")
 	payload.UserID, err = uuid.Parse(userIDStr)
@@ -261,10 +284,11 @@ func (ah *AdminHandler) ReadAllPackage(ctx *gin.Context) {
 	paginationParam := ctx.DefaultQuery("pagination", "true")
 	usePagination := paginationParam != "false"
 	userID := ctx.Query("user_id")
+	pkgType := ctx.Query("type")
 
 	if !usePagination {
 		// Tanpa pagination
-		result, err := ah.adminService.ReadAllPackageNoPagination(ctx, userID)
+		result, err := ah.adminService.ReadAllPackageNoPagination(ctx, userID, pkgType)
 		if err != nil {
 			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE, err.Error(), nil)
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -283,7 +307,7 @@ func (ah *AdminHandler) ReadAllPackage(ctx *gin.Context) {
 		return
 	}
 
-	result, err := ah.adminService.ReadAllPackageWithPagination(ctx, payload, userID)
+	result, err := ah.adminService.ReadAllPackageWithPagination(ctx, payload, userID, pkgType)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_PACKAGE, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)

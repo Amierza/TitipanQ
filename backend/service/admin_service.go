@@ -39,8 +39,8 @@ type (
 
 		// Package
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
-		ReadAllPackageNoPagination(ctx context.Context, userID string) ([]dto.PackageResponse, error)
-		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userIDStr string) (dto.PackagePaginationResponse, error)
+		ReadAllPackageNoPagination(ctx context.Context, userID, pkgType string) ([]dto.PackageResponse, error)
+		ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userIDStr, pkgType string) (dto.PackagePaginationResponse, error)
 		GetDetailPackage(ctx context.Context, identifier string) (dto.PackageResponse, error)
 		ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error)
 		UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error)
@@ -164,7 +164,7 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		return dto.UserResponse{}, dto.ErrInvalidPassword
 	}
 
-	phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber, true)
+	phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
@@ -359,7 +359,7 @@ func (as *AdminService) UpdateUser(ctx context.Context, req dto.UpdateUserReques
 	}
 
 	if req.PhoneNumber != "" {
-		phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber, true)
+		phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
 		if err != nil {
 			return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 		}
@@ -452,7 +452,7 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		return dto.PackageResponse{}, dto.ErrParseUUID
 	}
 
-	if req.Description == "" || req.Type == "" {
+	if req.Description == "" || req.Type == "" || req.TrackingCode == "" || req.Quantity <= 0 {
 		return dto.PackageResponse{}, dto.ErrMissingRequiredField
 	}
 
@@ -489,28 +489,30 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		return dto.PackageResponse{}, dto.ErrInvalidPackageType
 	}
 
+	if req.SenderPhoneNumber != "" {
+		req.SenderPhoneNumber, err = helpers.StandardizePhoneNumber(req.SenderPhoneNumber)
+		if err != nil {
+			return dto.PackageResponse{}, dto.ErrFormatPhoneNumber
+		}
+	}
+
 	user, flag, err := as.adminRepo.GetUserByID(ctx, nil, req.UserID.String())
 	if !flag || err != nil {
 		return dto.PackageResponse{}, dto.ErrUserNotFound
 	}
 
-	trackingCode := fmt.Sprintf("PACK%s", time.Now().Format("060102150405"))
-
-	fileNameBarcode, err := helpers.GenerateBarcodeFile(trackingCode)
-	if err != nil {
-		log.Println("Gagal generate barcode:", err)
-	}
-
 	pkg := entity.Package{
-		ID:           uuid.New(),
-		TrackingCode: trackingCode,
-		Barcode:      fileNameBarcode,
-		Description:  req.Description,
-		Type:         req.Type,
-		Status:       entity.Received,
-		Image:        req.Image,
-		UserID:       &user.ID,
-		User:         user,
+		ID:                uuid.New(),
+		TrackingCode:      req.TrackingCode,
+		Description:       req.Description,
+		Image:             req.Image,
+		Type:              req.Type,
+		Status:            entity.Received,
+		Quantity:          req.Quantity,
+		SenderName:        req.SenderName,
+		SenderPhoneNumber: req.SenderPhoneNumber,
+		SenderAddress:     req.SenderAddress,
+		UserID:            &user.ID,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: now,
 			UpdatedAt: now,
@@ -539,14 +541,18 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 	}
 
 	return dto.PackageResponse{
-		ID:           pkg.ID,
-		TrackingCode: pkg.TrackingCode,
-		Description:  pkg.Description,
-		Image:        pkg.Image,
-		BarcodeImage: pkg.Barcode,
-		Type:         pkg.Type,
-		Status:       pkg.Status,
-		ExpiredAt:    pkg.ExpiredAt,
+		ID:                pkg.ID,
+		TrackingCode:      pkg.TrackingCode,
+		Description:       pkg.Description,
+		Image:             pkg.Image,
+		Type:              pkg.Type,
+		Status:            pkg.Status,
+		Quantity:          pkg.Quantity,
+		CompletedAt:       pkg.CompletedAt,
+		ExpiredAt:         pkg.ExpiredAt,
+		SenderName:        pkg.SenderName,
+		SenderPhoneNumber: pkg.SenderPhoneNumber,
+		SenderAddress:     pkg.SenderAddress,
 		User: dto.UserResponse{
 			ID:          user.ID,
 			Name:        user.Name,
@@ -570,8 +576,8 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		},
 	}, nil
 }
-func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID string) ([]dto.PackageResponse, error) {
-	packages, err := as.adminRepo.GetAllPackage(ctx, nil, userID)
+func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, pkgType string) ([]dto.PackageResponse, error) {
+	packages, err := as.adminRepo.GetAllPackage(ctx, nil, userID, pkgType)
 	if err != nil {
 		return nil, err
 	}
@@ -583,7 +589,6 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID s
 			TrackingCode: pkg.TrackingCode,
 			Description:  pkg.Description,
 			Image:        pkg.Image,
-			BarcodeImage: pkg.Barcode,
 			Type:         pkg.Type,
 			Status:       pkg.Status,
 			CompletedAt:  pkg.CompletedAt,
@@ -616,8 +621,8 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID s
 
 	return datas, nil
 }
-func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userID string) (dto.PackagePaginationResponse, error) {
-	dataWithPaginate, err := as.adminRepo.GetAllPackageWithPagination(ctx, nil, req, userID)
+func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userID, pkgType string) (dto.PackagePaginationResponse, error) {
+	dataWithPaginate, err := as.adminRepo.GetAllPackageWithPagination(ctx, nil, req, userID, pkgType)
 	if err != nil {
 		return dto.PackagePaginationResponse{}, dto.ErrGetAllPackageWithPagination
 	}
@@ -629,7 +634,6 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 			TrackingCode: pkg.TrackingCode,
 			Description:  pkg.Description,
 			Image:        pkg.Image,
-			BarcodeImage: pkg.Barcode,
 			Type:         pkg.Type,
 			Status:       pkg.Status,
 			CompletedAt:  pkg.CompletedAt,
@@ -689,7 +693,6 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 		TrackingCode: pkg.TrackingCode,
 		Description:  pkg.Description,
 		Image:        pkg.Image,
-		BarcodeImage: pkg.Barcode,
 		Type:         pkg.Type,
 		Status:       pkg.Status,
 		CompletedAt:  pkg.CompletedAt,
@@ -727,8 +730,9 @@ func (as *AdminService) ReadAllPackageHistory(ctx context.Context, pkgID string)
 	var datas []dto.PackageHistoryResponse
 	for _, pkgH := range dataWithPaginate {
 		data := dto.PackageHistoryResponse{
-			ID:     pkgH.ID,
-			Status: pkgH.Status,
+			ID:          pkgH.ID,
+			Status:      pkgH.Status,
+			Description: pkgH.Description,
 			ChangedBy: dto.UserResponseCustom{
 				ID:    pkgH.ChangedByUser.ID,
 				Name:  pkgH.ChangedByUser.Name,
@@ -768,6 +772,13 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	now := time.Now()
 	var descriptionChanges []string
 
+	if req.TrackingCode != "" {
+		if p.TrackingCode != req.TrackingCode {
+			descriptionChanges = append(descriptionChanges, "package code changed")
+			p.TrackingCode = req.TrackingCode
+		}
+	}
+
 	if req.Description != "" {
 		if len(req.Description) < 5 {
 			return dto.UpdatePackageResponse{}, dto.ErrDescriptionPackageToShort
@@ -784,6 +795,13 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		ext = strings.ToLower(ext)
 		if ext != "jpg" && ext != "jpeg" && ext != "png" {
 			return dto.UpdatePackageResponse{}, dto.ErrInvalidExtensionPhoto
+		}
+
+		if p.Image != "" {
+			oldPath := filepath.Join("assets/package", p.Image)
+			if err := os.Remove(oldPath); err != nil && !os.IsNotExist(err) {
+				return dto.UpdatePackageResponse{}, dto.ErrDeleteOldImage
+			}
 		}
 
 		fileName := fmt.Sprintf("package_%d_%s.%s", now.Unix(), req.FileHeader.Filename, ext)
@@ -848,13 +866,41 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		}
 	}
 
-	if req.CompletedAt != nil && (p.CompletedAt == nil || !p.CompletedAt.Equal(*req.CompletedAt)) {
-		descriptionChanges = append(descriptionChanges, "package completed_at changed")
-		p.CompletedAt = req.CompletedAt
+	if req.SenderName != "" {
+		if p.SenderName != req.SenderName {
+			descriptionChanges = append(descriptionChanges, "sender name changed")
+			p.SenderName = req.SenderName
+		}
+	}
+
+	if req.SenderPhoneNumber != "" {
+		if p.SenderPhoneNumber != req.SenderPhoneNumber {
+			descriptionChanges = append(descriptionChanges, "sender phone number changed")
+			p.SenderPhoneNumber = req.SenderPhoneNumber
+		}
+	}
+
+	if req.SenderAddress != "" {
+		if p.SenderAddress != req.SenderAddress {
+			descriptionChanges = append(descriptionChanges, "sender address changed")
+			p.SenderAddress = req.SenderAddress
+		}
 	}
 
 	if err := as.adminRepo.UpdatePackage(ctx, nil, p); err != nil {
 		return dto.UpdatePackageResponse{}, dto.ErrUpdatePackage
+	}
+
+	if len(descriptionChanges) > 0 {
+		message := fmt.Sprintf(
+			"🙏 Mohon maaf, terdapat pembaruan data pada paket Anda dengan kode paket *%s* karena kesalahan input sebelumnya.\n\nPerubahan yang dilakukan:\n- %s\n\nSilakan cek aplikasi untuk melihat detail terbaru. Terima kasih atas pengertiannya.",
+			p.TrackingCode,
+			strings.Join(descriptionChanges, "\n- "),
+		)
+
+		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
+			log.Println("Failed to send WhatsApp notification:", err)
+		}
 	}
 
 	var message string
@@ -903,7 +949,6 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		TrackingCode: p.TrackingCode,
 		Description:  p.Description,
 		Image:        p.Image,
-		BarcodeImage: p.Barcode,
 		Type:         p.Type,
 		Status:       p.Status,
 		CompletedAt:  p.CompletedAt,
@@ -933,7 +978,6 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		TrackingCode: deletedPackage.TrackingCode,
 		Description:  deletedPackage.Description,
 		Image:        deletedPackage.Image,
-		BarcodeImage: deletedPackage.Barcode,
 		Type:         deletedPackage.Type,
 		Status:       deletedPackage.Status,
 		CompletedAt:  deletedPackage.CompletedAt,
