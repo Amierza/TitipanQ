@@ -15,7 +15,7 @@ import {
   Calendar, 
   Filter, 
   ArrowUpDown, 
-  Grid3X3,
+  Grid3X3, 
   CheckCircle,
   Clock,
   Truck,
@@ -56,10 +56,7 @@ export default function AllPackagePage() {
         initialStatus ? pkg.package_status === initialStatus : true
       )
       .filter((pkg) =>
-      searchTerm ? pkg.package_description.toLowerCase().includes(searchTerm.toLowerCase()) : true
-      )
-      .filter((pkg) =>
-        dateFilter ? pkg.updated_at.startsWith(dateFilter) : true
+        dateFilter ? pkg.created_at.startsWith(dateFilter) : true
       );
 
     // Apply sorting
@@ -70,13 +67,10 @@ export default function AllPackagePage() {
       case "oldest":
         result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         break;
-      case "name":
-        result.sort((a, b) => a.package_description.localeCompare(b.package_description));
-        break;
     }
 
     return result;
-  }, [packages, initialStatus, searchTerm, dateFilter, sortBy]);
+  }, [packages, initialStatus, dateFilter, sortBy]);
 
   // Status configuration
   const statusConfig = {
