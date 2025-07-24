@@ -45,6 +45,7 @@ const (
 	MESSAGE_FAILED_GET_LIST_PACKAGE         = "failed get list package"
 	MESSAGE_FAILED_GET_LIST_PACKAGE_HISTORY = "failed get list package history"
 	MESSAGE_FAILED_UPDATE_PACKAGE           = "failed update package"
+	MESSAGE_FAILED_UPDATE_STATUS_PACKAGES   = "failed update status packages"
 	MESSAGE_FAILED_DELETE_PACKAGE           = "failed delete package"
 	// Company
 	MESSAGE_FAILED_CREATE_COMPANY     = "failed create company"
@@ -72,6 +73,7 @@ const (
 	MESSAGE_SUCCESS_GET_LIST_PACKAGE         = "success get list package"
 	MESSAGE_SUCCESS_GET_LIST_PACKAGE_HISTORY = "success get list package history"
 	MESSAGE_SUCCESS_UPDATE_PACKAGE           = "success update package"
+	MESSAGE_SUCCESS_UPDATE_STATUS_PACKAGES   = "success update status packages"
 	MESSAGE_SUCCESS_DELETE_PACKAGE           = "success delete package"
 	// Company
 	MESSAGE_SUCCESS_CREATE_COMPANY     = "success create company"
@@ -130,6 +132,7 @@ var (
 	ErrGetAllPackageWithPagination = errors.New("failed get list package with pagination")
 	ErrGetAllPackageHistory        = errors.New("failed get list package history")
 	ErrPackageNotFound             = errors.New("failed package not found")
+	ErrUpdateStatusPackage         = errors.New("failed update status package")
 	ErrInvalidPackageType          = errors.New("failed invalid package type")
 	ErrInvalidPackageStatus        = errors.New("failed invalid package status")
 	ErrUpdatePackage               = errors.New("failed update package")
@@ -265,6 +268,9 @@ type (
 		SenderAddress     string                `json:"package_sender_address" form:"package_sender_address"`
 		FileHeader        *multipart.FileHeader `json:"fileheader,omitempty"`
 		FileReader        multipart.File        `json:"filereader,omitempty"`
+	}
+	UpdateStatusPackages struct {
+		PackageIDs []*uuid.UUID `json:"package_ids"`
 	}
 	UserResponseCustom struct {
 		ID    uuid.UUID `json:"user_id"`

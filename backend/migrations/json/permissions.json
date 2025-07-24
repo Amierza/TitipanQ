@@ -75,6 +75,11 @@
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   },
   {
+    "permission_id": "408aa82c-eeae-4ee6-aa9d-c95d18048d16",
+    "permission_endpoint": "/api/v1/admin/update-status-packages",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
     "permission_id": "fba540ca-f6b1-4073-8048-62165e737857",
     "permission_endpoint": "/api/v1/admin/delete-package/:id",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
