@@ -5,8 +5,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-01T10:00:00Z",
-    "package_expired_at": "2025-07-06T10:00:00Z",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
     "package_tracking_code": "PACK250701100000"
   },
@@ -16,8 +14,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-02T10:00:00Z",
-    "package_expired_at": "2025-07-07T10:00:00Z",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
     "package_tracking_code": "PACK250702100000"
   },
@@ -27,8 +23,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-03T10:00:00Z",
-    "package_expired_at": "2025-07-08T10:00:00Z",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
     "package_tracking_code": "PACK250703100000"
   },
@@ -38,8 +32,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-04T10:00:00Z",
-    "package_expired_at": "2025-07-09T10:00:00Z",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
     "package_tracking_code": "PACK250704100000"
   },
@@ -49,8 +41,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-05T10:00:00Z",
-    "package_expired_at": "2025-07-10T10:00:00Z",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
     "package_tracking_code": "PACK250705100000"
   },
@@ -60,8 +50,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-01T10:00:00Z",
-    "package_expired_at": "2025-07-06T10:00:00Z",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
     "package_tracking_code": "PACK250701100001"
   },
@@ -71,8 +59,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-02T10:00:00Z",
-    "package_expired_at": "2025-07-07T10:00:00Z",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
     "package_tracking_code": "PACK250702100001"
   },
@@ -82,8 +68,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-03T10:00:00Z",
-    "package_expired_at": "2025-07-08T10:00:00Z",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
     "package_tracking_code": "PACK250703100001"
   },
@@ -93,8 +77,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-04T10:00:00Z",
-    "package_expired_at": "2025-07-09T10:00:00Z",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
     "package_tracking_code": "PACK250704100001"
   },
@@ -104,8 +86,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-05T10:00:00Z",
-    "package_expired_at": "2025-07-10T10:00:00Z",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
     "package_tracking_code": "PACK250705100001"
   },
@@ -115,8 +95,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-01T10:00:00Z",
-    "package_expired_at": "2025-07-06T10:00:00Z",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
     "package_tracking_code": "PACK250701100002"
   },
@@ -126,8 +104,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-02T10:00:00Z",
-    "package_expired_at": "2025-07-07T10:00:00Z",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
     "package_tracking_code": "PACK250702100002"
   },
@@ -137,8 +113,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-03T10:00:00Z",
-    "package_expired_at": "2025-07-08T10:00:00Z",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
     "package_tracking_code": "PACK250703100002"
   },
@@ -148,8 +122,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-04T10:00:00Z",
-    "package_expired_at": "2025-07-09T10:00:00Z",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
     "package_tracking_code": "PACK250704100002"
   },
@@ -159,8 +131,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-05T10:00:00Z",
-    "package_expired_at": "2025-07-10T10:00:00Z",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
     "package_tracking_code": "PACK250705100002"
   },
@@ -170,8 +140,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-01T10:00:00Z",
-    "package_expired_at": "2025-07-06T10:00:00Z",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
     "package_tracking_code": "PACK250701100003"
   },
@@ -181,8 +149,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-02T10:00:00Z",
-    "package_expired_at": "2025-07-07T10:00:00Z",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
     "package_tracking_code": "PACK250702100003"
   },
@@ -192,8 +158,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-03T10:00:00Z",
-    "package_expired_at": "2025-07-08T10:00:00Z",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
     "package_tracking_code": "PACK250703100003"
   },
@@ -203,8 +167,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-04T10:00:00Z",
-    "package_expired_at": "2025-07-09T10:00:00Z",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
     "package_tracking_code": "PACK250704100003"
   },
@@ -214,8 +176,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-05T10:00:00Z",
-    "package_expired_at": "2025-07-10T10:00:00Z",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
     "package_tracking_code": "PACK250705100003"
   },
@@ -225,8 +185,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-01T10:00:00Z",
-    "package_expired_at": "2025-07-06T10:00:00Z",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
     "package_tracking_code": "PACK250701100004"
   },
@@ -236,8 +194,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-02T10:00:00Z",
-    "package_expired_at": "2025-07-07T10:00:00Z",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
     "package_tracking_code": "PACK250702100004"
   },
@@ -247,8 +203,6 @@
     "package_image": "",
     "package_type": "other",
     "package_status": "received",
-    "package_delivered_at": "2025-07-03T10:00:00Z",
-    "package_expired_at": "2025-07-08T10:00:00Z",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
     "package_tracking_code": "PACK250703100004"
   },
@@ -258,8 +212,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-04T10:00:00Z",
-    "package_expired_at": "2025-07-09T10:00:00Z",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
     "package_tracking_code": "PACK250704100004"
   },
@@ -269,8 +221,6 @@
     "package_image": "",
     "package_type": "document",
     "package_status": "received",
-    "package_delivered_at": "2025-07-05T10:00:00Z",
-    "package_expired_at": "2025-07-10T10:00:00Z",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
     "package_tracking_code": "PACK250705100004"
   },
@@ -280,8 +230,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-01T10:00:00Z",
-    "package_expired_at": "2025-07-06T10:00:00Z",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
     "package_tracking_code": "PACK250701100005"
   },
@@ -291,8 +239,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-02T10:00:00Z",
-    "package_expired_at": "2025-07-07T10:00:00Z",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
     "package_tracking_code": "PACK250702100005"
   },
@@ -302,8 +248,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-03T10:00:00Z",
-    "package_expired_at": "2025-07-08T10:00:00Z",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
     "package_tracking_code": "PACK250703100005"
   },
@@ -313,8 +257,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-04T10:00:00Z",
-    "package_expired_at": "2025-07-09T10:00:00Z",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
     "package_tracking_code": "PACK250704100005"
   },
@@ -324,8 +266,6 @@
     "package_image": "",
     "package_type": "item",
     "package_status": "received",
-    "package_delivered_at": "2025-07-05T10:00:00Z",
-    "package_expired_at": "2025-07-10T10:00:00Z",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
     "package_tracking_code": "PACK250705100005"
   }

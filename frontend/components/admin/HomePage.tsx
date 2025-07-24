@@ -12,7 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { getAllUserService } from "@/services/admin/user/getAllUser";
 import PackageCardDashboard from "../package/package-card-dashboard";
-import { ArrowRight } from "lucide-react";
 import { getAllPackageWithoutPaginationService } from "@/services/admin/package/getAllPackage";
 
 const HomePage = () => {
@@ -99,7 +98,6 @@ const HomePage = () => {
         <div className="space-y-4">
           <div className="flex gap-4 items-center justify-between px-6">
             <h2 className="text-2xl font-bold">Newest Package</h2>
-            <ArrowRight className="text-base" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {packageData.data.slice(0, 4).map((pkg) => (

@@ -38,20 +38,18 @@ func (cr *ChatBotRepository) FindByTrackingCode(trackingCode string, tx *gorm.DB
 	}
 	return &pkg, nil
 }
-
 func (cr *ChatBotRepository) FindByPhone(phone string, tx *gorm.DB) (*entity.User, error) {
 	if tx == nil {
 		tx = cr.db
 	}
 
 	var user entity.User
-	err := cr.db.Where("phone_number = ?", phone).First(&user).Error
+	err := tx.Where("phone_number = ?", phone).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
-
 func (cr *ChatBotRepository) FindAllPackagesByUserPhone(userPhone string, tx *gorm.DB) ([]entity.Package, error) {
 	if tx == nil {
 		tx = cr.db
@@ -67,7 +65,6 @@ func (cr *ChatBotRepository) FindAllPackagesByUserPhone(userPhone string, tx *go
 
 	return packages, err
 }
-
 func (cr *ChatBotRepository) FindTodayPackagesByUserPhone(userPhone string, tx *gorm.DB) ([]entity.Package, error) {
 	if tx == nil {
 		tx = cr.db
@@ -85,7 +82,6 @@ func (cr *ChatBotRepository) FindTodayPackagesByUserPhone(userPhone string, tx *
 
 	return packages, err
 }
-
 func (cr *ChatBotRepository) CountTotalAllPackagesByUserPhone(phone string, tx *gorm.DB) (int64, error) {
 	if tx == nil {
 		tx = cr.db

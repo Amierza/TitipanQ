@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, QrCode } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,10 +40,13 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getAllCompanyService } from "@/services/admin/company/getAllCompany";
 import { useRouter } from "next/navigation";
+import QrScannerModal from "../package/package-open-camera";
 
 const HistoryPackageSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [selectedId, setSelectedId] = useState<string[]>([])
+  const [openCameraModal, setOpenCameraModal] = useState(false)
   const [companyFilter, setCompanyFilter] = useState<string | undefined>();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -56,6 +59,10 @@ const HistoryPackageSection = () => {
 
   if (!companyData) return <p>Failed to fetch company data</p>;
   if (!companyData.status) return <p>Failed to fetch company data</p>;
+
+  const openCamera = () => {
+    setOpenCameraModal(true)
+  }
 
   return (
     <SidebarInset>
@@ -89,7 +96,25 @@ const HistoryPackageSection = () => {
               </p>
             </div>
 
-            <Button onClick={() => router.push("/admin/package/new")}>+ Add Package</Button>
+            <div className="flex gap-4">
+              <Button
+                className="cursor-pointer"
+                onClick={() => router.push("/admin/package/new")}
+              >
+                + Add Package
+              </Button>
+              <Button
+                disabled={selectedId.length === 0}
+                variant={"ghost"}
+                className="cursor-pointer bg-green-500 hover:bg-green-600"
+                onClick={() => {
+                  console.log(selectedId)
+                  setSelectedId([])
+                }}
+              >
+                Update Package
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-row justify-between gap-6">
@@ -99,9 +124,18 @@ const HistoryPackageSection = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by recipient"
+                placeholder="Search by client or description"
                 className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
               />
+              <Button
+                variant={"ghost"}
+                className="bg-blue-500 hover:bg-blue-600"
+                onClick={
+                  openCamera
+                }
+              >
+                <QrCode className="text-white h-fit" />
+              </Button>
             </div>
 
             <div className="flex flex-row gap-4">
@@ -205,10 +239,20 @@ const HistoryPackageSection = () => {
               searchQuery={searchQuery}
               statusFilter={statusFilter}
               companyFilter={companyFilter}
+              onSelectionChange={setSelectedId}
             />
           </div>
         </div>
       </div>
+
+      <QrScannerModal
+        open={openCameraModal}
+        onClose={() => setOpenCameraModal(false)}
+        onScanSuccess={(result) => {
+          setSearchQuery(result); // misalnya langsung cari dengan QR hasil
+        }}
+      />
+
     </SidebarInset>
   );
 };

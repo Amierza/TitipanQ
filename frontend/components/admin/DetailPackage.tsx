@@ -9,8 +9,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getPackageService } from "@/services/admin/package/getDetailPackage";
 import { imageUrl } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import dayjs from 'dayjs'
 import { Badge } from "@/components/ui/badge";
 import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone } from "lucide-react";
+import { getAllHistoryPackageService } from "@/services/admin/package/getHistoryPackage";
 
 const DetailPackageSection = () => {
   const params = useParams();
@@ -21,19 +23,25 @@ const DetailPackageSection = () => {
     queryFn: () => getPackageService(packageId)
   })
 
+  const { data: historyPackageData } = useQuery({
+    queryKey: ["historyPackage", packageId],
+    queryFn: () => getAllHistoryPackageService(packageId),
+    enabled: !!packageId
+  })
+
   if (!packageData) return <p>Failed to fetch data</p>
   if (!packageData.status) return <p>Package not found</p>
+  if (!historyPackageData) return <p>Failed to fetch data</p>
+  if (!historyPackageData.status) return <p>Package not found</p>
+
+  const receivedHistory = historyPackageData.data.find((history) => history.history_status === "received")
+  const deliveredHistory = historyPackageData.data.find((history) => history.history_status === "delivered")
+  const completedHistory = historyPackageData.data.find((history) => history.history_status === "completed")
 
   const getFullImagePackageUrl = (imagePath: string) => {
     if (!imagePath) return "/assets/default_image.jpg";
     if (imagePath.startsWith("http")) return imagePath;
     return `${imageUrl}/package/${imagePath}`;
-  };
-
-  const getFullImageBarcodeUrl = (imagePath: string) => {
-    if (!imagePath) return "/assets/default_image.jpg";
-    if (imagePath.startsWith("http")) return imagePath;
-    return `${imageUrl}/barcode/${imagePath}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -92,7 +100,7 @@ const DetailPackageSection = () => {
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Package Images */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-4">
               <Card className="shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -113,20 +121,43 @@ const DetailPackageSection = () => {
                       />
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardContent className="space-y-3 text-sm">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                      <Barcode className="w-4 h-4" />
-                      Barcode
-                    </h4>
-                    <div className="relative">
-                      <Image
-                        src={getFullImageBarcodeUrl(packageData.data.package_barcode_image)}
-                        alt={`Barcode of ${packageData.data.package_description}`}
-                        width={300}
-                        height={200}
-                        className="w-full p-2 h-32 object-cover rounded-lg border border-gray-200"
-                      />
-                    </div>
+                    <p>
+                      {`Received date : ${dayjs(packageData.data.created_at).format("DD-MM-YYYY")}`}
+                    </p>
+                    {receivedHistory && (
+                      <p className="text-gray-400 text-xs">
+                        {`Changed by : ${receivedHistory.changed_by.user_name}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p>
+                      {`Delivered date : ${dayjs(packageData.data.package_delivered_at).isValid()
+                        ? dayjs(packageData.data.package_delivered_at).format("DD-MM-YYYY")
+                        : "-"
+                        }`}
+                    </p>
+                    {deliveredHistory && (
+                      <p className="text-gray-400 text-xs">
+                        {`Changed by : ${deliveredHistory.changed_by.user_name}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p>{`Complete date : ${packageData.data.package_status === "completed" ? dayjs(packageData.data.updated_at).format("DD-MM-YYYY") : "-"}`}</p>
+                    {completedHistory && (
+                      <p className="text-gray-400 text-xs">
+                        {`Changed by : ${completedHistory.changed_by.user_name}`}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

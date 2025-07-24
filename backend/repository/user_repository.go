@@ -2,10 +2,7 @@ package repository
 
 import (
 	"context"
-	"math"
-	"strings"
 
-	"github.com/Amierza/TitipanQ/backend/dto"
 	"github.com/Amierza/TitipanQ/backend/entity"
 	"gorm.io/gorm"
 )
@@ -20,7 +17,7 @@ type (
 		GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
-		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
+		GetAllPackage(ctx context.Context, tx *gorm.DB, userID string) ([]entity.Package, error)
 		GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error)
 		GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error)
 
@@ -128,49 +125,23 @@ func (ur *UserRepository) GetAllCompany(ctx context.Context, tx *gorm.DB) ([]ent
 
 	return companies, nil
 }
-func (ur *UserRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error) {
+func (ur *UserRepository) GetAllPackage(ctx context.Context, tx *gorm.DB, userID string) ([]entity.Package, error) {
 	if tx == nil {
 		tx = ur.db
 	}
 
-	var packages []entity.Package
-	var err error
-	var count int64
-
-	if req.PerPage == 0 {
-		req.PerPage = 10
-	}
-
-	if req.Page == 0 {
-		req.Page = 1
-	}
+	var (
+		packages []entity.Package
+		err      error
+	)
 
 	query := tx.WithContext(ctx).Model(&entity.Package{}).Where("user_id = ? ", userID).Preload("User.Company").Preload("User.Role")
 
-	if req.Search != "" {
-		searchValue := "%" + strings.ToLower(req.Search) + "%"
-		query = query.Where("LOWER(description) LIKE ? ", searchValue)
+	if err := query.Order("created_at DESC").Find(&packages).Error; err != nil {
+		return []entity.Package{}, err
 	}
 
-	if err := query.Count(&count).Error; err != nil {
-		return dto.PackagePaginationRepositoryResponse{}, err
-	}
-
-	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&packages).Error; err != nil {
-		return dto.PackagePaginationRepositoryResponse{}, err
-	}
-
-	totalPage := int64(math.Ceil(float64(count) / float64(req.PerPage)))
-
-	return dto.PackagePaginationRepositoryResponse{
-		Packages: packages,
-		PaginationResponse: dto.PaginationResponse{
-			Page:    req.Page,
-			PerPage: req.PerPage,
-			MaxPage: totalPage,
-			Count:   count,
-		},
-	}, err
+	return packages, err
 }
 func (ur *UserRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error) {
 	if tx == nil {
@@ -178,7 +149,7 @@ func (ur *UserRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID
 	}
 
 	var user entity.Package
-	if err := tx.WithContext(ctx).Where("id = ?", pkgID).Take(&user).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("User.Company").Preload("User.Role").Where("id = ?", pkgID).Take(&user).Error; err != nil {
 		return entity.Package{}, false, err
 	}
 

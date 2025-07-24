@@ -26,6 +26,9 @@ import { getAllCompanyPaginationService } from "@/services/admin/company/getAllC
 import { Pencil, Trash2 } from "lucide-react";
 import CompanyForm from "./company/CompanyForm";
 import CompanyDeleteConfirmation from "./company/CompanyDeleteConfirmation";
+import { getAllUserService } from "@/services/admin/user/getAllUser";
+import { Badge } from "../ui/badge";
+import { getAllPackageWithoutPaginationService } from "@/services/admin/package/getAllPackage";
 
 const ManageCompaniesSection = () => {
   const [page, setPage] = useState<number>(1);
@@ -64,6 +67,16 @@ const ManageCompaniesSection = () => {
     queryFn: () => getAllCompanyPaginationService(page)
   })
 
+  const { data: userData } = useQuery({
+    queryKey: ["userData"],
+    queryFn: getAllUserService
+  })
+
+  const { data: packageData } = useQuery({
+    queryKey: ["packageData"],
+    queryFn: getAllPackageWithoutPaginationService
+  })
+
   const handleDelete = (company: Company) => {
     setSelectedCompany(company);
     setIsDeleteOpen(true);
@@ -89,7 +102,10 @@ const ManageCompaniesSection = () => {
 
   if (!companyData) return <p>Loading...</p>;
   if (!("data" in companyData)) return <p>Failed to fetch data</p>;
-
+  if (!userData) return <p>Loading...</p>;
+  if (!userData.status) return <p>Failed to fetch data</p>;
+  if (!packageData) return <p>Loading...</p>;
+  if (!packageData.status) return <p>Failed to fetch data</p>;
 
   return (
     <SidebarInset>
@@ -125,11 +141,31 @@ const ManageCompaniesSection = () => {
           <div className="grid grid-cols-2 gap-4">
             {companyData.data.map((company) => (
               <div key={company.company_id} className="flex items-center justify-between border rounded-lg px-4 py-4">
-                <div className="flex flex-col items-start">
-                  <h3 className="text-lg font-semibold">{company.company_name}</h3>
-                  <p className="text-sm">
-                    {company.company_address}
-                  </p>
+                <div className="space-y-2">
+                  <div className="flex flex-col items-start">
+                    <h3 className="text-lg font-semibold">{company.company_name}</h3>
+                    <p className="text-sm">
+                      {
+                        `PIC : 
+                      ${userData.data.find((user) => user.company.company_id === company.company_id)?.user_name} 
+                      - 
+                      ${userData.data.find((user) => user.company.company_id === company.company_id)?.user_email}`
+                      }
+                    </p>
+                    <p className="text-sm">
+                      {company.company_address}
+                    </p>
+                  </div>
+                  {
+                    packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "received")).length > 0 && (
+                      <Badge variant="default" className="py-1 px-2 rounded-xl">{`Unclaimed Package : ${packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "received")).length}`}</Badge>
+                    )
+                  }
+                  {
+                    packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "expired")).length > 0 && (
+                      <Badge variant="destructive" className="py-1 px-2 rounded-xl">{`Expired Package : ${packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "expired")).length}`}</Badge>
+                    )
+                  }
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -146,7 +182,6 @@ const ManageCompaniesSection = () => {
                     <Trash2 className="transition-transform" />
                   </Button>
                 </div>
-
               </div>
             ))}
           </div>

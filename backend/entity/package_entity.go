@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Amierza/TitipanQ/backend/helpers"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -17,6 +18,7 @@ type Package struct {
 	Barcode      string     `gorm:"type:text" json:"package_barcode_image"`
 	Type         Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
 	Status       Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
+	CompletedAt  *time.Time `json:"package_completed_at"`
 	DeliveredAt  *time.Time `json:"package_delivered_at"`
 	ExpiredAt    *time.Time `json:"package_expired_at"`
 
@@ -29,6 +31,8 @@ type Package struct {
 }
 
 func (p *Package) BeforeCreate(tx *gorm.DB) error {
+	p.ExpiredAt = helpers.PtrTime(time.Now().AddDate(0, 3, 0))
+
 	if !IsValidType(p.Type) || !IsValidStatus(p.Status) {
 		return errors.New("invalid type or status")
 	}

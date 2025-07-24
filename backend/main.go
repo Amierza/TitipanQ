@@ -38,6 +38,7 @@ func main() {
 
 	c := cron.New()
 	c.AddFunc("@daily", func() {
+		log.Println("[CRON] AutoExpirePackages triggered...")
 		err := adminService.AutoExpirePackages()
 		if err != nil {
 			log.Println("[CRON] AutoExpirePackages error:", err)

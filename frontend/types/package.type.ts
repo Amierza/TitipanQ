@@ -15,10 +15,25 @@ export type Package = {
   created_at: string
   updated_at: string;
   deleted_at: null;
-};           
+};
+
+export type HistoryPackage = {
+  history_id: string,
+  history_status: string,
+  changed_by: {
+    user_id: string,
+    user_name: string,
+    user_email: string
+  },
+  created_at: string
+};
 
 export type PackageResponse = SuccessResponse<Package>;
 
 export type AllPackageResponse = SuccessResponse<Package[]> & {
   meta: Meta;
 };
+
+export type AllHistoryPackageResponse = SuccessResponse<HistoryPackage[]> & {
+  meta: Meta;
+}

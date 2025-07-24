@@ -38,14 +38,14 @@ const STATUS_META: Record<
 };
 
 export function PackageCardFooter({
-  status,
+  // status,
   histories = [],
 }: PackageCardFooterProps) {
-  const meta = STATUS_META[status] ?? {
-    label: capitalize(status),
-    icon: <Clock className="w-4 h-4 text-muted-foreground" />,
-    colorClass: "text-muted-foreground",
-  };
+  // const meta = STATUS_META[status] ?? {
+  //   label: capitalize(status),
+  //   icon: <Clock className="w-4 h-4 text-muted-foreground" />,
+  //   colorClass: "text-muted-foreground",
+  // };
 
   const sorted = [...histories].sort(
     (a, b) =>
