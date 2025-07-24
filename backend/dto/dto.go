@@ -18,7 +18,9 @@ const (
 	MESSAGE_FAILED_READ_PHOTO = "failed read photo"
 	MESSAGE_FAILED_OPEN_PHOTO = "failed open photo"
 	// PARSE
-	MESSAGE_FAILED_PARSE_UUID = "failed parse string to uuid"
+	MESSAGE_FAILED_PARSE_UUID           = "failed parse string to uuid"
+	MESSAGE_FAILED_PARSE_MULTIPART_FORM = "failed to parse multipart form"
+	MESSAGE_FAILED_PARSE_QUANTITY       = "failed to parse quantity"
 	// Authentication
 	MESSAGE_FAILED_REGISTER_USER = "failed register user"
 	MESSAGE_FAILED_LOGIN_USER    = "failed login user"
@@ -91,6 +93,7 @@ var (
 	ErrInvalidExtensionPhoto = errors.New("only jpg/jpeg/png allowed")
 	ErrCreateFile            = errors.New("failed create file")
 	ErrSaveFile              = errors.New("failed save file")
+	ErrDeleteOldImage        = errors.New("failed delete old image")
 	// Parse
 	ErrParseUUID = errors.New("failed parse uuid")
 	// Middleware
@@ -134,6 +137,7 @@ var (
 	ErrGetCompanyByID              = errors.New("failed get company by id")
 	ErrCreateCompany               = errors.New("failed to create company")
 	ErrCompanyNotFound             = errors.New("company not found")
+	ErrGetAllCompany               = errors.New("failed get all company")
 	ErrGetAllCompanyWithPagination = errors.New("failed to get list company with pagination")
 	ErrUpdateCompany               = errors.New("failed to update company")
 	ErrDeleteCompany               = errors.New("failed to delete company")
@@ -212,24 +216,32 @@ type (
 
 	// Package
 	CreatePackageRequest struct {
-		Description string                `json:"package_description" form:"package_description"`
-		Image       string                `json:"package_image" form:"package_image"`
-		Type        entity.Type           `json:"package_type" form:"package_type"`
-		UserID      uuid.UUID             `json:"user_id" form:"user_id"`
-		FileHeader  *multipart.FileHeader `json:"fileheader,omitempty"`
-		FileReader  multipart.File        `json:"filereader,omitempty"`
+		TrackingCode      string                `json:"package_tracking_code"`
+		Description       string                `json:"package_description" form:"package_description"`
+		Image             string                `json:"package_image" form:"package_image"`
+		Type              entity.Type           `json:"package_type" form:"package_type"`
+		Quantity          int                   `json:"package_quantity" form:"package_quantity"`
+		SenderName        string                `json:"package_sender_name" form:"package_sender_name"`
+		SenderPhoneNumber string                `json:"package_sender_phone_number" form:"package_sender_phone_number"`
+		SenderAddress     string                `json:"package_sender_address" form:"package_sender_address"`
+		UserID            uuid.UUID             `json:"user_id" form:"user_id"`
+		FileHeader        *multipart.FileHeader `json:"fileheader,omitempty"`
+		FileReader        multipart.File        `json:"filereader,omitempty"`
 	}
 	PackageResponse struct {
-		ID           uuid.UUID     `json:"package_id"`
-		TrackingCode string        `json:"package_tracking_code"`
-		Description  string        `json:"package_description"`
-		Image        string        `json:"package_image"`
-		BarcodeImage string        `json:"package_barcode_image"`
-		Type         entity.Type   `json:"package_type"`
-		Status       entity.Status `json:"package_status"`
-		CompletedAt  *time.Time    `json:"package_completed_at"`
-		ExpiredAt    *time.Time    `json:"package_expired_at"`
-		User         UserResponse  `json:"user"`
+		ID                uuid.UUID     `json:"package_id"`
+		TrackingCode      string        `json:"package_tracking_code"`
+		Description       string        `json:"package_description"`
+		Image             string        `json:"package_image"`
+		Type              entity.Type   `json:"package_type"`
+		Status            entity.Status `json:"package_status"`
+		Quantity          int           `json:"package_quantity"`
+		CompletedAt       *time.Time    `json:"package_completed_at"`
+		ExpiredAt         *time.Time    `json:"package_expired_at"`
+		SenderName        string        `json:"package_sender_name"`
+		SenderPhoneNumber string        `json:"package_sender_phone_number"`
+		SenderAddress     string        `json:"package_sender_address"`
+		User              UserResponse  `json:"user"`
 		entity.TimeStamp
 	}
 	PackagePaginationResponse struct {
@@ -241,14 +253,18 @@ type (
 		Packages []entity.Package
 	}
 	UpdatePackageRequest struct {
-		ID          string                `json:"-"`
-		Description string                `json:"package_description,omitempty" form:"package_description"`
-		Image       string                `json:"package_image,omitempty" form:"package_image"`
-		Type        entity.Type           `json:"package_type,omitempty" form:"package_type"`
-		Status      entity.Status         `json:"package_status,omitempty" form:"package_status"`
-		CompletedAt *time.Time            `json:"package_completed_at,omitempty" form:"package_completed_at"`
-		FileHeader  *multipart.FileHeader `json:"fileheader,omitempty"`
-		FileReader  multipart.File        `json:"filereader,omitempty"`
+		ID                string                `json:"-"`
+		TrackingCode      string                `json:"package_tracking_code" form:"package_tracking_code"`
+		Description       string                `json:"package_description,omitempty" form:"package_description"`
+		Image             string                `json:"package_image,omitempty" form:"package_image"`
+		Type              entity.Type           `json:"package_type,omitempty" form:"package_type"`
+		Status            entity.Status         `json:"package_status,omitempty" form:"package_status"`
+		Quantity          int                   `json:"package_quantity" form:"package_quantity"`
+		SenderName        string                `json:"package_sender_name" form:"package_sender_name"`
+		SenderPhoneNumber string                `json:"package_sender_phone_number" form:"package_sender_phone_number"`
+		SenderAddress     string                `json:"package_sender_address" form:"package_sender_address"`
+		FileHeader        *multipart.FileHeader `json:"fileheader,omitempty"`
+		FileReader        multipart.File        `json:"filereader,omitempty"`
 	}
 	UserResponseCustom struct {
 		ID    uuid.UUID `json:"user_id"`
@@ -256,23 +272,27 @@ type (
 		Email string    `json:"user_email"`
 	}
 	PackageHistoryResponse struct {
-		ID        uuid.UUID          `json:"history_id"`
-		Status    entity.Status      `json:"history_status"`
-		ChangedBy UserResponseCustom `json:"changed_by"`
-		CreatedAt time.Time          `json:"created_at"`
+		ID          uuid.UUID          `json:"history_id"`
+		Status      entity.Status      `json:"history_status"`
+		Description string             `json:"history_description"`
+		ChangedBy   UserResponseCustom `json:"changed_by"`
+		CreatedAt   time.Time          `json:"created_at"`
 	}
 	UpdatePackageResponse struct {
-		ID           uuid.UUID          `json:"package_id"`
-		TrackingCode string             `json:"package_tracking_code"`
-		Description  string             `json:"package_description"`
-		Image        string             `json:"package_image"`
-		BarcodeImage string             `json:"package_barcode_image"`
-		Type         entity.Type        `json:"package_type"`
-		Status       entity.Status      `json:"package_status"`
-		CompletedAt  *time.Time         `json:"package_completed_at"`
-		ExpiredAt    *time.Time         `json:"package_expired_at"`
-		User         UserResponseCustom `json:"user_id"`
-		ChangedBy    UserResponseCustom `json:"changed_by"`
+		ID                uuid.UUID          `json:"package_id"`
+		TrackingCode      string             `json:"package_tracking_code"`
+		Description       string             `json:"package_description"`
+		Image             string             `json:"package_image"`
+		Type              entity.Type        `json:"package_type"`
+		Status            entity.Status      `json:"package_status"`
+		Quantity          int                `json:"package_quantity"`
+		CompletedAt       *time.Time         `json:"package_completed_at"`
+		ExpiredAt         *time.Time         `json:"package_expired_at"`
+		SenderName        string             `json:"package_sender_name"`
+		SenderPhoneNumber string             `json:"package_sender_phone_number"`
+		SenderAddress     string             `json:"package_sender_address"`
+		User              UserResponseCustom `json:"user_id"`
+		ChangedBy         UserResponseCustom `json:"changed_by"`
 		entity.TimeStamp
 	}
 	DeletePackageRequest struct {
