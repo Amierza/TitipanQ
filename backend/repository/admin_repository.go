@@ -28,6 +28,7 @@ type (
 		GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID string) (dto.PackagePaginationRepositoryResponse, error)
 		GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error)
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
+		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
 		GetAllExpiredPackages(now time.Time, out *[]entity.Package) error
 		GetAllExpiredPackagesBefore(cutoff time.Time, out *[]entity.Package) error
@@ -319,6 +320,24 @@ func (ar *AdminRepository) GetAllPackageHistory(ctx context.Context, tx *gorm.DB
 	}
 
 	return packageHistories, err
+}
+func (ar *AdminRepository) GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var (
+		companies []entity.Company
+		err       error
+	)
+
+	query := tx.WithContext(ctx).Model(&entity.Company{})
+
+	if err := query.Order("created_at DESC").Find(&companies).Error; err != nil {
+		return []entity.Company{}, err
+	}
+
+	return companies, err
 }
 func (ar *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error) {
 	if tx == nil {

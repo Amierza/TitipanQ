@@ -400,6 +400,23 @@ func (ah *AdminHandler) CreateCompany(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 func (ah *AdminHandler) ReadAllCompany(ctx *gin.Context) {
+	paginationParam := ctx.DefaultQuery("pagination", "true")
+	usePagination := paginationParam != "false"
+
+	if !usePagination {
+		// Tanpa pagination
+		result, err := ah.adminService.ReadAllCompanyNoPagination(ctx)
+		if err != nil {
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_LIST_COMPANY, err.Error(), nil)
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+			return
+		}
+
+		res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_LIST_COMPANY, result)
+		ctx.JSON(http.StatusOK, res)
+		return
+	}
+
 	var payload dto.PaginationRequest
 	if err := ctx.ShouldBindQuery(&payload); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)

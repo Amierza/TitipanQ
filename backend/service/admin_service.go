@@ -48,6 +48,7 @@ type (
 
 		// Company
 		CreateCompany(ctx context.Context, req dto.CreateCompanyRequest) (dto.CompanyResponse, error)
+		ReadAllCompanyNoPagination(ctx context.Context) ([]dto.CompanyResponse, error)
 		ReadAllCompanyWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.CompanyPaginationResponse, error)
 		GetDetailCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error)
 		UpdateCompany(ctx context.Context, req dto.UpdateCompanyRequest) (dto.UpdateCompanyResponse, error)
@@ -1056,6 +1057,23 @@ func (as *AdminService) CreateCompany(ctx context.Context, req dto.CreateCompany
 		Name:    company.Name,
 		Address: company.Address,
 	}, nil
+}
+func (as *AdminService) ReadAllCompanyNoPagination(ctx context.Context) ([]dto.CompanyResponse, error) {
+	companies, err := as.adminRepo.GetAllCompany(ctx, nil)
+	if err != nil {
+		return nil, dto.ErrGetAllCompany
+	}
+
+	var datas []dto.CompanyResponse
+	for _, company := range companies {
+		datas = append(datas, dto.CompanyResponse{
+			ID:      &company.ID,
+			Name:    company.Name,
+			Address: company.Address,
+		})
+	}
+
+	return datas, nil
 }
 func (as *AdminService) ReadAllCompanyWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.CompanyPaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllCompanyWithPagination(ctx, nil, req)

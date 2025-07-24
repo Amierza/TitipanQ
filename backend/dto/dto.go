@@ -134,6 +134,7 @@ var (
 	ErrGetCompanyByID              = errors.New("failed get company by id")
 	ErrCreateCompany               = errors.New("failed to create company")
 	ErrCompanyNotFound             = errors.New("company not found")
+	ErrGetAllCompany               = errors.New("failed get all company")
 	ErrGetAllCompanyWithPagination = errors.New("failed to get list company with pagination")
 	ErrUpdateCompany               = errors.New("failed to update company")
 	ErrDeleteCompany               = errors.New("failed to delete company")
