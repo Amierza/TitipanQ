@@ -37,6 +37,9 @@ func main() {
 	)
 
 	c := cron.New()
+	// @every 10s
+	// @daily
+	// Update status to expired
 	c.AddFunc("@daily", func() {
 		log.Println("[CRON] AutoExpirePackages triggered...")
 		err := adminService.AutoExpirePackages()
@@ -44,6 +47,17 @@ func main() {
 			log.Println("[CRON] AutoExpirePackages error:", err)
 		} else {
 			log.Println("[CRON] AutoExpirePackages success")
+		}
+	})
+
+	// Fill deleted at after through 2 weeks after status change
+	c.AddFunc("@daily", func() {
+		log.Println("[CRON] AutoSoftDeletePackages triggered...")
+		err := adminService.AutoSoftDeletePackages()
+		if err != nil {
+			log.Println("[CRON] AutoSoftDeletePackages error:", err)
+		} else {
+			log.Println("[CRON] AutoSoftDeletePackages success")
 		}
 	})
 	c.Start()

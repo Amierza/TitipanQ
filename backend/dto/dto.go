@@ -228,7 +228,6 @@ type (
 		Type         entity.Type   `json:"package_type"`
 		Status       entity.Status `json:"package_status"`
 		CompletedAt  *time.Time    `json:"package_completed_at"`
-		DeliveredAt  *time.Time    `json:"package_delivered_at"`
 		ExpiredAt    *time.Time    `json:"package_expired_at"`
 		User         UserResponse  `json:"user"`
 		entity.TimeStamp
@@ -248,7 +247,6 @@ type (
 		Type        entity.Type           `json:"package_type,omitempty" form:"package_type"`
 		Status      entity.Status         `json:"package_status,omitempty" form:"package_status"`
 		CompletedAt *time.Time            `json:"package_completed_at,omitempty" form:"package_completed_at"`
-		DeliveredAt *time.Time            `json:"package_delivered_at,omitempty" form:"package_delivered_at"`
 		FileHeader  *multipart.FileHeader `json:"fileheader,omitempty"`
 		FileReader  multipart.File        `json:"filereader,omitempty"`
 	}
@@ -272,7 +270,6 @@ type (
 		Type         entity.Type        `json:"package_type"`
 		Status       entity.Status      `json:"package_status"`
 		CompletedAt  *time.Time         `json:"package_completed_at"`
-		DeliveredAt  *time.Time         `json:"package_delivered_at"`
 		ExpiredAt    *time.Time         `json:"package_expired_at"`
 		User         UserResponseCustom `json:"user_id"`
 		ChangedBy    UserResponseCustom `json:"changed_by"`
