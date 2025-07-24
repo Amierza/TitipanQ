@@ -11,7 +11,7 @@ import { imageUrl } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import dayjs from 'dayjs'
 import { Badge } from "@/components/ui/badge";
-import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone } from "lucide-react";
+import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone, Truck, CheckCircle2 } from "lucide-react";
 import { getAllHistoryPackageService } from "@/services/admin/package/getHistoryPackage";
 
 const DetailPackageSection = () => {
@@ -125,39 +125,54 @@ const DetailPackageSection = () => {
               </Card>
 
               <Card className="shadow-sm">
-                <CardContent className="space-y-3 text-sm">
-                  <div>
-                    <p>
-                      {`Received date : ${dayjs(packageData.data.created_at).format("DD-MM-YYYY")}`}
-                    </p>
-                    {receivedHistory && (
-                      <p className="text-gray-400 text-xs">
-                        {`Changed by : ${receivedHistory.changed_by.user_name}`}
+                <CardContent className="space-y-4 text-sm">
+                  <div className="flex gap-2">
+                    <div className="flex items-start h-fit rounded-full border border-blue-200 bg-blue-100 p-2">
+                      <Package className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <p>
+                        {`Received date : ${dayjs(packageData.data.created_at).format("DD MMM YYYY, dddd HH:ss")}`}
                       </p>
-                    )}
+                      {receivedHistory && (
+                        <p className="text-gray-400 text-xs">
+                          {`Changed by : ${receivedHistory.changed_by.user_name}`}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <p>
-                      {`Delivered date : ${dayjs(packageData.data.package_delivered_at).isValid()
-                        ? dayjs(packageData.data.package_delivered_at).format("DD-MM-YYYY")
-                        : "-"
-                        }`}
-                    </p>
-                    {deliveredHistory && (
-                      <p className="text-gray-400 text-xs">
-                        {`Changed by : ${deliveredHistory.changed_by.user_name}`}
+                  <div className="flex gap-2">
+                    <div className="flex items-start h-fit rounded-full border border-amber-200 bg-amber-100 p-2">
+                      <Truck className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div>
+                      <p>
+                        {`Delivered date : ${dayjs(packageData.data.package_delivered_at).isValid()
+                          ? dayjs(packageData.data.package_delivered_at).format("DD MMM YYYY, dddd HH:ss")
+                          : "-"
+                          }`}
                       </p>
-                    )}
+                      {deliveredHistory && (
+                        <p className="text-gray-400 text-xs">
+                          {`Changed by : ${deliveredHistory.changed_by.user_name}`}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <p>{`Complete date : ${packageData.data.package_status === "completed" ? dayjs(packageData.data.updated_at).format("DD-MM-YYYY") : "-"}`}</p>
-                    {completedHistory && (
-                      <p className="text-gray-400 text-xs">
-                        {`Changed by : ${completedHistory.changed_by.user_name}`}
-                      </p>
-                    )}
+                  <div className="flex gap-2">
+                    <div className="flex items-start h-fit rounded-full border border-green-200 bg-green-100 p-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    </div>
+                    <div>
+                      <p>{`Complete date : ${packageData.data.package_status === "completed" ? dayjs(packageData.data.updated_at).format("DD MMM YYYY, dddd HH:ss") : "-"}`}</p>
+                      {completedHistory && (
+                        <p className="text-gray-400 text-xs">
+                          {`Changed by : ${completedHistory.changed_by.user_name}`}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
