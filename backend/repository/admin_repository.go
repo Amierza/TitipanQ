@@ -30,6 +30,7 @@ type (
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
 		GetAllExpiredPackages(now time.Time, out *[]entity.Package) error
+		GetAllExpiredPackagesBefore(cutoff time.Time, out *[]entity.Package) error
 
 		//Create
 		CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -41,7 +42,8 @@ type (
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 		UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
-		UpdatePackageStatusAndSoftDelete(id uuid.UUID, status entity.Status, deletedAt time.Time) error
+		UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status) error
+		UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error
 
 		// Delete
 		DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error
@@ -365,6 +367,12 @@ func (ur *AdminRepository) GetAllExpiredPackages(now time.Time, out *[]entity.Pa
 		Where("status != ?", entity.Expired).
 		Find(out).Error
 }
+func (ur *AdminRepository) GetAllExpiredPackagesBefore(cutoff time.Time, out *[]entity.Package) error {
+	return ur.db.
+		Where("status = ? AND updated_at < ?", entity.Expired, cutoff).
+		Where("deleted_at IS NULL").
+		Find(out).Error
+}
 
 // Create
 func (ar *AdminRepository) CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error {
@@ -417,9 +425,13 @@ func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, compa
 
 	return tx.WithContext(ctx).Where("id = ?", company.ID).Updates(&company).Error
 }
-func (ur *AdminRepository) UpdatePackageStatusAndSoftDelete(id uuid.UUID, status entity.Status, deletedAt time.Time) error {
+func (ur *AdminRepository) UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status) error {
 	return ur.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"status":     status,
+		"status": status,
+	}).Error
+}
+func (ur *AdminRepository) UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error {
+	return ur.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"deleted_at": deletedAt,
 	}).Error
 }

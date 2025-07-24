@@ -35,6 +35,7 @@ type (
 
 		// cron
 		AutoExpirePackages() error
+		AutoSoftDeletePackages() error
 
 		// Package
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
@@ -544,7 +545,6 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		BarcodeImage: pkg.Barcode,
 		Type:         pkg.Type,
 		Status:       pkg.Status,
-		DeliveredAt:  pkg.DeliveredAt,
 		ExpiredAt:    pkg.ExpiredAt,
 		User: dto.UserResponse{
 			ID:          user.ID,
@@ -586,7 +586,6 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID s
 			Type:         pkg.Type,
 			Status:       pkg.Status,
 			CompletedAt:  pkg.CompletedAt,
-			DeliveredAt:  pkg.DeliveredAt,
 			ExpiredAt:    pkg.ExpiredAt,
 			User: dto.UserResponse{
 				ID:          pkg.User.ID,
@@ -633,7 +632,6 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 			Type:         pkg.Type,
 			Status:       pkg.Status,
 			CompletedAt:  pkg.CompletedAt,
-			DeliveredAt:  pkg.DeliveredAt,
 			ExpiredAt:    pkg.ExpiredAt,
 			User: dto.UserResponse{
 				ID:          pkg.User.ID,
@@ -694,7 +692,6 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 		Type:         pkg.Type,
 		Status:       pkg.Status,
 		CompletedAt:  pkg.CompletedAt,
-		DeliveredAt:  pkg.DeliveredAt,
 		ExpiredAt:    pkg.ExpiredAt,
 		User: dto.UserResponse{
 			ID:          pkg.User.ID,
@@ -821,8 +818,7 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	}
 
 	var validStatusOrder = map[entity.Status]entity.Status{
-		entity.Received:  entity.Delivered,
-		entity.Delivered: entity.Completed,
+		entity.Received: entity.Completed,
 	}
 
 	if req.Status != "" {
@@ -843,21 +839,12 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 
 			descriptionChanges = append(descriptionChanges, "package status changed")
 
-			if entity.Status(req.Status) == entity.Delivered {
-				p.DeliveredAt = &now
-			}
-
 			if entity.Status(req.Status) == entity.Completed {
 				p.CompletedAt = &now
 			}
 
 			p.Status = entity.Status(req.Status)
 		}
-	}
-
-	if req.DeliveredAt != nil && (p.DeliveredAt == nil || !p.DeliveredAt.Equal(*req.DeliveredAt)) {
-		descriptionChanges = append(descriptionChanges, "package delivered_at changed")
-		p.DeliveredAt = req.DeliveredAt
 	}
 
 	if req.CompletedAt != nil && (p.CompletedAt == nil || !p.CompletedAt.Equal(*req.CompletedAt)) {
@@ -872,8 +859,6 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	var message string
 
 	switch req.Status {
-	case entity.Delivered:
-		message = utils.BuildDeliveredMessage(&p)
 	case entity.Completed:
 		message = utils.BuildCompletedMessage(&p)
 	case entity.Expired:
@@ -921,7 +906,6 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		Type:         p.Type,
 		Status:       p.Status,
 		CompletedAt:  p.CompletedAt,
-		DeliveredAt:  p.DeliveredAt,
 		ExpiredAt:    p.ExpiredAt,
 		User:         client,
 		ChangedBy:    admin,
@@ -952,7 +936,6 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		Type:         deletedPackage.Type,
 		Status:       deletedPackage.Status,
 		CompletedAt:  deletedPackage.CompletedAt,
-		DeliveredAt:  deletedPackage.DeliveredAt,
 		ExpiredAt:    deletedPackage.ExpiredAt,
 		User: dto.UserResponse{
 			ID:          deletedPackage.User.ID,
@@ -992,7 +975,7 @@ func (as *AdminService) AutoExpirePackages() error {
 	}
 
 	for _, pkg := range packages {
-		err := as.adminRepo.UpdatePackageStatusAndSoftDelete(pkg.ID, entity.Expired, now)
+		err := as.adminRepo.UpdatePackageStatusToExpired(pkg.ID, entity.Expired)
 		if err != nil {
 			log.Printf("[AutoExpire] failed to update package %s: %v", pkg.ID, err)
 			continue
@@ -1002,6 +985,39 @@ func (as *AdminService) AutoExpirePackages() error {
 			ID:          uuid.New(),
 			Status:      entity.Expired,
 			Description: "package expired automatically",
+			PackageID:   &pkg.ID,
+			ChangedBy:   nil,
+			TimeStamp: entity.TimeStamp{
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		}
+		_ = as.adminRepo.CreatePackageHistory(nil, nil, history)
+	}
+
+	return nil
+}
+func (as *AdminService) AutoSoftDeletePackages() error {
+	now := time.Now()
+	cutoff := now.AddDate(0, 0, -14)
+
+	var expiredPackages []entity.Package
+	err := as.adminRepo.GetAllExpiredPackagesBefore(cutoff, &expiredPackages)
+	if err != nil {
+		return err
+	}
+
+	for _, pkg := range expiredPackages {
+		err := as.adminRepo.UpdateSoftDeletePackage(pkg.ID, now)
+		if err != nil {
+			log.Printf("[AutoExpire] failed to update package %s: %v", pkg.ID, err)
+			continue
+		}
+
+		history := entity.PackageHistory{
+			ID:          uuid.New(),
+			Status:      entity.Deleted,
+			Description: "package auto soft-deleted after 14 days of expiration",
 			PackageID:   &pkg.ID,
 			ChangedBy:   nil,
 			TimeStamp: entity.TimeStamp{

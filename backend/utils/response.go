@@ -48,20 +48,10 @@ func BuildReceivedMessage(p *entity.Package) string {
 	)
 }
 
-func BuildDeliveredMessage(p *entity.Package) string {
-	return fmt.Sprintf(
-		"🚚 Paket *%s* telah dikirim ke alamat tujuan pada *%s*.\n\nDeskripsi: %s\n\nPantau terus statusnya ya!",
-		p.ID.String(),
-		p.DeliveredAt.Format("02 Jan 2006"),
-		p.Description,
-	)
-}
-
 func BuildCompletedMessage(p *entity.Package) string {
 	return fmt.Sprintf(
-		"✅ Paket *%s* telah sampai dan diterima oleh pemilik pada *%s*.\n\nDeskripsi: %s\n\nTerima kasih telah menggunakan layanan TitipanQ!",
+		"✅ Paket *%s* telah sampai dan diterima oleh pemilik pada *%s*.\n\nTerima kasih telah menggunakan layanan TitipanQ!",
 		p.ID.String(),
-		p.DeliveredAt.Format("02 Jan 2006"),
 		p.Description,
 	)
 }
