@@ -42,6 +42,7 @@ type (
 		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
+		UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID, newStatus string) error
 		UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
 		UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status) error
 		UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error
@@ -444,6 +445,17 @@ func (ar *AdminRepository) UpdatePackage(ctx context.Context, tx *gorm.DB, pkg e
 	}
 
 	return tx.WithContext(ctx).Where("id = ?", pkg.ID).Updates(&pkg).Error
+}
+func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID, newStatus string) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).
+		Model(&entity.Package{}).
+		Where("id = ?", pkgID).
+		Update("status", newStatus).
+		Error
 }
 func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
 	if tx == nil {

@@ -44,6 +44,7 @@ type (
 		GetDetailPackage(ctx context.Context, identifier string) (dto.PackageResponse, error)
 		ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error)
 		UpdatePackage(ctx context.Context, req dto.UpdatePackageRequest) (dto.UpdatePackageResponse, error)
+		UpdateStatusPackages(ctx context.Context, req dto.UpdateStatusPackages) error
 		DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error)
 
 		// Company
@@ -961,6 +962,45 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 			DeletedAt: p.DeletedAt,
 		},
 	}, nil
+}
+func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.UpdateStatusPackages) error {
+	token := ctx.Value("Authorization").(string)
+
+	idChangerStr, err := as.jwtService.GetUserIDByToken(token)
+	if err != nil {
+		return dto.ErrGetUserIDFromToken
+	}
+
+	idChanger, err := uuid.Parse(idChangerStr)
+	if err != nil {
+		return dto.ErrParseUUID
+	}
+
+	for _, pkgID := range req.PackageIDs {
+		_, _, err := as.adminRepo.GetPackageByID(ctx, nil, pkgID.String())
+		if err != nil {
+			return dto.ErrPackageNotFound
+		}
+
+		err = as.adminRepo.UpdateStatusPackage(ctx, nil, pkgID.String(), string(entity.Completed))
+		if err != nil {
+			return dto.ErrUpdateStatusPackage
+		}
+
+		history := entity.PackageHistory{
+			ID:          uuid.New(),
+			Status:      entity.Completed,
+			Description: "package status changed",
+			PackageID:   pkgID,
+			ChangedBy:   &idChanger,
+		}
+
+		if err := as.adminRepo.CreatePackageHistory(ctx, nil, history); err != nil {
+			return dto.ErrCreatePackageHistory
+		}
+	}
+
+	return nil
 }
 func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error) {
 	deletedPackage, _, err := as.adminRepo.GetPackageByID(ctx, nil, req.PackageID)

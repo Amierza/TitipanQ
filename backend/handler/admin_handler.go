@@ -31,6 +31,7 @@ type (
 		GetDetailPackage(ctx *gin.Context)
 		GetAllPackageHistory(ctx *gin.Context)
 		UpdatePackage(ctx *gin.Context)
+		UpdateStatusPackages(ctx *gin.Context)
 		DeletePackage(ctx *gin.Context)
 
 		// Cron
@@ -381,6 +382,24 @@ func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_PACKAGE, result)
+	ctx.JSON(http.StatusOK, res)
+}
+func (ah *AdminHandler) UpdateStatusPackages(ctx *gin.Context) {
+	var payload dto.UpdateStatusPackages
+	if err := ctx.ShouldBind(&payload); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	err := ah.adminService.UpdateStatusPackages(ctx, payload)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATE_STATUS_PACKAGES, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_STATUS_PACKAGES, nil)
 	ctx.JSON(http.StatusOK, res)
 }
 func (ah *AdminHandler) DeletePackage(ctx *gin.Context) {
