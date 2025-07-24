@@ -12,12 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { PackageCardFooter } from "@/components/package/package-card-footer";
 import { 
   Package, 
-  Search, 
   Calendar, 
   Filter, 
   ArrowUpDown, 
   Grid3X3, 
-  List,
   CheckCircle,
   Clock,
   Truck,
@@ -53,12 +51,9 @@ export default function AllPackagePage() {
   });
 
   const filteredPackages = useMemo(() => {
-    let result = packages
+    const result = packages
       .filter((pkg) =>
         initialStatus ? pkg.package_status === initialStatus : true
-      )
-      .filter((pkg) =>
-        searchTerm ? pkg.package_name.toLowerCase().includes(searchTerm.toLowerCase()) : true
       )
       .filter((pkg) =>
         dateFilter ? pkg.created_at.startsWith(dateFilter) : true
@@ -72,13 +67,10 @@ export default function AllPackagePage() {
       case "oldest":
         result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         break;
-      case "name":
-        result.sort((a, b) => a.package_name.localeCompare(b.package_name));
-        break;
     }
 
     return result;
-  }, [packages, initialStatus, searchTerm, dateFilter, sortBy]);
+  }, [packages, initialStatus, dateFilter, sortBy]);
 
   // Status configuration
   const statusConfig = {
