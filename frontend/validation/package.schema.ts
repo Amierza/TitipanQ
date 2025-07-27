@@ -10,10 +10,13 @@ export enum PackageStatus {
   Received = "received",
   Completed = "completed",
   Expired = "expired",
-  Deleted= "deleted",
+  Deleted = "deleted",
 }
 
+const phoneNumberRegex = /^(?:\+62|62|0)8[1-9][0-9]{6,10}$/;
+
 export const PackageSchema = z.object({
+  package_tracking_code: z.string().min(1, "Kode resi paket tidak boleh kosong"),
   package_description: z
     .string()
     .min(1, { message: "Deskripsi paket tidak boleh kosong" }),
@@ -28,6 +31,13 @@ export const PackageSchema = z.object({
   package_type: z.nativeEnum(PackageType, {
     required_error: "Tipe paket harus diisi",
   }),
+  package_quantity: z
+    .string()
+    .min(1, "Quantity wajib diisi")
+    .regex(/^[1-9][0-9]*$/, "Quantity harus berupa angka positif tanpa nol di depan"),
+  package_sender_name: z.string().min(1, "Nama pengirim tidak boleh kosong"),
+  package_sender_phone_number: z.string().regex(phoneNumberRegex, "Nomer telepon tidak valid"),
+  package_sender_address: z.string().min(1, "Alamat pengirim harus diisi"),
   user_id: z.string().uuid({ message: "User ID harus berupa UUID yang valid" }),
 });
 

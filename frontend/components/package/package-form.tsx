@@ -23,15 +23,6 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import UploadPackagePhoto from "./package-upload-photo";
@@ -42,14 +33,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createPackageService } from "@/services/admin/package/createPackage";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
-import { updatePackageService } from "@/services/admin/package/updatePackage";
 import { useState } from "react";
-import Image from "next/image";
-import { PackageResponse } from "@/types/package.type";
-import { imageUrl } from "@/config/api";
 import { useRouter } from "next/navigation";
-import { Download } from "lucide-react";
-import saveAs from "file-saver";
 import { Input } from "@/components/ui/input";
 
 interface PackageFormProps {
@@ -63,13 +48,17 @@ export default function PackageForm({
   users,
   initialPackage,
 }: PackageFormProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [responseData, setResponseData] = useState<PackageResponse>()
   const [query, setQuery] = useState<string>("");
   const router = useRouter();
   const methods = useForm<PackageSchemaType>({
     resolver: zodResolver(PackageSchema),
+    mode: "onChange",
     defaultValues: {
+      package_sender_name: initialPackage?.package_sender_name || "",
+      package_sender_phone_number: initialPackage?.package_sender_phone_number || "",
+      package_sender_address: initialPackage?.package_sender_address || "",
+      package_tracking_code: initialPackage?.package_tracking_code || "",
+      package_quantity: initialPackage?.package_quantity || "",
       package_description: initialPackage?.package_description || "",
       package_type: initialPackage?.package_type || PackageType.Document,
       package_image: undefined as unknown as File,
@@ -77,17 +66,17 @@ export default function PackageForm({
     },
   });
 
+
   const { control, handleSubmit, watch, reset } = methods;
   const image = watch("package_image");
 
-  const createMutation = useMutation({
+  const { mutate: createMutation } = useMutation({
     mutationFn: createPackageService,
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message)
-        setResponseData(result);
-        setIsDialogOpen(true);
         reset();
+        router.push("/admin/package")
       } else {
         toast.error(result.message);
       }
@@ -97,151 +86,118 @@ export default function PackageForm({
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (data: { id: string; payload: PackageSchemaType }) =>
-      updatePackageService(data.id, data.payload),
-    onSuccess: (result) => {
-      toast.success(result.message);
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  // const updateMutation = useMutation({
+  //   mutationFn: (data: { id: string; payload: PackageSchemaType }) =>
+  //     updatePackageService(data.id, data.payload),
+  //   onSuccess: (result) => {
+  //     toast.success(result.message);
+  //   },
+  //   onError: (error) => {
+  //     toast.error(error.message);
+  //   },
+  // });
 
-  const getFullImageBarcodeUrl = (imagePath: string) => {
-    if (!imagePath) return "/assets/default_image.jpg";
-    if (imagePath.startsWith("http")) return imagePath;
-    return `${imageUrl}/barcode/${imagePath}`;
-  };
+  // const handleDownloadImage = async (imageName?: string) => {
+  //   if (!imageName) {
+  //     toast.error("No image available");
+  //     return;
+  //   }
 
+  //   try {
+  //     const url = imageName.startsWith("http")
+  //       ? imageName
+  //       : `${imageUrl}/barcode/${imageName}`;
 
-  const handleDownloadImage = async (imageName?: string) => {
-    if (!imageName) {
-      toast.error("No image available");
-      return;
-    }
+  //     const res = await fetch(url, { mode: "cors" });
+  //     if (!res.ok) throw new Error("Failed to fetch image");
 
-    try {
-      const url = imageName.startsWith("http")
-        ? imageName
-        : `${imageUrl}/barcode/${imageName}`;
-
-      const res = await fetch(url, { mode: "cors" });
-      if (!res.ok) throw new Error("Failed to fetch image");
-
-      const blob = await res.blob();
-      saveAs(blob, imageName.replace(/.*[\\/]/, "") || "barcode.png");
-    } catch (err) {
-      console.error(err);
-      toast.error("Download failed");
-    }
-  }
+  //     const blob = await res.blob();
+  //     saveAs(blob, imageName.replace(/.*[\\/]/, "") || "barcode.png");
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Download failed");
+  //   }
+  // }
 
   const onSubmit = (data: PackageSchemaType) => {
-    if (initialPackage?.package_id) {
-      const updatedPayload: Partial<PackageSchemaType> = {};
-
-      for (const key in data) {
-        const typedKey = key as keyof PackageSchemaType;
-        const newValue = data[typedKey];
-        const oldValue = initialPackage[typedKey];
-
-        const isFileField = typedKey === "package_image";
-        if (isFileField) {
-          if (newValue instanceof File && newValue.size > 0) {
-            updatedPayload[typedKey] =
-              newValue as PackageSchemaType[typeof typedKey];
-          }
-        } else if (newValue !== oldValue) {
-          if (typedKey === "package_type") {
-            updatedPayload[typedKey] = newValue as PackageType;
-          } else {
-            updatedPayload[typedKey] =
-              newValue as PackageSchemaType[typeof typedKey];
-          }
-        }
-      }
-
-      if (Object.keys(updatedPayload).length === 0) {
-        toast.info("Tidak ada perubahan");
-        return;
-      }
-
-      updateMutation.mutate({
-        id: initialPackage.package_id,
-        payload: updatedPayload as PackageSchemaType,
-      });
-    } else {
-      createMutation.mutate(data);
-    }
+    createMutation(data);
   };
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex gap-6">
-          <FormField
-            control={control}
-            name="package_image"
-            render={({ field }) => (
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="p-4 border border-gray-300 rounded-lg space-y-3">
+          <h3 className="font-semibold text-sm">Sender</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField name="package_sender_name" control={control} render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Write sender name here..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField name="package_sender_phone_number" control={control} render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl><Input placeholder="08***********" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <FormField name="package_sender_address" control={control} render={({ field }) => (
+              <FormItem>
+                <FormLabel>Address</FormLabel>
+                <FormControl><Input placeholder="Write sender address here..." {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+        </div>
+
+        <div className="p-4 border border-gray-300 rounded-lg space-y-3">
+          <h3 className="font-semibold text-sm">Package</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <FormField name="package_image" control={control} render={({ field }) => (
               <FormItem>
                 <FormControl>
                   <UploadPackagePhoto
                     photo={image}
                     onChange={(file) => field.onChange(file)}
-                    initialImageUrl={
-                      typeof initialPackage?.package_image === "string"
-                        ? initialPackage.package_image
-                        : undefined
-                    }
+                    initialImageUrl={typeof initialPackage?.package_image === "string" ? initialPackage.package_image : undefined}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name="user_id"
-            render={({ field }) => (
+            )} />
+
+            <FormField name="package_tracking_code" control={control} render={({ field }) => (
               <FormItem>
                 <FormLabel>Tracking Code</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="PACK******"
-                    {...field}
-                  />
+                  <Input placeholder="PACK******" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}
-          />
-        </div>
+            )} />
+          </div>
 
-        <FormField
-          control={control}
-          name="user_id"
-          render={({ field }) => {
-            const selectedUser =
-              users.find((u) => u.id === field.value) ?? null;
-
+          <FormField name="user_id" control={control} render={({ field }) => {
+            const selectedUser = users.find((u) => u.id === field.value) ?? null;
             return (
               <FormItem>
                 <FormLabel>Select user</FormLabel>
-
-                <Combobox<{ id: string; name: string } | null>
-                  value={selectedUser}
-                  onChange={(user) => {
-                    field.onChange(user?.id ?? "");
-                    setQuery(user?.name ?? "");
-                  }}
-                >
+                <Combobox value={selectedUser} onChange={(user) => {
+                  field.onChange(user?.id ?? "");
+                  setQuery(user?.name ?? "");
+                }}>
                   <div className="relative">
                     <ComboboxInput
                       className="w-full rounded-lg border px-3 py-2 text-sm"
-                      displayValue={(
-                        user: { id: string; name: string } | null
-                      ) => (user ? user.name : "")}
+                      displayValue={(user: { id: string; name: string } | null) => user?.name ?? ""}
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder="Search user…"
                     />
@@ -249,137 +205,61 @@ export default function PackageForm({
                       <ChevronDownIcon className="h-5 w-5 text-gray-500" />
                     </ComboboxButton>
                   </div>
-
-                  {/* List */}
-                  <ComboboxOptions className="mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none">
-                    {users
-                      .filter((u) =>
-                        u.name.toLowerCase().includes(query.toLowerCase())
-                      )
-                      .map((u) => (
-                        <ComboboxOption
-                          key={u.id}
-                          value={u}
-                          className={({ active }) =>
-                            clsx(
-                              "relative cursor-pointer select-none py-2 pl-10 pr-4",
-                              active
-                                ? "bg-blue-100 text-blue-900"
-                                : "text-gray-900"
-                            )
-                          }
-                        >
-                          {({ selected }) => (
-                            <>
-                              <span
-                                className={clsx(
-                                  "block truncate",
-                                  selected && "font-medium"
-                                )}
-                              >
-                                {u.name}
-                              </span>
-                              {selected && (
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                                  <CheckIcon className="h-5 w-5" />
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </ComboboxOption>
-                      ))}
+                  <ComboboxOptions className="mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5">
+                    {users.filter((u) => u.name.toLowerCase().includes(query.toLowerCase())).map((u) => (
+                      <ComboboxOption key={u.id} value={u} className={({ active }) => clsx("relative cursor-pointer select-none py-2 pl-10 pr-4", active ? "bg-blue-100 text-blue-900" : "text-gray-900")}>
+                        {({ selected }) => (
+                          <>
+                            <span className={clsx("block truncate", selected && "font-medium")}>{u.name}</span>
+                            {selected && <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600"><CheckIcon className="h-5 w-5" /></span>}
+                          </>
+                        )}
+                      </ComboboxOption>
+                    ))}
                   </ComboboxOptions>
                 </Combobox>
-
                 <FormMessage />
               </FormItem>
             );
-          }}
-        />
+          }} />
 
-        <FormField
-          control={control}
-          name="package_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Package Type</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Package Type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value={PackageType.Document}>Document</SelectItem>
-                  <SelectItem value={PackageType.Item}>Item</SelectItem>
-                  <SelectItem value={PackageType.Other}>Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+            <FormField name="package_type" control={control} render={({ field }) => (
+              <FormItem>
+                <FormLabel>Package Type</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl className="w-full"><SelectTrigger><SelectValue placeholder="Select Package Type" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value={PackageType.Document}>Document</SelectItem>
+                    <SelectItem value={PackageType.Item}>Item</SelectItem>
+                    <SelectItem value={PackageType.Other}>Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
 
-        <FormField
-          control={control}
-          name="package_description"
-          render={({ field }) => (
+            <FormField name="package_quantity" control={control} render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantity</FormLabel>
+                <FormControl><Input placeholder="Write quantity of package here..." {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+
+          <FormField name="package_description" control={control} render={({ field }) => (
             <FormItem>
               <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Write package description here..."
-                  {...field}
-                />
-              </FormControl>
+              <FormControl><Textarea placeholder="Write package description here..." {...field} /></FormControl>
               <FormMessage />
             </FormItem>
-          )}
-        />
-        <Button
-          disabled={
-            !methods.formState.isValid || methods.formState.isSubmitting
-          }
-          type="submit"
-        >
+          )} />
+        </div>
+
+        <Button className="cursor-pointer" disabled={!methods.formState.isValid || methods.formState.isSubmitting} type="submit">
           {methods.formState.isSubmitting ? "Loading..." : "Submit"}
         </Button>
-
-        <Dialog
-          open={isDialogOpen}
-          onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) {
-              router.replace("/admin/package");
-            }
-          }}>
-          <DialogContent className="flex sm:max-w-md justify-center">
-            <DialogHeader className="space-y-4">
-              <DialogTitle className="flex capitalize items-center justify-center">{responseData?.message}</DialogTitle>
-              <DialogDescription className="flex justify-center">
-                {responseData ? (
-                  <Image
-                    src={getFullImageBarcodeUrl(responseData.data.package_barcode_image)}
-                    height={300}
-                    width={300}
-                    alt="Barcode"
-                    className="mt-2 max-h-32"
-                  />
-                ) : (
-                  "No barcode available."
-                )}
-              </DialogDescription>
-              <Button onClick={() => handleDownloadImage(responseData?.data.package_barcode_image)} type="button" variant="secondary">
-                <Download />
-                Download
-              </Button>
-            </DialogHeader>
-            <DialogFooter className="flex justify-center">
-              <DialogClose asChild onClick={() => router.replace("/admin/package")}>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </form>
     </FormProvider>
   );
