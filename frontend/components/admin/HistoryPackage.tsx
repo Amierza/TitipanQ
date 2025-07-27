@@ -37,12 +37,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllCompanyService } from "@/services/admin/company/getAllCompany";
 import { useRouter } from "next/navigation";
 import QrScannerModal from "../package/package-open-camera";
+import { updateStatusPackagesService } from "@/services/admin/package/updateStatusPackages";
+import { toast } from "sonner";
 
 const HistoryPackageSection = () => {
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [selectedId, setSelectedId] = useState<string[]>([])
@@ -56,6 +59,22 @@ const HistoryPackageSection = () => {
     queryKey: ["company"],
     queryFn: getAllCompanyService,
   });
+
+  const { mutate: updateStatusPackages } = useMutation({
+    mutationFn: updateStatusPackagesService,
+    onSuccess: (result) => {
+      if (result.status) {
+        toast.success(result.message)
+        queryClient.invalidateQueries({ queryKey: ["packageData"] });
+      } else {
+        toast.error(result.error)
+        console.log(result)
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    }
+  })
 
   if (!companyData) return <p>Failed to fetch company data</p>;
   if (!companyData.status) return <p>Failed to fetch company data</p>;
@@ -107,10 +126,7 @@ const HistoryPackageSection = () => {
                 disabled={selectedId.length === 0}
                 variant={"ghost"}
                 className="cursor-pointer bg-green-500 hover:bg-green-600"
-                onClick={() => {
-                  console.log(selectedId)
-                  setSelectedId([])
-                }}
+                onClick={() => updateStatusPackages({package_ids: selectedId})}
               >
                 Update Package
               </Button>
