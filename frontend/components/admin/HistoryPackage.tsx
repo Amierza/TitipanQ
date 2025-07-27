@@ -68,7 +68,6 @@ const HistoryPackageSection = () => {
         queryClient.invalidateQueries({ queryKey: ["packageData"] });
       } else {
         toast.error(result.error)
-        console.log(result)
       }
     },
     onError: (error) => {
