@@ -43,3 +43,11 @@ export const UpdatePackageSchema = z.object({
     required_error: "Status paket harus diisi",
   }),
 });
+
+export const UpdateStatusPackages = z.object({
+  package_ids: z
+    .array(z.string(), {
+      required_error: "Package IDs wajib ada",
+    })
+    .min(1, { message: "Paket yang diperbarui setidaknya berjumlah 1" }),
+});
