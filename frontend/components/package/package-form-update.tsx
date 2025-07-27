@@ -206,9 +206,6 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
                     <SelectItem value={PackageStatus.Received}>
                       Received
                     </SelectItem>
-                    <SelectItem value={PackageStatus.Delivered}>
-                      Delivered
-                    </SelectItem>
                     <SelectItem value={PackageStatus.Completed}>
                       Completed
                     </SelectItem>

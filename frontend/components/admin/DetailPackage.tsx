@@ -11,7 +11,7 @@ import { imageUrl } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import dayjs from 'dayjs'
 import { Badge } from "@/components/ui/badge";
-import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone, Truck, CheckCircle2 } from "lucide-react";
+import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone, CheckCircle2 } from "lucide-react";
 import { getAllHistoryPackageService } from "@/services/admin/package/getHistoryPackage";
 
 const DetailPackageSection = () => {
@@ -35,7 +35,6 @@ const DetailPackageSection = () => {
   if (!historyPackageData.status) return <p>Package not found</p>
 
   const receivedHistory = historyPackageData.data.find((history) => history.history_status === "received")
-  const deliveredHistory = historyPackageData.data.find((history) => history.history_status === "delivered")
   const completedHistory = historyPackageData.data.find((history) => history.history_status === "completed")
 
   const getFullImagePackageUrl = (imagePath: string) => {
@@ -137,25 +136,6 @@ const DetailPackageSection = () => {
                       {receivedHistory && (
                         <p className="text-gray-400 text-xs">
                           {`Changed by : ${receivedHistory.changed_by.user_name}`}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <div className="flex items-start h-fit rounded-full border border-amber-200 bg-amber-100 p-2">
-                      <Truck className="w-4 h-4 text-amber-500" />
-                    </div>
-                    <div>
-                      <p>
-                        {`Delivered date : ${dayjs(packageData.data.package_delivered_at).isValid()
-                          ? dayjs(packageData.data.package_delivered_at).format("DD MMM YYYY, dddd HH:ss")
-                          : "-"
-                          }`}
-                      </p>
-                      {deliveredHistory && (
-                        <p className="text-gray-400 text-xs">
-                          {`Changed by : ${deliveredHistory.changed_by.user_name}`}
                         </p>
                       )}
                     </div>

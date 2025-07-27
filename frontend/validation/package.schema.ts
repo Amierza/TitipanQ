@@ -8,9 +8,9 @@ export enum PackageType {
 
 export enum PackageStatus {
   Received = "received",
-  Delivered = "delivered",
   Completed = "completed",
   Expired = "expired",
+  Deleted= "deleted",
 }
 
 export const PackageSchema = z.object({
