@@ -9,7 +9,7 @@ export default function DeletePackageButton({
   onClick: () => void;
 }) {
   return (
-    <Button variant="destructive" size="icon" onClick={onClick}>
+    <Button className="cursor-pointer" variant="destructive" size="icon" onClick={onClick}>
       <Trash size={16} />
     </Button>
   );

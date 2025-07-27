@@ -176,7 +176,7 @@ const HistoryTable = ({
                       <Button
                         variant="ghost"
                         onClick={() => router.push(`/admin/package/edit/${pkg.package_id}`)}
-                        className="bg-amber-400 hover:text-white hover:bg-amber-500 text-white p-2 rounded-md"
+                        className="cursor-pointer bg-amber-400 hover:text-white hover:bg-amber-500 text-white p-2 rounded-md"
                       >
                         <Pencil className="transition-transform" />
                       </Button>
