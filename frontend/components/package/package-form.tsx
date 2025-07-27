@@ -50,6 +50,7 @@ export default function PackageForm({
 }: PackageFormProps) {
   const [query, setQuery] = useState<string>("");
   const router = useRouter();
+  // const [trackingCode, setTrackingCode] = useState("")
   const methods = useForm<PackageSchemaType>({
     resolver: zodResolver(PackageSchema),
     mode: "onChange",
@@ -66,8 +67,12 @@ export default function PackageForm({
     },
   });
 
+  const { control, handleSubmit, watch, reset, setValue } = methods;
 
-  const { control, handleSubmit, watch, reset } = methods;
+  const handleTrackingCode = (value?: string) => {
+    setValue("package_tracking_code", value || "")
+  }
+
   const image = watch("package_image");
 
   const { mutate: createMutation } = useMutation({
@@ -85,17 +90,6 @@ export default function PackageForm({
       toast.error(error.message);
     },
   });
-
-  // const updateMutation = useMutation({
-  //   mutationFn: (data: { id: string; payload: PackageSchemaType }) =>
-  //     updatePackageService(data.id, data.payload),
-  //   onSuccess: (result) => {
-  //     toast.success(result.message);
-  //   },
-  //   onError: (error) => {
-  //     toast.error(error.message);
-  //   },
-  // });
 
   // const handleDownloadImage = async (imageName?: string) => {
   //   if (!imageName) {
@@ -168,6 +162,7 @@ export default function PackageForm({
                     photo={image}
                     onChange={(file) => field.onChange(file)}
                     initialImageUrl={typeof initialPackage?.package_image === "string" ? initialPackage.package_image : undefined}
+                    onChangeValue={handleTrackingCode}
                   />
                 </FormControl>
                 <FormMessage />

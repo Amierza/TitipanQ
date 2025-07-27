@@ -144,7 +144,7 @@ const HistoryPackageSection = () => {
               />
               <Button
                 variant={"ghost"}
-                className="bg-blue-500 hover:bg-blue-600"
+                className="cursor-pointer bg-blue-500 hover:bg-blue-600"
                 onClick={
                   openCamera
                 }
