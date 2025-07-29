@@ -350,6 +350,18 @@ func (ah *AdminHandler) GetAllPackageHistory(ctx *gin.Context) {
 }
 func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
 	var payload dto.UpdatePackageRequest
+	idStr := ctx.Param("id")
+	payload.ID = idStr
+	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_MULTIPART_FORM, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	payload.TrackingCode = ctx.PostForm("package_tracking_code")
+	payload.Description = ctx.PostForm("package_description")
+	payload.Status = entity.Status(ctx.PostForm("package_status"))
+
 	fileHeader, err := ctx.FormFile("package_image")
 	if err == nil {
 		file, err := fileHeader.Open()
@@ -363,16 +375,22 @@ func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
 		payload.FileHeader = fileHeader
 		payload.FileReader = file
 	}
-	payload.Description = ctx.PostForm("package_description")
+
 	payload.Type = entity.Type(ctx.PostForm("package_type"))
 
-	pkgIdStr := ctx.Param("id")
-	payload.ID = pkgIdStr
-	if err := ctx.ShouldBind(&payload); err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
-		return
+	if quantityStr := ctx.PostForm("package_quantity"); quantityStr != "" {
+		if quantity64, err := strconv.Atoi(quantityStr); err == nil {
+			payload.Quantity = &quantity64
+		} else {
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_QUANTITY, err.Error(), nil)
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+			return
+		}
 	}
+
+	payload.SenderName = ctx.PostForm("package_sender_name")
+	payload.SenderPhoneNumber = ctx.PostForm("package_sender_phone_number")
+	payload.SenderAddress = ctx.PostForm("package_sender_address")
 
 	result, err := ah.adminService.UpdatePackage(ctx, payload)
 	if err != nil {
