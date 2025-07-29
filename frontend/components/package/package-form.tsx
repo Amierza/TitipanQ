@@ -50,7 +50,6 @@ export default function PackageForm({
 }: PackageFormProps) {
   const [query, setQuery] = useState<string>("");
   const router = useRouter();
-  // const [trackingCode, setTrackingCode] = useState("")
   const methods = useForm<PackageSchemaType>({
     resolver: zodResolver(PackageSchema),
     mode: "onChange",
