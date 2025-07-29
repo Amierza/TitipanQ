@@ -136,6 +136,7 @@ var (
 	ErrInvalidPackageType          = errors.New("failed invalid package type")
 	ErrInvalidPackageStatus        = errors.New("failed invalid package status")
 	ErrUpdatePackage               = errors.New("failed update package")
+	ErrInvalidQuantityPackage      = errors.New("failed invalid quantity package")
 	// Company
 	ErrGetCompanyByID              = errors.New("failed get company by id")
 	ErrCreateCompany               = errors.New("failed to create company")
@@ -262,7 +263,7 @@ type (
 		Image             string                `json:"package_image,omitempty" form:"package_image"`
 		Type              entity.Type           `json:"package_type,omitempty" form:"package_type"`
 		Status            entity.Status         `json:"package_status,omitempty" form:"package_status"`
-		Quantity          int                   `json:"package_quantity" form:"package_quantity"`
+		Quantity          *int                  `json:"package_quantity" form:"package_quantity"`
 		SenderName        string                `json:"package_sender_name" form:"package_sender_name"`
 		SenderPhoneNumber string                `json:"package_sender_phone_number" form:"package_sender_phone_number"`
 		SenderAddress     string                `json:"package_sender_address" form:"package_sender_address"`
@@ -270,7 +271,7 @@ type (
 		FileReader        multipart.File        `json:"filereader,omitempty"`
 	}
 	UpdateStatusPackages struct {
-		PackageIDs []*uuid.UUID `json:"package_ids"`
+		PackageIDs []uuid.UUID `json:"package_ids"`
 	}
 	UserResponseCustom struct {
 		ID    uuid.UUID `json:"user_id"`

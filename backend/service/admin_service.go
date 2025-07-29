@@ -586,14 +586,18 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, 
 	var datas []dto.PackageResponse
 	for _, pkg := range packages {
 		data := dto.PackageResponse{
-			ID:           pkg.ID,
-			TrackingCode: pkg.TrackingCode,
-			Description:  pkg.Description,
-			Image:        pkg.Image,
-			Type:         pkg.Type,
-			Status:       pkg.Status,
-			CompletedAt:  pkg.CompletedAt,
-			ExpiredAt:    pkg.ExpiredAt,
+			ID:                pkg.ID,
+			TrackingCode:      pkg.TrackingCode,
+			Description:       pkg.Description,
+			Image:             pkg.Image,
+			Type:              pkg.Type,
+			Status:            pkg.Status,
+			Quantity:          pkg.Quantity,
+			CompletedAt:       pkg.CompletedAt,
+			ExpiredAt:         pkg.ExpiredAt,
+			SenderName:        pkg.SenderName,
+			SenderPhoneNumber: pkg.SenderPhoneNumber,
+			SenderAddress:     pkg.SenderAddress,
 			User: dto.UserResponse{
 				ID:          pkg.User.ID,
 				Name:        pkg.User.Name,
@@ -631,14 +635,18 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 	var datas []dto.PackageResponse
 	for _, pkg := range dataWithPaginate.Packages {
 		data := dto.PackageResponse{
-			ID:           pkg.ID,
-			TrackingCode: pkg.TrackingCode,
-			Description:  pkg.Description,
-			Image:        pkg.Image,
-			Type:         pkg.Type,
-			Status:       pkg.Status,
-			CompletedAt:  pkg.CompletedAt,
-			ExpiredAt:    pkg.ExpiredAt,
+			ID:                pkg.ID,
+			TrackingCode:      pkg.TrackingCode,
+			Description:       pkg.Description,
+			Image:             pkg.Image,
+			Type:              pkg.Type,
+			Status:            pkg.Status,
+			Quantity:          pkg.Quantity,
+			CompletedAt:       pkg.CompletedAt,
+			ExpiredAt:         pkg.ExpiredAt,
+			SenderName:        pkg.SenderName,
+			SenderPhoneNumber: pkg.SenderPhoneNumber,
+			SenderAddress:     pkg.SenderAddress,
 			User: dto.UserResponse{
 				ID:          pkg.User.ID,
 				Name:        pkg.User.Name,
@@ -690,14 +698,18 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 	}
 
 	return dto.PackageResponse{
-		ID:           pkg.ID,
-		TrackingCode: pkg.TrackingCode,
-		Description:  pkg.Description,
-		Image:        pkg.Image,
-		Type:         pkg.Type,
-		Status:       pkg.Status,
-		CompletedAt:  pkg.CompletedAt,
-		ExpiredAt:    pkg.ExpiredAt,
+		ID:                pkg.ID,
+		TrackingCode:      pkg.TrackingCode,
+		Description:       pkg.Description,
+		Image:             pkg.Image,
+		Type:              pkg.Type,
+		Status:            pkg.Status,
+		Quantity:          pkg.Quantity,
+		CompletedAt:       pkg.CompletedAt,
+		ExpiredAt:         pkg.ExpiredAt,
+		SenderName:        pkg.SenderName,
+		SenderPhoneNumber: pkg.SenderPhoneNumber,
+		SenderAddress:     pkg.SenderAddress,
 		User: dto.UserResponse{
 			ID:          pkg.User.ID,
 			Name:        pkg.User.Name,
@@ -837,6 +849,53 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		}
 	}
 
+	if req.Quantity != nil {
+		if *req.Quantity < 0 {
+			return dto.UpdatePackageResponse{}, dto.ErrInvalidQuantityPackage
+		}
+
+		descriptionChanges = append(descriptionChanges, "quantity changed")
+		p.Quantity = *req.Quantity
+	}
+
+	if req.SenderName != "" {
+		if p.SenderName != req.SenderName {
+			descriptionChanges = append(descriptionChanges, "sender name changed")
+			p.SenderName = req.SenderName
+		}
+	}
+
+	if req.SenderPhoneNumber != "" {
+		formattedPhoneNumber, err := helpers.StandardizePhoneNumber(req.SenderPhoneNumber)
+		if err != nil {
+			return dto.UpdatePackageResponse{}, dto.ErrFormatPhoneNumber
+		}
+
+		if p.SenderPhoneNumber != formattedPhoneNumber {
+			descriptionChanges = append(descriptionChanges, "sender phone number changed")
+			p.SenderPhoneNumber = formattedPhoneNumber
+		}
+	}
+
+	if req.SenderAddress != "" {
+		if p.SenderAddress != req.SenderAddress {
+			descriptionChanges = append(descriptionChanges, "sender address changed")
+			p.SenderAddress = req.SenderAddress
+		}
+	}
+
+	if len(descriptionChanges) > 0 {
+		message := fmt.Sprintf(
+			"🙏 Mohon maaf, terdapat pembaruan data pada paket Anda dengan kode paket *%s* karena kesalahan input sebelumnya.\n\nPerubahan yang dilakukan:\n- %s\n\nSilakan cek aplikasi untuk melihat detail terbaru. Terima kasih atas pengertiannya.",
+			p.TrackingCode,
+			strings.Join(descriptionChanges, "\n- "),
+		)
+
+		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
+			log.Println("Failed to send WhatsApp notification:", err)
+		}
+	}
+
 	var validStatusOrder = map[entity.Status]entity.Status{
 		entity.Received: entity.Completed,
 	}
@@ -867,41 +926,8 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		}
 	}
 
-	if req.SenderName != "" {
-		if p.SenderName != req.SenderName {
-			descriptionChanges = append(descriptionChanges, "sender name changed")
-			p.SenderName = req.SenderName
-		}
-	}
-
-	if req.SenderPhoneNumber != "" {
-		if p.SenderPhoneNumber != req.SenderPhoneNumber {
-			descriptionChanges = append(descriptionChanges, "sender phone number changed")
-			p.SenderPhoneNumber = req.SenderPhoneNumber
-		}
-	}
-
-	if req.SenderAddress != "" {
-		if p.SenderAddress != req.SenderAddress {
-			descriptionChanges = append(descriptionChanges, "sender address changed")
-			p.SenderAddress = req.SenderAddress
-		}
-	}
-
 	if err := as.adminRepo.UpdatePackage(ctx, nil, p); err != nil {
 		return dto.UpdatePackageResponse{}, dto.ErrUpdatePackage
-	}
-
-	if len(descriptionChanges) > 0 {
-		message := fmt.Sprintf(
-			"🙏 Mohon maaf, terdapat pembaruan data pada paket Anda dengan kode paket *%s* karena kesalahan input sebelumnya.\n\nPerubahan yang dilakukan:\n- %s\n\nSilakan cek aplikasi untuk melihat detail terbaru. Terima kasih atas pengertiannya.",
-			p.TrackingCode,
-			strings.Join(descriptionChanges, "\n- "),
-		)
-
-		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
-			log.Println("Failed to send WhatsApp notification:", err)
-		}
 	}
 
 	var message string
@@ -946,16 +972,20 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	}
 
 	return dto.UpdatePackageResponse{
-		ID:           p.ID,
-		TrackingCode: p.TrackingCode,
-		Description:  p.Description,
-		Image:        p.Image,
-		Type:         p.Type,
-		Status:       p.Status,
-		CompletedAt:  p.CompletedAt,
-		ExpiredAt:    p.ExpiredAt,
-		User:         client,
-		ChangedBy:    admin,
+		ID:                p.ID,
+		TrackingCode:      p.TrackingCode,
+		Description:       p.Description,
+		Image:             p.Image,
+		Type:              p.Type,
+		Status:            p.Status,
+		Quantity:          p.Quantity,
+		CompletedAt:       p.CompletedAt,
+		ExpiredAt:         p.ExpiredAt,
+		SenderName:        p.SenderName,
+		SenderPhoneNumber: p.SenderPhoneNumber,
+		SenderAddress:     p.SenderAddress,
+		User:              client,
+		ChangedBy:         admin,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: p.UpdatedAt,
@@ -977,7 +1007,7 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 	}
 
 	for _, pkgID := range req.PackageIDs {
-		_, _, err := as.adminRepo.GetPackageByID(ctx, nil, pkgID.String())
+		p, _, err := as.adminRepo.GetPackageByID(ctx, nil, pkgID.String())
 		if err != nil {
 			return dto.ErrPackageNotFound
 		}
@@ -987,11 +1017,20 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 			return dto.ErrUpdateStatusPackage
 		}
 
+		now := time.Now()
+		p.CompletedAt = &now
+		message := utils.BuildCompletedMessage(&p)
+		if message != "" {
+			if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
+				log.Println("Failed to send WhatsApp notification:", err)
+			}
+		}
+
 		history := entity.PackageHistory{
 			ID:          uuid.New(),
 			Status:      entity.Completed,
 			Description: "package status changed",
-			PackageID:   pkgID,
+			PackageID:   &pkgID,
 			ChangedBy:   &idChanger,
 		}
 
@@ -1014,14 +1053,18 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 	}
 
 	res := dto.PackageResponse{
-		ID:           deletedPackage.ID,
-		TrackingCode: deletedPackage.TrackingCode,
-		Description:  deletedPackage.Description,
-		Image:        deletedPackage.Image,
-		Type:         deletedPackage.Type,
-		Status:       deletedPackage.Status,
-		CompletedAt:  deletedPackage.CompletedAt,
-		ExpiredAt:    deletedPackage.ExpiredAt,
+		ID:                deletedPackage.ID,
+		TrackingCode:      deletedPackage.TrackingCode,
+		Description:       deletedPackage.Description,
+		Image:             deletedPackage.Image,
+		Type:              deletedPackage.Type,
+		Status:            deletedPackage.Status,
+		Quantity:          deletedPackage.Quantity,
+		CompletedAt:       deletedPackage.CompletedAt,
+		ExpiredAt:         deletedPackage.ExpiredAt,
+		SenderName:        deletedPackage.SenderName,
+		SenderPhoneNumber: deletedPackage.SenderPhoneNumber,
+		SenderAddress:     deletedPackage.SenderAddress,
 		User: dto.UserResponse{
 			ID:          deletedPackage.User.ID,
 			Name:        deletedPackage.User.Name,
