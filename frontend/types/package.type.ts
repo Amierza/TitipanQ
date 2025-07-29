@@ -6,12 +6,14 @@ export type Package = {
   package_tracking_code: string;
   package_description: string;
   package_image: string;
-  package_barcode_image: string;
   package_type: string;
+  package_quantity: number;
   package_status: string;
-  package_delivered_at: string;
   package_expired_at: string;
-  user: User
+  package_sender_name: string;
+  package_sender_phone_number: string;
+  package_sender_address: string;
+  user: User;
   created_at: string
   updated_at: string;
   deleted_at: null;
