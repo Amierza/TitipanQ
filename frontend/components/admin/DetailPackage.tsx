@@ -11,7 +11,7 @@ import { imageUrl } from "@/config/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import dayjs from 'dayjs'
 import { Badge } from "@/components/ui/badge";
-import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone, CheckCircle2 } from "lucide-react";
+import { Package, User, Building, MapPin, FileText, Barcode, Image as ImageIcon, Phone, CheckCircle2, Backpack, Send } from "lucide-react";
 import { getAllHistoryPackageService } from "@/services/admin/package/getHistoryPackage";
 
 const DetailPackageSection = () => {
@@ -169,22 +169,60 @@ const DetailPackageSection = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <PackageInfoComponent
                       title="Tracking Code"
                       information={packageData.data.package_tracking_code}
                       icon={<Barcode className="w-4 h-4" />}
                     />
-                    <PackageInfoComponent
-                      title="Package Type"
-                      information={packageData.data.package_type}
-                      icon={<Package className="w-4 h-4" />}
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <PackageInfoComponent
+                        title="Package Type"
+                        information={packageData.data.package_type}
+                        icon={<Package className="w-4 h-4" />}
+                      />
+                      <PackageInfoComponent
+                        title="Quantity"
+                        information={packageData.data.package_quantity}
+                        icon={<Backpack className="w-4 h-4" />}
+                      />
+                    </div>
                     <div className="md:col-span-2">
                       <PackageInfoComponent
                         title="Description"
                         information={packageData.data.package_description}
                         icon={<FileText className="w-4 h-4" />}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Sender Details */}
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Send className="w-5 h-5" />
+                    Sender Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <PackageInfoComponent
+                      title="Name"
+                      information={packageData.data.package_sender_name}
+                      icon={<User className="w-4 h-4" />}
+                    />
+                    <PackageInfoComponent
+                      title="Phone Number"
+                      information={packageData.data.package_sender_phone_number}
+                      icon={<Phone className="w-4 h-4" />}
+                    />
+                    <div className="md:col-span-2">
+                      <PackageInfoComponent
+                        title="Address"
+                        information={packageData.data.package_sender_address}
+                        icon={<MapPin className="w-4 h-4" />}
                       />
                     </div>
                   </div>
@@ -240,7 +278,7 @@ const PackageInfoComponent = ({
   icon
 }: {
   title: string;
-  information: string;
+  information: string | number;
   icon?: React.ReactNode;
 }) => {
   return (
