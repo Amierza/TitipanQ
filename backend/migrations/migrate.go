@@ -11,6 +11,8 @@ func Migrate(db *gorm.DB) error {
 		&entity.Permission{},
 		&entity.Company{},
 		&entity.User{},
+		&entity.Locker{},
+		&entity.Sender{},
 		&entity.Package{},
 		&entity.PackageHistory{},
 	); err != nil {

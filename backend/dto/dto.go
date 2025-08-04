@@ -47,12 +47,27 @@ const (
 	MESSAGE_FAILED_UPDATE_PACKAGE           = "failed update package"
 	MESSAGE_FAILED_UPDATE_STATUS_PACKAGES   = "failed update status packages"
 	MESSAGE_FAILED_DELETE_PACKAGE           = "failed delete package"
+	MESSAGE_FAILED_GET_PROOFIMAGE           = "failed get proof image"
 	// Company
 	MESSAGE_FAILED_CREATE_COMPANY     = "failed create company"
 	MESSAGE_FAILED_GET_DETAIL_COMPANY = "failed get detail company"
 	MESSAGE_FAILED_GET_LIST_COMPANY   = "failed get list company"
 	MESSAGE_FAILED_UPDATE_COMPANY     = "failed update company"
 	MESSAGE_FAILED_DELETE_COMPANY     = "failed delete company"
+
+	// sender
+	MESSAGE_FAILED_CREATE_SENDER     = "Failed to create sender. Please check the provided data and try again."
+	MESSAGE_FAILED_GET_ALL_SENDERS   = "Failed to retrieve senders. Please try again later."
+	MESSAGE_FAILED_GET_DETAIL_SENDER = "Failed to retrieve sender details. Please ensure the sender exists."
+	MESSAGE_FAILED_UPDATE_SENDER     = "Failed to update sender. Please check the provided data and try again."
+	MESSAGE_FAILED_DELETE_SENDER     = "Failed to delete sender. Please ensure the sender exists and try again."
+
+	// locker
+	MESSAGE_FAILED_CREATE_LOCKER     = "failed create locker"
+	MESSAGE_FAILED_GET_ALL_LOCKERS   = "failed get list locker"
+	MESSAGE_FAILED_GET_DETAIL_LOCKER = "failed get detail locker"
+	MESSAGE_FAILED_UPDATE_LOCKER     = "failed update locker"
+	MESSAGE_FAILED_DELETE_LOCKER     = "failed delete locker"
 
 	// ====================================== Success ======================================
 	// Cron
@@ -81,6 +96,20 @@ const (
 	MESSAGE_SUCCESS_GET_LIST_COMPANY   = "success get list company"
 	MESSAGE_SUCCESS_UPDATE_COMPANY     = "success update company"
 	MESSAGE_SUCCESS_DELETE_COMPANY     = "success delete company"
+
+	// sender
+	MESSAGE_SUCCESS_CREATE_SENDER     = "Sender created successfully."
+	MESSAGE_SUCCESS_GET_ALL_SENDERS   = "Senders retrieved successfully."
+	MESSAGE_SUCCESS_GET_DETAIL_SENDER = "Sender details retrieved successfully."
+	MESSAGE_SUCCESS_UPDATE_SENDER     = "Sender updated successfully."
+	MESSAGE_SUCCESS_DELETE_SENDER     = "Sender deleted successfully."
+
+	// locker
+	MESSAGE_SUCCESS_CREATE_LOCKER     = "success create locker"
+	MESSAGE_SUCCESS_GET_ALL_LOCKERS   = "success get list locker"
+	MESSAGE_SUCCESS_GET_DETAIL_LOCKER = "success get detail locker"
+	MESSAGE_SUCCESS_UPDATE_LOCKER     = "success update locker"
+	MESSAGE_SUCCESS_DELETE_LOCKER     = "success delete locker"
 )
 
 var (
@@ -153,6 +182,24 @@ var (
 	ErrGetRoleFromName  = errors.New("failed get role by name")
 	ErrGetRoleFromToken = errors.New("failed get role from token")
 	ErrGetRoleFromID    = errors.New("failed get role by role id")
+
+	// sender
+	ErrCreateSender                = errors.New("failed create sender")
+	ErrGetAllSenders               = errors.New("failed get all senders")
+	ErrSenderNotFound              = errors.New("faield found sender")
+	ErrUpdateSender                = errors.New("failed update sender")
+	ErrGetSenderByID               = errors.New("failed get sender by id")
+	ErrDeletedSender               = errors.New("failed deleted sender")
+	ErrGetAllSendersWithPagination = errors.New("failed get all senders with pagination")
+
+	// Locker
+	ErrCreateLocker               = errors.New("failed to create locker")
+	ErrGetAllLocker               = errors.New("failed get all locker")
+	ErrGetAllLockerWithPagination = errors.New("failed to get list locker with pagination")
+	ErrLockerNotFound             = errors.New("locker not found")
+	ErrGetLockerByID              = errors.New("failed get locker by id")
+	ErrUpdateLocker               = errors.New("failed to update locker")
+	ErrDeleteLocker               = errors.New("failed to delete locker")
 )
 
 type (
@@ -229,23 +276,25 @@ type (
 		SenderPhoneNumber string                `json:"package_sender_phone_number" form:"package_sender_phone_number"`
 		SenderAddress     string                `json:"package_sender_address" form:"package_sender_address"`
 		UserID            uuid.UUID             `json:"user_id" form:"user_id"`
+		LockerID          uuid.UUID             `json:"locker_id" form:"locker_id"`
 		FileHeader        *multipart.FileHeader `json:"fileheader,omitempty"`
 		FileReader        multipart.File        `json:"filereader,omitempty"`
 	}
 	PackageResponse struct {
-		ID                uuid.UUID     `json:"package_id"`
-		TrackingCode      string        `json:"package_tracking_code"`
-		Description       string        `json:"package_description"`
-		Image             string        `json:"package_image"`
-		Type              entity.Type   `json:"package_type"`
-		Status            entity.Status `json:"package_status"`
-		Quantity          int           `json:"package_quantity"`
-		CompletedAt       *time.Time    `json:"package_completed_at"`
-		ExpiredAt         *time.Time    `json:"package_expired_at"`
-		SenderName        string        `json:"package_sender_name"`
-		SenderPhoneNumber string        `json:"package_sender_phone_number"`
-		SenderAddress     string        `json:"package_sender_address"`
-		User              UserResponse  `json:"user"`
+		ID                uuid.UUID      `json:"package_id"`
+		TrackingCode      string         `json:"package_tracking_code"`
+		Description       string         `json:"package_description"`
+		Image             string         `json:"package_image"`
+		Type              entity.Type    `json:"package_type"`
+		Status            entity.Status  `json:"package_status"`
+		Quantity          int            `json:"package_quantity"`
+		CompletedAt       *time.Time     `json:"package_completed_at"`
+		ExpiredAt         *time.Time     `json:"package_expired_at"`
+		SenderName        string         `json:"package_sender_name"`
+		SenderPhoneNumber string         `json:"package_sender_phone_number"`
+		SenderAddress     string         `json:"package_sender_address"`
+		User              UserResponse   `json:"user"`
+		Locker            LockerResponse `json:"locker"`
 		entity.TimeStamp
 	}
 	PackagePaginationResponse struct {
@@ -271,7 +320,9 @@ type (
 		FileReader        multipart.File        `json:"filereader,omitempty"`
 	}
 	UpdateStatusPackages struct {
-		PackageIDs []uuid.UUID `json:"package_ids"`
+		PackageIDs []uuid.UUID           `json:"package_ids" form:"package_ids"`
+		FileReader multipart.File        `form:"proof_image"`
+		FileHeader *multipart.FileHeader `form:"proof_image"`
 	}
 	UserResponseCustom struct {
 		ID    uuid.UUID `json:"user_id"`
@@ -298,6 +349,7 @@ type (
 		SenderName        string             `json:"package_sender_name"`
 		SenderPhoneNumber string             `json:"package_sender_phone_number"`
 		SenderAddress     string             `json:"package_sender_address"`
+		Locker            LockerResponse     `json:"locker"`
 		User              UserResponseCustom `json:"user_id"`
 		ChangedBy         UserResponseCustom `json:"changed_by"`
 		entity.TimeStamp
@@ -333,5 +385,70 @@ type (
 		ID      *uuid.UUID `json:"company_id"`
 		Name    string     `json:"company_name"`
 		Address string     `json:"company_address"`
+	}
+
+	// sender
+	CreateSenderRequest struct {
+		Name        string `json:"sender_name"`
+		Email       string `json:"sender_email"`
+		PhoneNumber string `json:"sender_phone_number"`
+	}
+
+	SenderResponse struct {
+		ID          uuid.UUID `json:"sender_id"`
+		Name        string    `json:"sender_name"`
+		Email       string    `json:"sender_email"`
+		PhoneNumber string    `json:"sender_phone_number"`
+	}
+
+	UpdateSenderRequest struct {
+		ID          string `json:"-"`
+		Name        string `json:"sender_name,omitempty"`
+		Email       string `json:"sender_email,omitempty"`
+		PhoneNumber string `json:"sender_phone_number,omitempty"`
+	}
+
+	DeleteSenderRequest struct {
+		SenderID string `json:"-"`
+	}
+
+	SenderPaginationResponse struct {
+		PaginationResponse
+		Data []SenderResponse `json:"data"`
+	}
+	SenderPaginationRepositoryResponse struct {
+		PaginationResponse
+		Senders []entity.Sender
+	}
+
+	// locker
+	CreateLockerRequest struct {
+		LockerCode string `json:"locker_code"`
+		Location   string `json:"location"`
+	}
+
+	LockerResponse struct {
+		ID         uuid.UUID `json:"locker_id"`
+		LockerCode string    `json:"locker_code"`
+		Location   string    `json:"location"`
+	}
+
+	UpdateLockerRequest struct {
+		ID         string `json:"-"`
+		LockerCode string `json:"locker_code"`
+		Location   string `json:"location"`
+	}
+
+	DeleteLockerRequest struct {
+		LockerID string `json:"-"`
+	}
+
+	LockerPaginationResponse struct {
+		PaginationResponse
+		Data []LockerResponse `json:"data"`
+	}
+	LockerPaginationRepositoryResponse struct {
+		PaginationResponse
+		Lockers []entity.Locker
 	}
 )

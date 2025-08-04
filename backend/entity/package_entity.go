@@ -22,11 +22,15 @@ type Package struct {
 	SenderName        string     `json:"package_sender_name"`
 	SenderPhoneNumber string     `json:"package_sender_phone_number"`
 	SenderAddress     string     `json:"package_sender_address"`
+	ProofImage        *string    `gorm:"type:text" json:"package_proof_Image"`
 
 	PackageHistories []PackageHistory `gorm:"foreignKey:PackageID"`
 
 	UserID *uuid.UUID `gorm:"type:uuid" json:"user_id"`
 	User   User       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+
+	LockerID uuid.UUID `gorm:"type:uuid;not null" json:"locker_id"`
+	Locker   Locker    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 
 	TimeStamp
 }
