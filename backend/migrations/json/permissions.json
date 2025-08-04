@@ -113,5 +113,55 @@
     "permission_id": "32e1cafd-034e-4fe6-832d-51212eba7fee",
     "permission_endpoint": "/api/v1/admin/trigger-expire-packages",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "a1b2c3d4-e5f6-4a7b-8c9d-012345678901",
+    "permission_endpoint": "/api/v1/admin/create-sender",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "b2c3d4e5-f6a7-4b8c-9d0e-123456789012",
+    "permission_endpoint": "/api/v1/admin/get-all-sender",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "c3d4e5f6-a7b8-4c9d-0e1f-234567890123",
+    "permission_endpoint": "/api/v1/admin/get-detil-sender/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "d4e5f6a7-b8c9-4d0e-1f2a-345678901234",
+    "permission_endpoint": "/api/v1/admin/update-sender/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "e5f6a7b8-c9d0-4e1f-2a3b-456789012345",
+    "permission_endpoint": "/api/v1/admin/deleted-sender/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "8a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+    "permission_endpoint": "/api/v1/admin/create-locker",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "f6e5d4c3-b2a1-0f1e-2d3c-4b5a69788d9a",
+    "permission_endpoint": "/api/v1/admin/get-all-locker",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "cba98765-4321-fedc-ba98-765432101fed",
+    "permission_endpoint": "/api/v1/admin/get-detail-locker/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "12345678-90ab-cdef-1234-567890abcdef",
+    "permission_endpoint": "/api/v1/admin/update-locker/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
+  },
+  {
+    "permission_id": "90123456-789a-bcde-f012-3456789abcde",
+    "permission_endpoint": "/api/v1/admin/delete-locker/:id",
+    "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   }
 ]

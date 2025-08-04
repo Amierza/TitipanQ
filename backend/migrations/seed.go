@@ -15,6 +15,10 @@ func Seed(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	err = SeedFromJSON[entity.Locker](db, "./migrations/json/lockers.json", entity.Locker{}, "LockerCode")
+	if err != nil {
+		return err
+	}
 
 	err = SeedFromJSON[entity.User](db, "./migrations/json/users.json", entity.User{}, "Email")
 	if err != nil {
@@ -32,6 +36,10 @@ func Seed(db *gorm.DB) error {
 	}
 
 	err = SeedFromJSON[entity.PackageHistory](db, "./migrations/json/package_histories.json", entity.PackageHistory{}, "Status", "PackageID", "ChangedBy")
+	if err != nil {
+		return err
+	}
+	err = SeedFromJSON[entity.Sender](db, "./migrations/json/senders.json", entity.Sender{}, "Email")
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@
     "package_sender_phone_number": "+62812345678901",
     "package_sender_address": "Jl. Elektronik No. 15, Jakarta Selatan",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250701100000"
   },
   {
@@ -23,6 +24,7 @@
     "package_sender_phone_number": "+6221123456789",
     "package_sender_address": "Jl. Pemda Raya No. 108, Jakarta Pusat",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250702100000"
   },
   {
@@ -36,6 +38,7 @@
     "package_sender_phone_number": "+6221786763",
     "package_sender_address": "Kampus UI Depok, Jawa Barat 16424",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250703100000"
   },
   {
@@ -49,6 +52,7 @@
     "package_sender_phone_number": "+62218001112233",
     "package_sender_address": "Plaza Indonesia, Jl. MH Thamrin Kav. 28-30, Jakarta",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250704100000"
   },
   {
@@ -62,6 +66,7 @@
     "package_sender_phone_number": "+6221391049199",
     "package_sender_address": "Jl. Jend. Sudirman Kav. 49, Jakarta Selatan",
     "user_id": "cc454ba4-1cf1-47fa-89ac-bb871ee1b510",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250705100000"
   },
   {
@@ -75,6 +80,7 @@
     "package_sender_phone_number": "+62811223344556",
     "package_sender_address": "Jl. Casablanca Raya Kav. 88, Jakarta Selatan",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250701100001"
   },
   {
@@ -88,6 +94,7 @@
     "package_sender_phone_number": "+62812988776655",
     "package_sender_address": "Mangga Dua Mall Lt. 3, Jakarta Pusat",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250702100001"
   },
   {
@@ -101,6 +108,7 @@
     "package_sender_phone_number": "+6221570025588",
     "package_sender_address": "Grand Indonesia Mall, Jakarta Pusat",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250703100001"
   },
   {
@@ -111,9 +119,10 @@
     "package_status": "received",
     "package_quantity": 1,
     "package_sender_name": "Asuransi Jasa Indonesia",
-    "package_sender_phone_phone": "+6221525828000",
+    "package_sender_phone_number": "+6221525828000",
     "package_sender_address": "Jl. Panglima Sudirman No. 66, Jakarta",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250704100001"
   },
   {
@@ -127,6 +136,7 @@
     "package_sender_phone_number": "+6221142255500",
     "package_sender_address": "Jl. Jend. Sudirman Kav. 54-55, Jakarta",
     "user_id": "3078e274-f552-4881-955e-c867e7b2836b",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250705100001"
   },
   {
@@ -140,6 +150,7 @@
     "package_sender_phone_number": "+6221572779944",
     "package_sender_address": "Senayan City Mall, Jakarta Selatan",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250701100002"
   },
   {
@@ -153,6 +164,7 @@
     "package_sender_phone_number": "+62813445566778",
     "package_sender_address": "ITC Roxy Mas Lt. 2, Jakarta Pusat",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250702100002"
   },
   {
@@ -166,6 +178,7 @@
     "package_sender_phone_number": "+6221739191000",
     "package_sender_address": "Jl. Warung Jati Barat Raya No. 207, Jakarta Selatan",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250703100002"
   },
   {
@@ -179,6 +192,7 @@
     "package_sender_phone_number": "+62215505501122",
     "package_sender_address": "Gedung Cyber 1 Lt. 15, Jl. HR Rasuna Said, Jakarta Selatan",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250704100002"
   },
   {
@@ -192,6 +206,7 @@
     "package_sender_phone_number": "+62212992134567",
     "package_sender_address": "Plaza Indonesia, Jl. MH Thamrin Kav. 28-30, Jakarta",
     "user_id": "f04c55c3-68bb-428f-af4c-d8d7b30690f7",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250705100002"
   },
   {
@@ -205,6 +220,7 @@
     "package_sender_phone_number": "+62819988776655",
     "package_sender_address": "Kota Kasablanka Mall, Jakarta Selatan",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250701100003"
   },
   {
@@ -218,6 +234,7 @@
     "package_sender_phone_number": "+6222250400000",
     "package_sender_address": "Jl. Ganesha No. 10, Bandung, Jawa Barat",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250702100003"
   },
   {
@@ -231,6 +248,7 @@
     "package_sender_phone_number": "+62811556677889",
     "package_sender_address": "Harco Mangga Dua Blok A No. 23, Jakarta Pusat",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250703100003"
   },
   {
@@ -244,6 +262,7 @@
     "package_sender_phone_number": "+62218877665544",
     "package_sender_address": "Roxy Square Lt. 3, Jakarta Pusat",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250704100003"
   },
   {
@@ -257,6 +276,7 @@
     "package_sender_phone_number": "+62213847570000",
     "package_sender_address": "Jl. Sisingamangaraja No. 2, Jakarta Selatan",
     "user_id": "c3e1fea0-e285-453f-acc3-41992f9bbbe4",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250705100003"
   },
   {
@@ -270,6 +290,7 @@
     "package_sender_phone_number": "+6221299713456",
     "package_sender_address": "Pacific Place Mall, SCBD Jakarta Selatan",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250701100004"
   },
   {
@@ -283,6 +304,7 @@
     "package_sender_phone_number": "+6221739192000",
     "package_sender_address": "Jl. Daan Mogot Km. 11, Jakarta Barat",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250702100004"
   },
   {
@@ -296,6 +318,7 @@
     "package_sender_phone_number": "+62813998877665",
     "package_sender_address": "WTC Mangga Dua Lt. 2, Jakarta Utara",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250703100004"
   },
   {
@@ -309,6 +332,7 @@
     "package_sender_phone_number": "+6221739193000",
     "package_sender_address": "Jl. Pejaten Barat No. 1, Jakarta Selatan",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250704100004"
   },
   {
@@ -322,6 +346,7 @@
     "package_sender_phone_number": "+6221780045600",
     "package_sender_address": "Jl. Kebayoran Baru No. 12, Jakarta Selatan",
     "user_id": "5b027a50-1767-4296-bcdd-711af2bc5484",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250705100004"
   },
   {
@@ -335,6 +360,7 @@
     "package_sender_phone_number": "+6221566789012",
     "package_sender_address": "Central Park Mall, Jl. Letjen S. Parman, Jakarta Barat",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250701100005"
   },
   {
@@ -348,6 +374,7 @@
     "package_sender_phone_number": "+6221804012345",
     "package_sender_address": "Mall of Indonesia, Kelapa Gading, Jakarta Utara",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250702100005"
   },
   {
@@ -361,6 +388,7 @@
     "package_sender_phone_number": "+62217889901234",
     "package_sender_address": "Pondok Indah Mall, Jakarta Selatan",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
     "package_tracking_code": "PACK250703100005"
   },
   {
@@ -374,6 +402,7 @@
     "package_sender_phone_number": "+62814567890123",
     "package_sender_address": "FX Sudirman Lt. 5, Jakarta Selatan",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
     "package_tracking_code": "PACK250704100005"
   },
   {
@@ -387,6 +416,7 @@
     "package_sender_phone_number": "+6221567123456",
     "package_sender_address": "Grand Indonesia Mall Lt. 3A, Jakarta Pusat",
     "user_id": "97219a09-adfd-4ed0-b412-bffeb37d8884",
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
     "package_tracking_code": "PACK250705100005"
   }
 ]

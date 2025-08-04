@@ -1,0 +1,17 @@
+[
+  {
+    "locker_id": "a87e5b32-1c2d-4e5f-867a-9b8c7d6e5a4f",
+    "locker_code": "101",
+    "location": "Main Lobby"
+  },
+  {
+    "locker_id": "c6a2f913-4b5d-4e6f-871b-2c3d4e5f6a7b",
+    "locker_code": "102",
+    "location": "Main Lobby"
+  },
+  {
+    "locker_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
+    "locker_code": "201",
+    "location": "Second Floor"
+  }
+]

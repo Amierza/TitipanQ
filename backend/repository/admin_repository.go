@@ -32,25 +32,38 @@ type (
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
 		GetAllExpiredPackages(now time.Time, out *[]entity.Package) error
 		GetAllExpiredPackagesBefore(cutoff time.Time, out *[]entity.Package) error
+		GetAllSender(ctx context.Context, tx *gorm.DB) ([]entity.Sender, error)
+		GetAllSenderWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.SenderPaginationRepositoryResponse, error)
+		GetSenderByID(ctx context.Context, tx *gorm.DB, senderID string) (entity.Sender, bool, error)
+		GetSenderByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.Sender, bool, error)
+		GetAllLockerWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.LockerPaginationRepositoryResponse, error)
+		GetAllLocker(ctx context.Context, tx *gorm.DB) ([]entity.Locker, error)
+		GetLockerByID(ctx context.Context, tx *gorm.DB, lockerID string) (entity.Locker, bool, error)
 
 		//Create
 		CreateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		CreatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 		CreatePackageHistory(ctx context.Context, tx *gorm.DB, history entity.PackageHistory) error
 		CreateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
+		CreateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error
+		CreateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error
 
 		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
-		UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID, newStatus string) error
+		UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID, newStatus string, proofImage string) error
 		UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
 		UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status) error
 		UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error
+		UpdateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error
+		UpdateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error
 
 		// Delete
 		DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error
 		DeletePackageByID(ctx context.Context, tx *gorm.DB, pkgID string) error
 		DeleteCompanyByID(ctx context.Context, tx *gorm.DB, CompanyID string) error
+		DeleteSenderByID(ctx context.Context, tx *gorm.DB, senderID string) error
+		DeleteLockerByID(ctx context.Context, tx *gorm.DB, lockerID string) error
 	}
 
 	AdminRepository struct {
@@ -216,7 +229,9 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 	}
 
 	var pkg entity.Package
-	if err := tx.WithContext(ctx).Preload("User.Company").Preload("User.Role").Where("id = ?", pkgID).Take(&pkg).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("User.Company").Preload("User.Role").Preload("Locker", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id", "locker_code", "location")
+	}).Where("id = ?", pkgID).Take(&pkg).Error; err != nil {
 		return entity.Package{}, false, err
 	}
 
@@ -244,7 +259,12 @@ func (ar *AdminRepository) GetAllPackage(ctx context.Context, tx *gorm.DB, userI
 		err      error
 	)
 
-	query := tx.WithContext(ctx).Model(&entity.Package{}).Preload("User.Company").Preload("User.Role")
+	query := tx.WithContext(ctx).
+    Model(&entity.Package{}).
+    Preload("User.Company").
+    Preload("User.Role").
+    Preload("Locker")
+
 
 	if pkgType != "" {
 		query = query.Where("type = ? ", pkgType)
@@ -277,7 +297,12 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 		req.Page = 1
 	}
 
-	query := tx.WithContext(ctx).Model(&entity.Package{}).Preload("User.Company").Preload("User.Role")
+	query := tx.WithContext(ctx).
+    Model(&entity.Package{}).
+    Preload("User.Company").
+    Preload("User.Role").
+    Preload("Locker") 
+
 
 	if req.Search != "" {
 		searchValue := "%" + strings.ToLower(req.Search) + "%"
@@ -446,17 +471,19 @@ func (ar *AdminRepository) UpdatePackage(ctx context.Context, tx *gorm.DB, pkg e
 
 	return tx.WithContext(ctx).Where("id = ?", pkg.ID).Updates(&pkg).Error
 }
-func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID, newStatus string) error {
+func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID string, newStatus string, proofImage string) error {
 	if tx == nil {
 		tx = ar.db
 	}
-
 	return tx.WithContext(ctx).
 		Model(&entity.Package{}).
 		Where("id = ?", pkgID).
-		Update("status", newStatus).
-		Error
+		Updates(map[string]interface{}{
+			"status":      newStatus,
+			"proof_image": proofImage,
+		}).Error
 }
+
 func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
 	if tx == nil {
 		tx = ar.db
@@ -496,4 +523,209 @@ func (ar *AdminRepository) DeleteCompanyByID(ctx context.Context, tx *gorm.DB, C
 	}
 
 	return tx.WithContext(ctx).Where("id = ?", CompanyID).Delete(&entity.Company{}).Error
+}
+
+// Seender
+func (ar *AdminRepository) CreateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Create(&sender).Error
+}
+
+func (ar *AdminRepository) GetAllSender(ctx context.Context, tx *gorm.DB) ([]entity.Sender, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var (
+		senders []entity.Sender
+		err     error
+	)
+
+	query := tx.WithContext(ctx).Model(&entity.Sender{})
+
+	if err := query.Order("created_at DESC").Find(&senders).Error; err != nil {
+		return []entity.Sender{}, err
+	}
+
+	return senders, err
+}
+
+func (ar *AdminRepository) GetSenderByID(ctx context.Context, tx *gorm.DB, senderID string) (entity.Sender, bool, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var sender entity.Sender
+	if err := tx.WithContext(ctx).Where("id = ?", senderID).Take(&sender).Error; err != nil {
+		return entity.Sender{}, false, err
+	}
+
+	return sender, true, nil
+}
+
+func (ar *AdminRepository) UpdateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Where("id = ?", sender.ID).Updates(&sender).Error
+}
+func (ar *AdminRepository) DeleteSenderByID(ctx context.Context, tx *gorm.DB, senderID string) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Where("id = ?", senderID).Delete(&entity.Sender{}).Error
+}
+
+func (ar *AdminRepository) GetSenderByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.Sender, bool, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var sender entity.Sender
+	if err := tx.WithContext(ctx).Where("email = ?", email).Take(&sender).Error; err != nil {
+		return entity.Sender{}, false, err
+	}
+
+	return sender, true, nil
+}
+
+func (ar *AdminRepository) GetAllSenderWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.SenderPaginationRepositoryResponse, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var senders []entity.Sender
+	var count int64
+
+	if req.PerPage == 0 {
+		req.PerPage = 10
+	}
+	if req.Page == 0 {
+		req.Page = 1
+	}
+
+	query := tx.WithContext(ctx).Model(&entity.Sender{})
+
+	if req.Search != "" {
+		search := "%" + strings.ToLower(req.Search) + "%"
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ?", search, search)
+	}
+
+	if err := query.Count(&count).Error; err != nil {
+		return dto.SenderPaginationRepositoryResponse{}, err
+	}
+
+	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&senders).Error; err != nil {
+		return dto.SenderPaginationRepositoryResponse{}, err
+	}
+
+	return dto.SenderPaginationRepositoryResponse{
+		Senders: senders,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    req.Page,
+			PerPage: req.PerPage,
+			MaxPage: int64(math.Ceil(float64(count) / float64(req.PerPage))),
+			Count:   count,
+		},
+	}, nil
+}
+
+// Locker
+func (ar *AdminRepository) GetAllLockerWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.LockerPaginationRepositoryResponse, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var lockers []entity.Locker
+	var count int64
+
+	if req.PerPage == 0 {
+		req.PerPage = 10
+	}
+	if req.Page == 0 {
+		req.Page = 1
+	}
+
+	query := tx.WithContext(ctx).Model(&entity.Locker{})
+
+	if req.Search != "" {
+		search := "%" + strings.ToLower(req.Search) + "%"
+		query = query.Where("LOWER(locker_code) LIKE ? OR LOWER(location) LIKE ?", search, search)
+	}
+
+	if err := query.Count(&count).Error; err != nil {
+		return dto.LockerPaginationRepositoryResponse{}, err
+	}
+
+	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&lockers).Error; err != nil {
+		return dto.LockerPaginationRepositoryResponse{}, err
+	}
+
+	return dto.LockerPaginationRepositoryResponse{
+		Lockers: lockers,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    req.Page,
+			PerPage: req.PerPage,
+			MaxPage: int64(math.Ceil(float64(count) / float64(req.PerPage))),
+			Count:   count,
+		},
+	}, nil
+}
+func (ar *AdminRepository) GetAllLocker(ctx context.Context, tx *gorm.DB) ([]entity.Locker, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var (
+		lockers []entity.Locker
+		err     error
+	)
+
+	query := tx.WithContext(ctx).Model(&entity.Locker{})
+
+	if err := query.Order("created_at DESC").Find(&lockers).Error; err != nil {
+		return []entity.Locker{}, err
+	}
+
+	return lockers, err
+}
+
+func (ar *AdminRepository) GetLockerByID(ctx context.Context, tx *gorm.DB, lockerID string) (entity.Locker, bool, error) {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	var locker entity.Locker
+	if err := tx.WithContext(ctx).Where("id = ?", lockerID).Take(&locker).Error; err != nil {
+		return entity.Locker{}, false, err
+	}
+
+	return locker, true, nil
+}
+func (ar *AdminRepository) CreateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Create(&locker).Error
+}
+
+func (ar *AdminRepository) UpdateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Where("id = ?", locker.ID).Updates(&locker).Error
+}
+func (ar *AdminRepository) DeleteLockerByID(ctx context.Context, tx *gorm.DB, lockerID string) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.WithContext(ctx).Where("id = ?", lockerID).Delete(&entity.Locker{}).Error
 }
