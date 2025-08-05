@@ -11,21 +11,69 @@ import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
-import { getAllCompanyService } from '@/services/admin/company/getAllCompany';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { getSenderService } from '@/services/admin/sender/getAllSender';
+import { Sender } from '@/types/sender.type';
+import { deleteSenderService } from '@/services/admin/sender/deleteSender';
+import { toast } from 'sonner';
+import SenderDeleteConfirmation from './SenderDeleteConfirmation';
+import { Mail, Pencil, Phone, Trash2, User } from 'lucide-react';
 
 const HistorySenderSection = () => {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSender, setSelectedSender] = useState<Sender | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const router = useRouter();
 
-  const { data: companyData } = useQuery({
-    queryKey: ['company'],
-    queryFn: getAllCompanyService,
+  const { data: senderData } = useQuery({
+    queryKey: ['sender', { page: 1, pagination: true }],
+    queryFn: ({ queryKey }) => {
+      const [, rawParams] = queryKey;
+
+      if (typeof rawParams === 'object' && rawParams !== null) {
+        return getSenderService(rawParams);
+      }
+      return getSenderService();
+    },
   });
 
-  if (!companyData) return <p>Failed to fetch company data</p>;
-  if (!companyData.status) return <p>Failed to fetch company data</p>;
+  const { mutate: deleteCompany } = useMutation({
+    mutationFn: deleteSenderService,
+    onSuccess: (result) => {
+      if (result.status) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ['sender'] });
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  if (!senderData) return <p>Failed to fetch company data</p>;
+  if (!senderData.status) return <p>Failed to fetch company data</p>;
+
+  const handleEdit = (sender: Sender) => {
+    setSelectedSender(sender);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (sender: Sender) => {
+    setSelectedSender(sender);
+    setIsDeleteOpen(true);
+  };
+
+  const confirmDelete = (sender: Sender) => {
+    if (selectedSender) {
+      deleteCompany(sender.sender_id);
+    }
+    setIsDeleteOpen(false);
+  };
 
   return (
     <SidebarInset>
@@ -81,6 +129,77 @@ const HistorySenderSection = () => {
               />
             </div>
           </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            {senderData.data.map((sender) => (
+              <div
+                key={sender.sender_id}
+                className="group border border-gray-200 rounded-lg px-4 py-4 hover:shadow-md hover:border-gray-300 transition-all duration-200 bg-white"
+              >
+                <div className="flex items-center justify-between">
+                  {/* Content Section */}
+                  <div className="flex-1 min-w-0 space-y-3">
+                    {/* Name Section */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                        <User className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                        {sender.sender_name || 'Andi Prakasa'}
+                      </h3>
+                    </div>
+
+                    {/* Contact Information */}
+                    <div className="space-y-1 pl-10">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">
+                          {sender.sender_email || 'andiprakasa@gmail.com'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone className="w-4 h-4 flex-shrink-0" />
+                        <span>
+                          {sender.sender_phone_number || '089238934893'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(sender)}
+                      className="cursor-pointer bg-amber-400 hover:bg-amber-500 text-white hover:text-white p-2 rounded-md opacity-70 group-hover:opacity-100 transition-opacity"
+                      aria-label="Edit sender"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(sender)}
+                      className="cursor-pointer bg-red-500 hover:bg-red-600 text-white hover:text-white p-2 rounded-md opacity-70 group-hover:opacity-100 transition-opacity"
+                      aria-label="Delete sender"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <SenderDeleteConfirmation
+            isOpen={isDeleteOpen}
+            onClose={() => setIsDeleteOpen(false)}
+            onConfirm={() => {
+              if (selectedSender) confirmDelete(selectedSender);
+            }}
+            sender={selectedSender}
+          />
         </div>
       </div>
     </SidebarInset>

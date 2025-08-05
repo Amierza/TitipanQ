@@ -7,19 +7,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Company } from '@/types/company.type';
+import { Sender } from '@/types/sender.type';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  company: Company | null;
+  sender: Sender | null;
 }
 
-const CompanyDeleteConfirmation = ({
+const SenderDeleteConfirmation = ({
   isOpen,
   onClose,
   onConfirm,
-  company,
+  sender,
 }: Props) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -28,8 +28,8 @@ const CompanyDeleteConfirmation = ({
           <DialogTitle>Confirm Delete</DialogTitle>
         </DialogHeader>
         <div className="text-sm text-gray-700">
-          Are you sure you want to delete company{' '}
-          <strong>{company?.company_name}</strong>?
+          Are you sure you want to delete sender{' '}
+          <strong>{sender?.sender_name}</strong>?
         </div>
         <div className="flex justify-end gap-2 pt-4">
           <Button
@@ -52,4 +52,4 @@ const CompanyDeleteConfirmation = ({
   );
 };
 
-export default CompanyDeleteConfirmation;
+export default SenderDeleteConfirmation;
