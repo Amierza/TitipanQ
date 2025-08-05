@@ -2,7 +2,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import HistorySenderSection from '@/components/admin/sender/HistorySender';
 
-export default function SenderPage() {
+export default function LockerPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
