@@ -1,6 +1,7 @@
 import { Meta, SuccessResponse } from './sucess';
 
 export type Locker = {
+  locker_id: string;
   locker_code: string;
   location: string;
 };

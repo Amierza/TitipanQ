@@ -1,13 +1,13 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
-import HistorySenderSection from '@/components/admin/sender/HistorySender';
+import LockerSection from '@/components/admin/locker/LockerSection';
 
 export default function LockerPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
 
-      <HistorySenderSection />
+      <LockerSection />
     </SidebarProvider>
   );
 }

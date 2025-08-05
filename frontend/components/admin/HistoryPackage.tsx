@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { Check, ChevronsUpDown, QrCode } from 'lucide-react';
+import { Archive, Check, ChevronsUpDown, QrCode } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -103,7 +103,7 @@ const HistoryPackageSection = () => {
       {/* Main Content */}
       <div className="p-4 md:p-8 h-full min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto h-full flex flex-col">
-          <div className="flex justify-between items-end mb-4">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-4 gap-4">
             {/* Title + Deskripsi */}
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
@@ -114,7 +114,17 @@ const HistoryPackageSection = () => {
               </p>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-2 md:gap-4">
+              <Button
+                variant={'ghost'}
+                className="cursor-pointer bg-amber-500 hover:bg-amber-400 hover:text-white text-white font-semibold space-x-1"
+                onClick={() => router.push('/admin/locker')}
+              >
+                <span>
+                  <Archive />
+                </span>
+                Locker
+              </Button>
               <Button
                 className="cursor-pointer"
                 onClick={() => router.push('/admin/package/new')}
@@ -134,7 +144,7 @@ const HistoryPackageSection = () => {
             </div>
           </div>
 
-          <div className="flex flex-row justify-between gap-6">
+          <div className="flex flex-col md:flex-row justify-between md:gap-6">
             {/* Search form */}
             <div className="mb-4 max-w-md flex w-full items-center gap-2">
               <Input
@@ -153,7 +163,7 @@ const HistoryPackageSection = () => {
               </Button>
             </div>
 
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-4 mb-4">
               <Select onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
@@ -163,7 +173,6 @@ const HistoryPackageSection = () => {
                     <SelectLabel>Status</SelectLabel>
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="received">Received</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="expired">Expired</SelectItem>
                   </SelectGroup>
@@ -180,7 +189,7 @@ const HistoryPackageSection = () => {
                   >
                     {value
                       ? companyData.data.find(
-                          (company) => company.company_id === value
+                          (company) => company.company_name === value
                         )?.company_name
                       : 'Select company...'}
                     <ChevronsUpDown className="opacity-50" />

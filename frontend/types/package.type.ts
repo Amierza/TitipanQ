@@ -1,5 +1,6 @@
-import { Meta, SuccessResponse } from "./sucess";
-import { User } from "./user.type";
+import { Locker } from './locker.type';
+import { Meta, SuccessResponse } from './sucess';
+import { User } from './user.type';
 
 export type Package = {
   package_id: string;
@@ -14,20 +15,21 @@ export type Package = {
   package_sender_phone_number: string;
   package_sender_address: string;
   user: User;
-  created_at: string
+  locker: Locker;
+  created_at: string;
   updated_at: string;
   deleted_at: null;
 };
 
 export type HistoryPackage = {
-  history_id: string,
-  history_status: string,
+  history_id: string;
+  history_status: string;
   changed_by: {
-    user_id: string,
-    user_name: string,
-    user_email: string
-  },
-  created_at: string
+    user_id: string;
+    user_name: string;
+    user_email: string;
+  };
+  created_at: string;
 };
 
 export type PackageResponse = SuccessResponse<Package>;
@@ -38,4 +40,4 @@ export type AllPackageResponse = SuccessResponse<Package[]> & {
 
 export type AllHistoryPackageResponse = SuccessResponse<HistoryPackage[]> & {
   meta: Meta;
-}
+};
