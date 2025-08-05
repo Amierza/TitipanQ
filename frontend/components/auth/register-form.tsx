@@ -226,7 +226,7 @@ export function RegisterForm({
               <Button
                 type="submit"
                 disabled={!form.formState.isValid || isPending}
-                className="w-full"
+                className="w-full cursor-pointer"
               >
                 {isPending ? "Loading..." : "Register"}
               </Button>

@@ -6,6 +6,7 @@ import { imageUrl } from "@/config/api";
 
 export interface PackageItem {
   package_id: string;
+  package_tracking_code : string;
   package_description: string;
   package_image: string;
   package_type: string;
@@ -43,7 +44,7 @@ export function PackageCard({
       <CardHeader className="pb-1 pt-4 px-4">
         <div className="flex flex-col items-start gap-0.5">
           <span className="text-xs text-muted-foreground font-mono">
-            #{item.package_id}
+            #{item.package_tracking_code}
           </span>
         </div>
       </CardHeader>

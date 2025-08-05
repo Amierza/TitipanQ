@@ -5,6 +5,7 @@ export interface PackageItem {
   package_description: string;
   package_image: string;
   package_type: string;
+  package_tracking_code: string;
   package_status: "received" | "delivered" | "completed" | "expired";
   package_delivered_at: string;
   package_expired_at: string;

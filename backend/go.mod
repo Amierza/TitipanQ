@@ -3,7 +3,6 @@ module github.com/Amierza/TitipanQ/backend
 go 1.23.2
 
 require (
-	github.com/Amierza/go-boiler-plate v0.0.0-20250526164707-fd2ed403ab06
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sashabaranov/go-openai v1.40.3
 	go.mau.fi/whatsmeow v0.0.0-20250701221811-9adf672adc90
