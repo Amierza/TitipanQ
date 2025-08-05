@@ -1,15 +1,16 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Package,
   LayoutDashboard,
   User,
   Building,
   LogOut,
-} from "lucide-react";
+  Send,
+} from 'lucide-react';
 
 import {
   Sidebar,
@@ -22,34 +23,39 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar';
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const menuItems = [
   {
-    title: "Dashboard",
-    href: "/admin",
+    title: 'Dashboard',
+    href: '/admin',
     icon: LayoutDashboard,
   },
   {
-    title: "Package",
-    href: "/admin/package",
+    title: 'Sender',
+    href: '/admin/sender',
+    icon: Send,
+  },
+  {
+    title: 'Package',
+    href: '/admin/package',
     icon: Package,
   },
   {
-    title: "User Account Settings",
-    href: "/admin/user-settings",
+    title: 'User Account Settings',
+    href: '/admin/user-settings',
     icon: User,
   },
   {
-    title: "Companies",
-    href: "/admin/companies",
+    title: 'Companies',
+    href: '/admin/companies',
     icon: Building,
   },
   {
-    title: "Logout",
-    href: "/login",
+    title: 'Logout',
+    href: '/login',
     icon: LogOut,
   },
 ];
@@ -83,7 +89,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 return (
                   <SidebarMenuItem
                     key={item.href}
-                    className={isActive ? "bg-muted text-primary" : ""}
+                    className={isActive ? 'bg-muted text-primary' : ''}
                   >
                     <SidebarMenuButton asChild>
                       <Link
@@ -103,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       {/* Sidebar Rail (collapse button, optional) */}
-      <SidebarRail/>
+      <SidebarRail />
     </Sidebar>
   );
 }
