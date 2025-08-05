@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-} from "@/components/ui/breadcrumb";
+} from '@/components/ui/breadcrumb';
 import {
   Pagination,
   PaginationContent,
@@ -16,19 +16,19 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Separator } from "@/components/ui/separator";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { deleteCompanyService } from "@/services/admin/company/deleteCompany";
-import { Company } from "@/types/company.type";
-import { getAllCompanyPaginationService } from "@/services/admin/company/getAllCompany";
-import { Pencil, Trash2 } from "lucide-react";
-import CompanyForm from "./company/CompanyForm";
-import CompanyDeleteConfirmation from "./company/CompanyDeleteConfirmation";
-import { getAllUserService } from "@/services/admin/user/getAllUser";
-import { Badge } from "../ui/badge";
-import { getAllPackageWithoutPaginationService } from "@/services/admin/package/getAllPackage";
+} from '@/components/ui/pagination';
+import { Separator } from '@/components/ui/separator';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { deleteCompanyService } from '@/services/admin/company/deleteCompany';
+import { Company } from '@/types/company.type';
+import { getAllCompanyPaginationService } from '@/services/admin/company/getAllCompany';
+import { Pencil, Trash2 } from 'lucide-react';
+import CompanyForm from './company/CompanyForm';
+import CompanyDeleteConfirmation from './company/CompanyDeleteConfirmation';
+import { getAllUserService } from '@/services/admin/user/getAllUser';
+import { Badge } from '../ui/badge';
+import { getAllPackageWithoutPaginationService } from '@/services/admin/package/getAllPackage';
 
 const ManageCompaniesSection = () => {
   const [page, setPage] = useState<number>(1);
@@ -52,7 +52,7 @@ const ManageCompaniesSection = () => {
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ["company"] });
+        queryClient.invalidateQueries({ queryKey: ['company'] });
       } else {
         toast.error(result.message);
       }
@@ -63,19 +63,19 @@ const ManageCompaniesSection = () => {
   });
 
   const { data: companyData } = useQuery({
-    queryKey: ["company", page],
-    queryFn: () => getAllCompanyPaginationService(page)
-  })
+    queryKey: ['company', page],
+    queryFn: () => getAllCompanyPaginationService(page),
+  });
 
   const { data: userData } = useQuery({
-    queryKey: ["userData"],
-    queryFn: getAllUserService
-  })
+    queryKey: ['userData'],
+    queryFn: getAllUserService,
+  });
 
   const { data: packageData } = useQuery({
-    queryKey: ["packageData"],
-    queryFn: getAllPackageWithoutPaginationService
-  })
+    queryKey: ['packageData'],
+    queryFn: getAllPackageWithoutPaginationService,
+  });
 
   const handleDelete = (company: Company) => {
     setSelectedCompany(company);
@@ -92,7 +92,7 @@ const ManageCompaniesSection = () => {
   useEffect(() => {
     if (
       companyData &&
-      "data" in companyData &&
+      'data' in companyData &&
       companyData.data.length === 0 &&
       page > 1
     ) {
@@ -101,7 +101,7 @@ const ManageCompaniesSection = () => {
   }, [companyData, page]);
 
   if (!companyData) return <p>Loading...</p>;
-  if (!("data" in companyData)) return <p>Failed to fetch data</p>;
+  if (!('data' in companyData)) return <p>Failed to fetch data</p>;
   if (!userData) return <p>Loading...</p>;
   if (!userData.status) return <p>Failed to fetch data</p>;
   if (!packageData) return <p>Loading...</p>;
@@ -140,36 +140,69 @@ const ManageCompaniesSection = () => {
 
           <div className="grid grid-cols-2 gap-4">
             {companyData.data.map((company) => (
-              <div key={company.company_id} className="flex items-center justify-between border rounded-lg px-4 py-4">
+              <div
+                key={company.company_id}
+                className="flex items-center justify-between border rounded-lg px-4 py-4"
+              >
                 <div className="space-y-2">
                   <div className="flex flex-col items-start">
-                    <h3 className="text-lg font-semibold">{company.company_name}</h3>
+                    <h3 className="text-lg font-semibold">
+                      {company.company_name}
+                    </h3>
                     <p className="text-sm">
-                      {
-                        `PIC : 
-                      ${userData.data.find((user) => user.company.company_id === company.company_id)?.user_name} 
+                      {`PIC : 
+                      ${
+                        userData.data.find(
+                          (user) =>
+                            user.company.company_id === company.company_id
+                        )?.user_name
+                      } 
                       - 
-                      ${userData.data.find((user) => user.company.company_id === company.company_id)?.user_email}`
-                      }
+                      ${
+                        userData.data.find(
+                          (user) =>
+                            user.company.company_id === company.company_id
+                        )?.user_email
+                      }`}
                     </p>
-                    <p className="text-sm">
-                      {company.company_address}
-                    </p>
+                    <p className="text-sm">{company.company_address}</p>
                   </div>
-                  {
-                    packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "received")).length > 0 && (
-                      <Badge variant="default" className="py-1 px-2 rounded-xl">{`Unclaimed Package : ${packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "received")).length}`}</Badge>
-                    )
-                  }
-                  {
-                    packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "expired")).length > 0 && (
-                      <Badge variant="destructive" className="py-1 px-2 rounded-xl">{`Expired Package : ${packageData.data.filter((pkg) => (pkg.user.company.company_id === company.company_id && pkg.package_status === "expired")).length}`}</Badge>
-                    )
-                  }
+                  {packageData.data.filter(
+                    (pkg) =>
+                      pkg.user.company.company_id === company.company_id &&
+                      pkg.package_status === 'received'
+                  ).length > 0 && (
+                    <Badge
+                      variant="default"
+                      className="py-1 px-2 rounded-xl"
+                    >{`Unclaimed Package : ${
+                      packageData.data.filter(
+                        (pkg) =>
+                          pkg.user.company.company_id === company.company_id &&
+                          pkg.package_status === 'received'
+                      ).length
+                    }`}</Badge>
+                  )}
+                  {packageData.data.filter(
+                    (pkg) =>
+                      pkg.user.company.company_id === company.company_id &&
+                      pkg.package_status === 'expired'
+                  ).length > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="py-1 px-2 rounded-xl"
+                    >{`Expired Package : ${
+                      packageData.data.filter(
+                        (pkg) =>
+                          pkg.user.company.company_id === company.company_id &&
+                          pkg.package_status === 'expired'
+                      ).length
+                    }`}</Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant={"ghost"}
+                    variant={'ghost'}
                     onClick={() => handleEdit(company)}
                     className="bg-amber-400 hover:text-white hover:bg-amber-500 text-white p-2 rounded-md"
                   >
@@ -197,24 +230,29 @@ const ManageCompaniesSection = () => {
                     />
                   </PaginationItem>
 
-                  {Array.from({ length: companyData.meta.max_page }, (_, index) => (
-                    <PaginationItem key={index}>
-                      <PaginationLink
-                        className="cursor-pointer"
-                        isActive={page === index + 1}
-                        onClick={() => {
-                          setPage(index + 1);
-                        }}
-                      >
-                        {index + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                  {Array.from(
+                    { length: companyData.meta.max_page },
+                    (_, index) => (
+                      <PaginationItem key={index}>
+                        <PaginationLink
+                          className="cursor-pointer"
+                          isActive={page === index + 1}
+                          onClick={() => {
+                            setPage(index + 1);
+                          }}
+                        >
+                          {index + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  )}
 
                   <PaginationItem>
                     <PaginationNext
                       className="cursor-pointer"
-                      onClick={() => page < companyData.meta.max_page && setPage(page + 1)}
+                      onClick={() =>
+                        page < companyData.meta.max_page && setPage(page + 1)
+                      }
                     />
                   </PaginationItem>
                 </PaginationContent>
@@ -223,7 +261,7 @@ const ManageCompaniesSection = () => {
           )}
 
           <CompanyForm
-            key={selectedCompany?.company_id ?? "new"}
+            key={selectedCompany?.company_id ?? 'new'}
             isOpen={isFormOpen}
             onClose={() => setIsFormOpen(false)}
             company={selectedCompany}
