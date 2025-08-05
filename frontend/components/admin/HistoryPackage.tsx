@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import HistoryTable from "../history-table";
-import { useState } from "react";
-import { Input } from "../ui/input";
+} from '@/components/ui/breadcrumb';
+import { Separator } from '@/components/ui/separator';
+import HistoryTable from '../history-table';
+import { useState } from 'react';
+import { Input } from '../ui/input';
 import {
   Select,
   SelectContent,
@@ -19,11 +19,11 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { Check, ChevronsUpDown, QrCode } from "lucide-react";
+} from '../ui/select';
+import { Check, ChevronsUpDown, QrCode } from 'lucide-react';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -31,32 +31,32 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from '@/components/ui/command';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllCompanyService } from "@/services/admin/company/getAllCompany";
-import { useRouter } from "next/navigation";
-import QrScannerModal from "../package/package-open-camera";
-import { updateStatusPackagesService } from "@/services/admin/package/updateStatusPackages";
-import { toast } from "sonner";
+} from '@/components/ui/popover';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getAllCompanyService } from '@/services/admin/company/getAllCompany';
+import { useRouter } from 'next/navigation';
+import QrScannerModal from '../package/package-open-camera';
+import { updateStatusPackagesService } from '@/services/admin/package/updateStatusPackages';
+import { toast } from 'sonner';
 
 const HistoryPackageSection = () => {
-  const queryClient = useQueryClient()
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [selectedId, setSelectedId] = useState<string[]>([])
-  const [openCameraModal, setOpenCameraModal] = useState(false)
+  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [selectedId, setSelectedId] = useState<string[]>([]);
+  const [openCameraModal, setOpenCameraModal] = useState(false);
   const [companyFilter, setCompanyFilter] = useState<string | undefined>();
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState('');
   const router = useRouter();
 
   const { data: companyData } = useQuery({
-    queryKey: ["company"],
+    queryKey: ['company'],
     queryFn: getAllCompanyService,
   });
 
@@ -64,23 +64,23 @@ const HistoryPackageSection = () => {
     mutationFn: updateStatusPackagesService,
     onSuccess: (result) => {
       if (result.status) {
-        toast.success(result.message)
-        queryClient.invalidateQueries({ queryKey: ["packageData"] });
+        toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ['packageData'] });
       } else {
-        toast.error(result.error)
+        toast.error(result.error);
       }
     },
     onError: (error) => {
-      toast.error(error.message)
-    }
-  })
+      toast.error(error.message);
+    },
+  });
 
   if (!companyData) return <p>Failed to fetch company data</p>;
   if (!companyData.status) return <p>Failed to fetch company data</p>;
 
   const openCamera = () => {
-    setOpenCameraModal(true)
-  }
+    setOpenCameraModal(true);
+  };
 
   return (
     <SidebarInset>
@@ -117,15 +117,17 @@ const HistoryPackageSection = () => {
             <div className="flex gap-4">
               <Button
                 className="cursor-pointer"
-                onClick={() => router.push("/admin/package/new")}
+                onClick={() => router.push('/admin/package/new')}
               >
                 + Add Package
               </Button>
               <Button
                 disabled={selectedId.length === 0}
-                variant={"ghost"}
+                variant={'ghost'}
                 className="cursor-pointer bg-green-500 hover:bg-green-600"
-                onClick={() => updateStatusPackages({package_ids: selectedId})}
+                onClick={() =>
+                  updateStatusPackages({ package_ids: selectedId })
+                }
               >
                 Update Package
               </Button>
@@ -143,11 +145,9 @@ const HistoryPackageSection = () => {
                 className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
               />
               <Button
-                variant={"ghost"}
+                variant={'ghost'}
                 className="cursor-pointer bg-blue-500 hover:bg-blue-600"
-                onClick={
-                  openCamera
-                }
+                onClick={openCamera}
               >
                 <QrCode className="text-white h-fit" />
               </Button>
@@ -180,9 +180,9 @@ const HistoryPackageSection = () => {
                   >
                     {value
                       ? companyData.data.find(
-                        (company) => company.company_id === value
-                      )?.company_name
-                      : "Select company..."}
+                          (company) => company.company_id === value
+                        )?.company_name
+                      : 'Select company...'}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -199,7 +199,7 @@ const HistoryPackageSection = () => {
                           key="all"
                           value=""
                           onSelect={() => {
-                            setValue("");
+                            setValue('');
                             setCompanyFilter(undefined);
                             setOpen(false);
                           }}
@@ -207,8 +207,8 @@ const HistoryPackageSection = () => {
                           All companies
                           <Check
                             className={cn(
-                              "ml-auto",
-                              value === "" ? "opacity-100" : "opacity-0"
+                              'ml-auto',
+                              value === '' ? 'opacity-100' : 'opacity-0'
                             )}
                           />
                         </CommandItem>
@@ -216,10 +216,10 @@ const HistoryPackageSection = () => {
                         {companyData.data.map((company) => (
                           <CommandItem
                             key={company.company_id}
-                            value={company.company_id}
+                            value={company.company_name}
                             onSelect={(currentValue) => {
                               setValue(
-                                currentValue === value ? "" : currentValue
+                                currentValue === value ? '' : currentValue
                               );
                               setCompanyFilter(
                                 currentValue === value
@@ -232,10 +232,10 @@ const HistoryPackageSection = () => {
                             {company.company_name}
                             <Check
                               className={cn(
-                                "ml-auto",
+                                'ml-auto',
                                 value === company.company_id
-                                  ? "opacity-100"
-                                  : "opacity-0"
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
                               )}
                             />
                           </CommandItem>
@@ -267,7 +267,6 @@ const HistoryPackageSection = () => {
           setSearchQuery(result); // misalnya langsung cari dengan QR hasil
         }}
       />
-
     </SidebarInset>
   );
 };
