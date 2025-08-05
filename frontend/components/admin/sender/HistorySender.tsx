@@ -12,13 +12,13 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { getSenderService } from '@/services/admin/sender/getAllSender';
 import { Sender } from '@/types/sender.type';
 import { deleteSenderService } from '@/services/admin/sender/deleteSender';
 import { toast } from 'sonner';
 import SenderDeleteConfirmation from './SenderDeleteConfirmation';
 import { Mail, Pencil, Phone, Trash2, User } from 'lucide-react';
+import SenderForm from './SenderForm';
 
 const HistorySenderSection = () => {
   const queryClient = useQueryClient();
@@ -26,7 +26,6 @@ const HistorySenderSection = () => {
   const [selectedSender, setSelectedSender] = useState<Sender | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const router = useRouter();
 
   const { data: senderData } = useQuery({
     queryKey: ['sender', { page: 1, pagination: true }],
@@ -57,6 +56,11 @@ const HistorySenderSection = () => {
 
   if (!senderData) return <p>Failed to fetch company data</p>;
   if (!senderData.status) return <p>Failed to fetch company data</p>;
+
+  const handleCreate = () => {
+    setSelectedSender(null);
+    setIsFormOpen(true);
+  };
 
   const handleEdit = (sender: Sender) => {
     setSelectedSender(sender);
@@ -108,10 +112,7 @@ const HistorySenderSection = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button
-                className="cursor-pointer"
-                onClick={() => router.push('/admin/package/new')}
-              >
+              <Button className="cursor-pointer" onClick={handleCreate}>
                 + Add New Sender
               </Button>
             </div>
@@ -191,6 +192,13 @@ const HistorySenderSection = () => {
               </div>
             ))}
           </div>
+
+          <SenderForm
+            key={selectedSender?.sender_id ?? 'new'}
+            isOpen={isFormOpen}
+            onClose={() => setIsFormOpen(false)}
+            sender={selectedSender}
+          />
 
           <SenderDeleteConfirmation
             isOpen={isDeleteOpen}

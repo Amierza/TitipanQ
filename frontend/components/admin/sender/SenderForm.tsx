@@ -21,34 +21,35 @@ import {
 } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CompanySchema } from '@/validation/company.schema';
-import { Company } from '@/types/company.type';
-import { createCompanyService } from '@/services/admin/company/createCompany';
-import { updateCompanyService } from '@/services/admin/company/updateCompany';
+import { Sender } from '@/types/sender.type';
+import { SenderSchema } from '@/validation/sender.schema';
+import { createSenderService } from '@/services/admin/sender/createSender';
+import { updateSenderService } from '@/services/admin/sender/updateSender';
 
-interface UserFormProps {
+interface SenderFormProps {
   isOpen: boolean;
   onClose: () => void;
-  company: Company | null;
+  sender: Sender | null;
 }
 
-const CompanyForm = ({ isOpen, onClose, company }: UserFormProps) => {
+const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
   const queryClient = useQueryClient();
-  const form = useForm<z.infer<typeof CompanySchema>>({
-    resolver: zodResolver(CompanySchema),
+  const form = useForm<z.infer<typeof SenderSchema>>({
+    resolver: zodResolver(SenderSchema),
     mode: 'onChange',
     defaultValues: {
-      company_name: company?.company_name || '',
-      company_address: company?.company_address || '',
+      sender_name: sender?.sender_name || '',
+      sender_phone_number: sender?.sender_phone_number || '',
+      sender_email: sender?.sender_email || '',
     },
   });
 
-  const { mutate: createCompany, isPending: isCreating } = useMutation({
-    mutationFn: createCompanyService,
+  const { mutate: createSender, isPending: isCreating } = useMutation({
+    mutationFn: createSenderService,
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ['company'] });
+        queryClient.invalidateQueries({ queryKey: ['sender'] });
         onClose();
       } else {
         toast.error(result.message);
@@ -59,12 +60,12 @@ const CompanyForm = ({ isOpen, onClose, company }: UserFormProps) => {
     },
   });
 
-  const { mutate: updateCompany, isPending: isUpdating } = useMutation({
-    mutationFn: updateCompanyService,
+  const { mutate: updateSender, isPending: isUpdating } = useMutation({
+    mutationFn: updateSenderService,
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ['company'] });
+        queryClient.invalidateQueries({ queryKey: ['sender'] });
         onClose();
       } else {
         toast.error(result.message);
@@ -75,17 +76,17 @@ const CompanyForm = ({ isOpen, onClose, company }: UserFormProps) => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof CompanySchema>) => {
-    if (company?.company_id) {
+  const onSubmit = (values: z.infer<typeof SenderSchema>) => {
+    if (sender?.sender_id) {
       const diff = Object.fromEntries(
         Object.entries(values).filter(
-          ([key, val]) => val !== (company as any)[key]
+          ([key, val]) => val !== (sender as any)[key]
         )
       ) as Partial<typeof values>;
 
-      updateCompany({ companyId: company.company_id, data: diff });
+      updateSender({ senderId: sender.sender_id, data: diff });
     } else {
-      createCompany(values);
+      createSender(values);
     }
   };
 
@@ -93,20 +94,18 @@ const CompanyForm = ({ isOpen, onClose, company }: UserFormProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {company ? 'Edit Company' : 'Add New Company'}
-          </DialogTitle>
+          <DialogTitle>{sender ? 'Edit Sender' : 'Add New Sender'}</DialogTitle>
         </DialogHeader>
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="company_name"
+              name="sender_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="PT Otak Kanan" type="text" {...field} />
+                    <Input placeholder="Joko Susilo" type="text" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,16 +114,30 @@ const CompanyForm = ({ isOpen, onClose, company }: UserFormProps) => {
 
             <FormField
               control={form.control}
-              name="company_address"
+              name="sender_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Jalan Ahmad Yani no.23"
-                      type="text"
+                      placeholder="jokosusilo@gmail.com"
+                      type="email"
                       {...field}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="sender_phone_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="08**********" type="tel" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -137,7 +150,7 @@ const CompanyForm = ({ isOpen, onClose, company }: UserFormProps) => {
                 type="submit"
                 className="cursor-pointer"
               >
-                {company ? 'Update' : 'Create'}
+                {sender ? 'Update' : 'Create'}
               </Button>
             </div>
           </form>
@@ -147,4 +160,4 @@ const CompanyForm = ({ isOpen, onClose, company }: UserFormProps) => {
   );
 };
 
-export default CompanyForm;
+export default SenderForm;
