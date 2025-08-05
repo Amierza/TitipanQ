@@ -1,13 +1,13 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
-import HistorySenderSection from '@/components/admin/sender/HistorySender';
+import SenderSection from '@/components/admin/sender/SenderSection';
 
 export default function SenderPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
 
-      <HistorySenderSection />
+      <SenderSection />
     </SidebarProvider>
   );
 }

@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllPackageService } from "@/services/admin/package/getAllPackage";
-import { deletePackageService } from "@/services/admin/package/deletePackage";
-import { imageUrl } from "@/config/api";
-import { toast } from "sonner";
-import { Package } from "@/types/package.type";
-import { UserInfo } from "./user/user-info";
-import { PackageStatusBadge } from "./package/package-status-badge";
-import DeletePackageButton from "./package/package-delete-button";
-import DeleteConfirmationPackage from "./package/delete-confirmation-package";
+import Image from 'next/image';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getAllPackageService } from '@/services/admin/package/getAllPackage';
+import { deletePackageService } from '@/services/admin/package/deletePackage';
+import { imageUrl } from '@/config/api';
+import { toast } from 'sonner';
+import { Package } from '@/types/package.type';
+import { UserInfo } from './user/user-info';
+import { PackageStatusBadge } from './package/package-status-badge';
+import DeletePackageButton from './package/package-delete-button';
+import DeleteConfirmationPackage from './package/delete-confirmation-package';
 import {
   Pagination,
   PaginationContent,
@@ -21,10 +21,10 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/pagination';
+import { Button } from '@/components/ui/button';
+import { Pencil } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const HistoryTable = ({
   searchQuery,
@@ -37,18 +37,18 @@ const HistoryTable = ({
   companyFilter?: string;
   onSelectionChange?: (selectedIds: string[]) => void;
 }) => {
-  const query = searchQuery?.toLowerCase() || "";
+  const query = searchQuery?.toLowerCase() || '';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [selectedPackageId, setSelectedPackageId] = useState<string[]>([])
+  const [selectedPackageId, setSelectedPackageId] = useState<string[]>([]);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const router = useRouter();
 
   const itemPerPage = 10;
 
   const { data: packageData } = useQuery({
-    queryKey: ["packageData"],
+    queryKey: ['packageData'],
     queryFn: () => getAllPackageService({ page: 1, per_page: 9999 }),
   });
 
@@ -56,7 +56,7 @@ const HistoryTable = ({
     mutationFn: deletePackageService,
     onSuccess: (result) => {
       toast.success(result.message);
-      queryClient.invalidateQueries({ queryKey: ["packageData"] });
+      queryClient.invalidateQueries({ queryKey: ['packageData'] });
     },
     onError: (error) => {
       toast.error(error.message);
@@ -74,12 +74,13 @@ const HistoryTable = ({
       pkg.package_tracking_code.toLowerCase().includes(query);
 
     const matchesStatusFilter =
-      !statusFilter || statusFilter === "all"
+      !statusFilter || statusFilter === 'all'
         ? true
         : pkg.package_status.toLowerCase() === statusFilter.toLowerCase();
 
     const matchesCompanyFilter = companyFilter
-      ? pkg.user.company.company_id.toLowerCase() === companyFilter.toLowerCase()
+      ? pkg.user.company.company_name.toLowerCase() ===
+        companyFilter.toLowerCase()
       : true;
 
     return matchesSearchFilter && matchesStatusFilter && matchesCompanyFilter;
@@ -105,8 +106,8 @@ const HistoryTable = ({
   };
 
   const getFullImageUrl = (imagePath: string) => {
-    if (!imagePath) return "/assets/default_image.jpg";
-    if (imagePath.startsWith("http")) return imagePath;
+    if (!imagePath) return '/assets/default_image.jpg';
+    if (imagePath.startsWith('http')) return imagePath;
     return `${imageUrl}/package/${imagePath}`;
   };
 
@@ -131,15 +132,17 @@ const HistoryTable = ({
               paginatedData.map((pkg) => (
                 <tr key={pkg.package_id} className="border-b hover:bg-gray-100">
                   <td className="p-3 text-center">
-                    <Checkbox 
+                    <Checkbox
                       checked={selectedPackageId.includes(pkg.package_id)}
                       onCheckedChange={(checked) => {
-                        const updateSelection = checked 
-                            ? [...selectedPackageId, pkg.package_id] 
-                            : selectedPackageId.filter((id) => id !== pkg.package_id)
-                        
-                        setSelectedPackageId(updateSelection)
-                        onSelectionChange?.(updateSelection)
+                        const updateSelection = checked
+                          ? [...selectedPackageId, pkg.package_id]
+                          : selectedPackageId.filter(
+                              (id) => id !== pkg.package_id
+                            );
+
+                        setSelectedPackageId(updateSelection);
+                        onSelectionChange?.(updateSelection);
                       }}
                       className="cursor-pointer"
                     />
@@ -161,13 +164,16 @@ const HistoryTable = ({
                     />
                   </td>
                   <td className="p-3">
-                    {pkg.user.company.company_name || "Unknown"}
+                    {pkg.user.company.company_name || 'Unknown'}
                   </td>
                   <td className="p-3">
                     <PackageStatusBadge status={pkg.package_status} />
                   </td>
                   <td className="p-3">
-                    <Link href={`/admin/package/${pkg.package_id}`} className="text-blue-500 underline">
+                    <Link
+                      href={`/admin/package/${pkg.package_id}`}
+                      className="text-blue-500 underline"
+                    >
                       Detail
                     </Link>
                   </td>
@@ -175,7 +181,9 @@ const HistoryTable = ({
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
-                        onClick={() => router.push(`/admin/package/edit/${pkg.package_id}`)}
+                        onClick={() =>
+                          router.push(`/admin/package/edit/${pkg.package_id}`)
+                        }
                         className="cursor-pointer bg-amber-400 hover:text-white hover:bg-amber-500 text-white p-2 rounded-md"
                       >
                         <Pencil className="transition-transform" />
@@ -222,7 +230,9 @@ const HistoryTable = ({
               <PaginationItem>
                 <PaginationNext
                   className="cursor-pointer"
-                  onClick={() => page < totalPage && setPage((prev) => prev + 1)}
+                  onClick={() =>
+                    page < totalPage && setPage((prev) => prev + 1)
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
