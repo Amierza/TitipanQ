@@ -12,7 +12,7 @@ func Migrate(db *gorm.DB) error {
 		&entity.Company{},
 		&entity.User{},
 		&entity.Locker{},
-		&entity.Sender{},
+		&entity.Recipient{},
 		&entity.Package{},
 		&entity.PackageHistory{},
 	); err != nil {

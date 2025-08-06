@@ -42,12 +42,12 @@ func Admin(route *gin.Engine, adminHandler handler.IAdminHandler, jwtService ser
 			routes.PATCH("/update-company/:id", adminHandler.UpdateCompany)
 			routes.DELETE("/delete-company/:id", adminHandler.DeleteCompany)
 
-			// sender
-			routes.POST("/create-sender", adminHandler.CreateSender)
-			routes.GET("/get-all-sender", adminHandler.ReadAllSender)
-			routes.GET("/get-detil-sender/:id", adminHandler.GetDetailSender)
-			routes.PATCH("/update-sender/:id", adminHandler.UpdateSender)
-			routes.DELETE("/deleted-sender/:id", adminHandler.DeleteSender)
+			// recipient
+			routes.POST("/create-recipient", adminHandler.CreateRecipient)
+			routes.GET("/get-all-recipients", adminHandler.ReadAllRecipient)
+			routes.GET("/get-detil-recipient/:id", adminHandler.GetDetailRecipient)
+			routes.PATCH("/update-recipient/:id", adminHandler.UpdateRecipient)
+			routes.DELETE("/deleted-recipient/:id", adminHandler.DeleteRecipient)
 
 			// locker
 			routes.POST("/create-locker", adminHandler.CreateLocker)
