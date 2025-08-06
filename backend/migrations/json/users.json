@@ -498,5 +498,15 @@
     "user_address": "Jl. Contoh Alamat No.50, Indonesia",
     "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
     "company_id": "1a2b3c4d-0001-1111-aaaa-000000000014"
+  },
+  {
+    "user_id": "e9b5c3d4-8e7f-4a6c-9b0d-1e2f3a4b5c6d",
+    "user_name": "John Duran",
+    "user_email": "durans@example.com",
+    "user_password": "hashed-password",
+    "user_phone_number": "6282198765123",
+    "user_address": "Jl. Contoh Alamat No.50, Indonesia",
+    "role_id": "1d1bba3e-4f22-47d2-ae7d-741ae6b44b85",
+    "company_id": "1a2b3c4d-0001-1111-aaaa-000000000014"
   }
 ]

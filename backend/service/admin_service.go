@@ -535,6 +535,7 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		SenderPhoneNumber: req.SenderPhoneNumber,
 		SenderAddress:     req.SenderAddress,
 		UserID:            &user.ID,
+		LockerID:          req.LockerID,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: now,
 			UpdatedAt: now,
@@ -1025,6 +1026,11 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		SenderPhoneNumber: p.SenderPhoneNumber,
 		SenderAddress:     p.SenderAddress,
 		User:              client,
+		Locker: dto.LockerResponse{
+			ID: p.LockerID,
+			LockerCode: p.Locker.LockerCode,
+			Location: p.Locker.Location,
+		},
 		ChangedBy:         admin,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: p.CreatedAt,
