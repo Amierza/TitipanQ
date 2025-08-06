@@ -1,16 +1,17 @@
-"use client";
+'use client';
 
-import PackageForm from "@/components/package/package-form";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import PackageForm from '@/components/package/package-form';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { useQuery } from "@tanstack/react-query";
-import { getAllUserService } from "@/services/admin/user/getAllUser";
+} from '@/components/ui/breadcrumb';
+import { Separator } from '@/components/ui/separator';
+import { useQuery } from '@tanstack/react-query';
+import { getAllUserService } from '@/services/admin/user/getAllUser';
+import { getAllLockerService } from '@/services/admin/locker/getAllLocker';
 
 const NewPackageSection = () => {
   const {
@@ -18,8 +19,13 @@ const NewPackageSection = () => {
     error,
     isLoading,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: ['users'],
     queryFn: getAllUserService,
+  });
+
+  const { data: lockerData } = useQuery({
+    queryKey: ['locker'],
+    queryFn: () => getAllLockerService({ pagination: false }),
   });
 
   if (isLoading) return <p>Loading...</p>;
@@ -56,6 +62,14 @@ const NewPackageSection = () => {
                 ? userData.data.map((user) => ({
                     id: user.user_id,
                     name: user.user_name,
+                  }))
+                : []
+            }
+            lockers={
+              lockerData?.status
+                ? lockerData.data.map((locker) => ({
+                    id: locker.locker_id,
+                    locker_number: locker.locker_code,
                   }))
                 : []
             }

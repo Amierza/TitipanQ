@@ -92,7 +92,7 @@ const LockerSection = () => {
 
   const confirmDelete = (locker: Locker) => {
     if (selectedLocker) {
-      deleteLocker(locker.locker_code);
+      deleteLocker(locker.locker_id);
     }
     setIsDeleteOpen(false);
   };
