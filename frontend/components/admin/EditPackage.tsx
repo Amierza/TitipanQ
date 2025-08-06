@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { getAllUserService } from "@/services/admin/user/getAllUser";
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import { getPackageService } from "@/services/admin/package/getDetailPackage";
-import { PackageStatus, PackageType } from "@/validation/package.schema";
-import PackageFormUpdate from "../package/package-form-update";
+} from '@/components/ui/breadcrumb';
+import { Separator } from '@/components/ui/separator';
+import { getAllUserService } from '@/services/admin/user/getAllUser';
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import { getPackageService } from '@/services/admin/package/getDetailPackage';
+import { PackageStatus, PackageType } from '@/validation/package.schema';
+import PackageFormUpdate from '../package/package-form-update';
+import { getAllLockerService } from '@/services/admin/locker/getAllLocker';
 
 const EditPackageSection = () => {
   const params = useParams();
@@ -24,12 +25,17 @@ const EditPackageSection = () => {
     error,
     isLoading,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: ['users'],
     queryFn: getAllUserService,
   });
 
+  const { data: lockerData } = useQuery({
+    queryKey: ['locker'],
+    queryFn: () => getAllLockerService({ pagination: false }),
+  });
+
   const { data: packageData } = useQuery({
-    queryKey: ["package", packageId],
+    queryKey: ['package', packageId],
     queryFn: () => getPackageService(packageId),
     enabled: !!packageId,
   });
@@ -78,6 +84,14 @@ const EditPackageSection = () => {
                   ? userData.data.map((user) => ({
                       id: user.user_id,
                       name: user.user_name,
+                    }))
+                  : []
+              }
+              lockers={
+                lockerData?.status
+                  ? lockerData.data.map((locker) => ({
+                      id: locker.locker_id,
+                      locker_number: locker.locker_code,
                     }))
                   : []
               }

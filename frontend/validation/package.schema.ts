@@ -77,6 +77,9 @@ export const UpdatePackageSchema = z.object({
     .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
   package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
   user_id: z.string().uuid({ message: 'User ID harus berupa UUID yang valid' }),
+  locker_id: z
+    .string()
+    .uuid({ message: 'Locker ID harus berupa UUID yang valid' }),
 });
 
 export const UpdateStatusPackages = z.object({
