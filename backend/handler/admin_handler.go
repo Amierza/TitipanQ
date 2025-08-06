@@ -238,15 +238,54 @@ func (ah *AdminHandler) TriggerExpire(ctx *gin.Context) {
 // Package
 func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	var payload dto.CreatePackageRequest
+
+	// Parse multipart form
 	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_MULTIPART_FORM, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
+	// Parse basic fields
 	payload.TrackingCode = ctx.PostForm("package_tracking_code")
 	payload.Description = ctx.PostForm("package_description")
+	payload.Type = entity.Type(ctx.PostForm("package_type"))
+	payload.SenderName = ctx.PostForm("package_sender_name")
+	payload.SenderPhoneNumber = ctx.PostForm("package_sender_phone_number")
+	payload.SenderAddress = ctx.PostForm("package_sender_address")
 
+	// Parse quantity
+	if quantityStr := ctx.PostForm("package_quantity"); quantityStr != "" {
+		if quantity64, err := strconv.ParseInt(quantityStr, 10, 64); err == nil {
+			payload.Quantity = int(quantity64)
+		} else {
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_QUANTITY, err.Error(), nil)
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+			return
+		}
+	}
+
+	// Parse user_id
+	userIDStr := ctx.PostForm("user_id")
+	userUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_UUID, "invalid user_id", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	payload.UserID = userUUID
+
+	// ✅ Parse locker_id (PERBAIKAN DARI KAMU LUPA)
+	lockerIDStr := ctx.PostForm("locker_id")
+	lockerUUID, err := uuid.Parse(lockerIDStr)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_UUID, "invalid locker_id", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	payload.LockerID = lockerUUID
+
+	// Handle file upload
 	fileHeader, err := ctx.FormFile("package_image")
 	if err == nil {
 		file, err := fileHeader.Open()
@@ -261,30 +300,7 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 		payload.FileReader = file
 	}
 
-	payload.Type = entity.Type(ctx.PostForm("package_type"))
-
-	if quantityStr := ctx.PostForm("package_quantity"); quantityStr != "" {
-		if quantity64, err := strconv.ParseInt(quantityStr, 10, 64); err == nil {
-			payload.Quantity = int(quantity64)
-		} else {
-			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_QUANTITY, err.Error(), nil)
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
-			return
-		}
-	}
-
-	payload.SenderName = ctx.PostForm("package_sender_name")
-	payload.SenderPhoneNumber = ctx.PostForm("package_sender_phone_number")
-	payload.SenderAddress = ctx.PostForm("package_sender_address")
-
-	userIDStr := ctx.PostForm("user_id")
-	payload.UserID, err = uuid.Parse(userIDStr)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_UUID, err.Error(), nil)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
-		return
-	}
-
+	// Call service
 	result, err := ah.adminService.CreatePackage(ctx, payload)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_PACKAGE, err.Error(), nil)
@@ -295,6 +311,7 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_PACKAGE, result)
 	ctx.JSON(http.StatusOK, res)
 }
+
 func (ah *AdminHandler) ReadAllPackage(ctx *gin.Context) {
 	paginationParam := ctx.DefaultQuery("pagination", "true")
 	usePagination := paginationParam != "false"
