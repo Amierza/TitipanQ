@@ -32,6 +32,9 @@ type Package struct {
 	LockerID uuid.UUID `gorm:"type:uuid;not null" json:"locker_id"`
 	Locker   Locker    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 
+	RecipientID *uuid.UUID `gorm:"type:uuid" json:"recipient_id"`
+	Recipient   Recipient  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"recipient"`
+
 	TimeStamp
 }
 

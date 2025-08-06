@@ -44,12 +44,12 @@ type (
 		UpdateCompany(ctx *gin.Context)
 		DeleteCompany(ctx *gin.Context)
 
-		// Sender
-		CreateSender(ctx *gin.Context)
-		ReadAllSender(ctx *gin.Context)
-		GetDetailSender(ctx *gin.Context)
-		UpdateSender(ctx *gin.Context)
-		DeleteSender(ctx *gin.Context)
+		// Recipient
+		CreateRecipient(ctx *gin.Context)
+		ReadAllRecipient(ctx *gin.Context)
+		GetDetailRecipient(ctx *gin.Context)
+		UpdateRecipient(ctx *gin.Context)
+		DeleteRecipient(ctx *gin.Context)
 
 		//Locker
 		CreateLocker(ctx *gin.Context)
@@ -239,14 +239,12 @@ func (ah *AdminHandler) TriggerExpire(ctx *gin.Context) {
 func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	var payload dto.CreatePackageRequest
 
-	// Parse multipart form
 	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_MULTIPART_FORM, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	// Parse basic fields
 	payload.TrackingCode = ctx.PostForm("package_tracking_code")
 	payload.Description = ctx.PostForm("package_description")
 	payload.Type = entity.Type(ctx.PostForm("package_type"))
@@ -254,7 +252,6 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	payload.SenderPhoneNumber = ctx.PostForm("package_sender_phone_number")
 	payload.SenderAddress = ctx.PostForm("package_sender_address")
 
-	// Parse quantity
 	if quantityStr := ctx.PostForm("package_quantity"); quantityStr != "" {
 		if quantity64, err := strconv.ParseInt(quantityStr, 10, 64); err == nil {
 			payload.Quantity = int(quantity64)
@@ -265,7 +262,6 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 		}
 	}
 
-	// Parse user_id
 	userIDStr := ctx.PostForm("user_id")
 	userUUID, err := uuid.Parse(userIDStr)
 	if err != nil {
@@ -275,7 +271,6 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	}
 	payload.UserID = userUUID
 
-	// ✅ Parse locker_id (PERBAIKAN DARI KAMU LUPA)
 	lockerIDStr := ctx.PostForm("locker_id")
 	lockerUUID, err := uuid.Parse(lockerIDStr)
 	if err != nil {
@@ -285,7 +280,6 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	}
 	payload.LockerID = lockerUUID
 
-	// Handle file upload
 	fileHeader, err := ctx.FormFile("package_image")
 	if err == nil {
 		file, err := fileHeader.Open()
@@ -300,7 +294,6 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 		payload.FileReader = file
 	}
 
-	// Call service
 	result, err := ah.adminService.CreatePackage(ctx, payload)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_PACKAGE, err.Error(), nil)
@@ -457,13 +450,22 @@ func (ah *AdminHandler) UpdateStatusPackages(ctx *gin.Context) {
 		payload.PackageIDs = append(payload.PackageIDs, parsedID)
 	}
 
-	// Panggil service
+	recipientIDStr := ctx.PostForm("recipient_id")
+	recipientID, err := uuid.Parse(recipientIDStr)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_PARSE_UUID, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	payload.RecipientID = recipientID
+
 	err = ah.adminService.UpdateStatusPackages(ctx, payload)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATE_STATUS_PACKAGES, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
+
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_STATUS_PACKAGES, nil)
 	ctx.JSON(http.StatusOK, res)
 }
@@ -594,40 +596,40 @@ func (ah *AdminHandler) DeleteCompany(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-// Sender
-func (ah *AdminHandler) CreateSender(ctx *gin.Context) {
-	var payload dto.CreateSenderRequest
+// Recipient
+func (ah *AdminHandler) CreateRecipient(ctx *gin.Context) {
+	var payload dto.CreateRecipientRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	result, err := ah.adminService.CreateSender(ctx, payload)
+	result, err := ah.adminService.CreateRecipient(ctx, payload)
 	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_SENDER, err.Error(), nil)
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATE_RECIPIENT, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_SENDER, result)
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_RECIPIENT, result)
 	ctx.JSON(http.StatusCreated, res)
 }
 
-func (ah *AdminHandler) ReadAllSender(ctx *gin.Context) {
+func (ah *AdminHandler) ReadAllRecipient(ctx *gin.Context) {
 	paginationParam := ctx.DefaultQuery("pagination", "true")
 	usePagination := paginationParam != "false"
 
 	if !usePagination {
 		// Tanpa pagination
-		result, err := ah.adminService.GetAllSender(ctx)
+		result, err := ah.adminService.GetAllRecipient(ctx)
 		if err != nil {
-			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_ALL_SENDERS, err.Error(), nil)
+			res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_ALL_RECIPIENTS, err.Error(), nil)
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 			return
 		}
 
-		res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_ALL_SENDERS, result)
+		res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_ALL_RECIPIENT, result)
 		ctx.JSON(http.StatusOK, res)
 		return
 	}
@@ -639,38 +641,38 @@ func (ah *AdminHandler) ReadAllSender(ctx *gin.Context) {
 		return
 	}
 
-	result, err := ah.adminService.GetAllSendersWithPagination(ctx.Request.Context(), payload)
+	result, err := ah.adminService.GetAllRecipientsWithPagination(ctx.Request.Context(), payload)
 	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_ALL_SENDERS, err.Error(), nil)
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_ALL_RECIPIENTS, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
 	res := utils.Response{
 		Status:   true,
-		Messsage: dto.MESSAGE_SUCCESS_GET_ALL_SENDERS,
+		Messsage: dto.MESSAGE_SUCCESS_GET_ALL_RECIPIENT,
 		Data:     result.Data,
 		Meta:     result.PaginationResponse,
 	}
 	ctx.JSON(http.StatusOK, res)
 }
 
-func (ah *AdminHandler) GetDetailSender(ctx *gin.Context) {
+func (ah *AdminHandler) GetDetailRecipient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
-	result, err := ah.adminService.GetSenderByID(ctx.Request.Context(), idStr)
+	result, err := ah.adminService.GetRecipientByID(ctx.Request.Context(), idStr)
 	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DETAIL_SENDER, err.Error(), nil)
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DETAIL_RECIPIENT, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_SENDER, result)
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_RECIPIENT, result)
 	ctx.JSON(http.StatusOK, res)
 }
 
-func (ah *AdminHandler) UpdateSender(ctx *gin.Context) {
+func (ah *AdminHandler) UpdateRecipient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
-	var payload dto.UpdateSenderRequest
+	var payload dto.UpdateRecipientRequest
 	payload.ID = idStr
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -679,35 +681,35 @@ func (ah *AdminHandler) UpdateSender(ctx *gin.Context) {
 		return
 	}
 
-	result, err := ah.adminService.UpdateSender(ctx, payload)
+	result, err := ah.adminService.UpdateRecipient(ctx, payload)
 	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATE_SENDER, err.Error(), nil)
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATE_RECIPIENT, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_SENDER, result)
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_RECIPIENT, result)
 	ctx.JSON(http.StatusOK, res)
 }
 
-func (ah *AdminHandler) DeleteSender(ctx *gin.Context) {
+func (ah *AdminHandler) DeleteRecipient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
-	var payload dto.DeleteSenderRequest
-	payload.SenderID = idStr
+	var payload dto.DeleteRecipientRequest
+	payload.RecipientID = idStr
 	if err := ctx.ShouldBind(&payload); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	result, err := ah.adminService.DeleteSender(ctx.Request.Context(), payload)
+	result, err := ah.adminService.DeleteRecipient(ctx.Request.Context(), payload)
 	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_DELETE_SENDER, err.Error(), nil)
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_DELETE_RECIPIENT, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_DELETE_SENDER, result)
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_DELETE_RECIPIENT, result)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -757,7 +759,7 @@ func (ah *AdminHandler) ReadAllLocker(ctx *gin.Context) {
 
 	result, err := ah.adminService.GetAllLockerWithPagination(ctx.Request.Context(), payload)
 	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_ALL_SENDERS, err.Error(), nil)
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_ALL_RECIPIENTS, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}

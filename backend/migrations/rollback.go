@@ -12,7 +12,7 @@ func Rollback(db *gorm.DB) error {
 		&entity.User{},
 		&entity.Company{},
 		&entity.Locker{},
-		&entity.Sender{},
+		&entity.Recipient{},
 		&entity.Permission{},
 		&entity.Role{},
 	}

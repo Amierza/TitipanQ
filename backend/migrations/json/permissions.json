@@ -116,27 +116,27 @@
   },
   {
     "permission_id": "a1b2c3d4-e5f6-4a7b-8c9d-012345678901",
-    "permission_endpoint": "/api/v1/admin/create-sender",
+    "permission_endpoint": "/api/v1/admin/create-recipient",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   },
   {
     "permission_id": "b2c3d4e5-f6a7-4b8c-9d0e-123456789012",
-    "permission_endpoint": "/api/v1/admin/get-all-sender",
+    "permission_endpoint": "/api/v1/admin/get-all-recipients",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   },
   {
     "permission_id": "c3d4e5f6-a7b8-4c9d-0e1f-234567890123",
-    "permission_endpoint": "/api/v1/admin/get-detil-sender/:id",
+    "permission_endpoint": "/api/v1/admin/get-detil-recipient/:id",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   },
   {
     "permission_id": "d4e5f6a7-b8c9-4d0e-1f2a-345678901234",
-    "permission_endpoint": "/api/v1/admin/update-sender/:id",
+    "permission_endpoint": "/api/v1/admin/update-recipient/:id",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   },
   {
     "permission_id": "e5f6a7b8-c9d0-4e1f-2a3b-456789012345",
-    "permission_endpoint": "/api/v1/admin/deleted-sender/:id",
+    "permission_endpoint": "/api/v1/admin/deleted-recipient/:id",
     "role_id": "d96b99e9-1346-49e5-920b-8eab44e2c6f4"
   },
   {
