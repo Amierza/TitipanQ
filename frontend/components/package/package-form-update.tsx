@@ -46,13 +46,19 @@ import { useEffect, useState } from 'react';
 
 interface PackageFormProps {
   users: { id: string; name: string }[];
+  lockers: { id: string; locker_number: string }[];
   initialPackage?: Partial<PackageSchemaType> & { package_id?: string };
 }
 
 type PackageSchemaType = z.infer<typeof UpdatePackageSchema>;
 
-const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
-  const [query, setQuery] = useState('');
+const PackageFormUpdate = ({
+  users,
+  lockers,
+  initialPackage,
+}: PackageFormProps) => {
+  const [userQuery, setUserQuery] = useState('');
+  const [lockerQuery, setLockerQuery] = useState('');
   const queryClient = useQueryClient();
   const router = useRouter();
   const methods = useForm<PackageSchemaType>({
@@ -67,6 +73,7 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
       package_description: initialPackage?.package_description || '',
       package_type: initialPackage?.package_type || PackageType.Document,
       user_id: initialPackage?.user_id || '',
+      locker_id: initialPackage?.locker_id || '',
       package_status: initialPackage?.package_status || PackageStatus.Received,
     },
   });
@@ -266,7 +273,7 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
                       value={selectedUser}
                       onChange={(user) => {
                         field.onChange(user?.id ?? '');
-                        setQuery(user?.name ?? '');
+                        setUserQuery(user?.name ?? '');
                       }}
                     >
                       <div className="relative">
@@ -275,7 +282,7 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
                           displayValue={(
                             user: { id: string; name: string } | null
                           ) => user?.name ?? ''}
-                          onChange={(e) => setQuery(e.target.value)}
+                          onChange={(e) => setUserQuery(e.target.value)}
                           placeholder="Search user…"
                         />
                         <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -285,7 +292,9 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
                       <ComboboxOptions className="mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5">
                         {users
                           .filter((u) =>
-                            u.name.toLowerCase().includes(query.toLowerCase())
+                            u.name
+                              .toLowerCase()
+                              .includes(userQuery.toLowerCase())
                           )
                           .map((u) => (
                             <ComboboxOption
@@ -328,22 +337,98 @@ const PackageFormUpdate = ({ users, initialPackage }: PackageFormProps) => {
             />
 
             <FormField
-              name="package_quantity"
+              name="locker_id"
               control={control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Quantity</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Write quantity of package here..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedLocker =
+                  lockers.find((u) => u.id === field.value) ?? null;
+                return (
+                  <FormItem>
+                    <FormLabel>Select locker</FormLabel>
+                    <Combobox
+                      value={selectedLocker}
+                      onChange={(locker) => {
+                        field.onChange(locker?.id ?? '');
+                        setLockerQuery(locker?.locker_number ?? '');
+                      }}
+                    >
+                      <div className="relative">
+                        <ComboboxInput
+                          className="w-full rounded-lg border px-3 py-2 text-sm"
+                          displayValue={(
+                            locker: { id: string; locker_number: string } | null
+                          ) => locker?.locker_number ?? ''}
+                          onChange={(e) => setLockerQuery(e.target.value)}
+                          placeholder="Search locker…"
+                        />
+                        <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                          <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                        </ComboboxButton>
+                      </div>
+                      <ComboboxOptions className="mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5">
+                        {lockers
+                          .filter((locker) =>
+                            locker.locker_number
+                              .toLowerCase()
+                              .includes(lockerQuery.toLowerCase())
+                          )
+                          .map((locker) => (
+                            <ComboboxOption
+                              key={locker.id}
+                              value={locker}
+                              className={({ active }) =>
+                                clsx(
+                                  'relative cursor-pointer select-none py-2 pl-10 pr-4',
+                                  active
+                                    ? 'bg-blue-100 text-blue-900'
+                                    : 'text-gray-900'
+                                )
+                              }
+                            >
+                              {({ selected }) => (
+                                <>
+                                  <span
+                                    className={clsx(
+                                      'block truncate',
+                                      selected && 'font-medium'
+                                    )}
+                                  >
+                                    {locker.locker_number}
+                                  </span>
+                                  {selected && (
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                      <CheckIcon className="h-5 w-5" />
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </ComboboxOption>
+                          ))}
+                      </ComboboxOptions>
+                    </Combobox>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </div>
+
+          <FormField
+            name="package_quantity"
+            control={control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantity</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Write quantity of package here..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <FormField
