@@ -1,28 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { imageUrl } from '@/config/api';
-import QrScanner from 'qr-scanner';
 import Webcam from 'react-webcam';
 import { Aperture } from 'lucide-react';
 
-interface UploadPackagePhotoProps {
+interface UpdatePackageCamera {
   photo: File | null;
   onChange: (file: File | null) => void;
   initialImageUrl?: string;
-  onChangeValue: (value: string) => void;
 }
 
-export default function UploadPackagePhoto({
+export default function UpdatePackageCamera({
   photo,
   onChange,
   initialImageUrl,
-  onChangeValue,
-}: UploadPackagePhotoProps) {
+}: UpdatePackageCamera) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const webcamRef = useRef<Webcam>(null);
@@ -43,22 +38,6 @@ export default function UploadPackagePhoto({
     const newPreview = URL.createObjectURL(file);
     setLocalPreview(newPreview);
     onChange(file);
-
-    try {
-      const result = await QrScanner.scanImage(file);
-
-      onChangeValue(result);
-    } catch (err: any) {
-      console.warn(`${err}: QR code not found, skipping...`);
-      onChangeValue('');
-    }
-  };
-
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await processFile(file);
-    }
   };
 
   const handleCapture = async () => {
@@ -68,7 +47,7 @@ export default function UploadPackagePhoto({
 
     const res = await fetch(imageSrc);
     const blob = await res.blob();
-    const file = new File([blob], 'webcam.png', { type: 'image/png' });
+    const file = new File([blob], 'UpdatePackage.png', { type: 'image/png' });
 
     await processFile(file);
     setShowCamera(false);
@@ -80,7 +59,6 @@ export default function UploadPackagePhoto({
     }
     setLocalPreview(null);
     onChange(null);
-    onChangeValue('');
   };
 
   const previewUrl =
@@ -90,28 +68,7 @@ export default function UploadPackagePhoto({
 
   return (
     <div className="space-y-3">
-      <Label>Upload Foto Package</Label>
-      <Input type="file" accept="image/*" onChange={handleFileInput} />
-
-      <div className="flex gap-4 items-center">
-        <button
-          type="button"
-          onClick={() => setShowCamera(!showCamera)}
-          className="text-sm border px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer border-gray-500"
-        >
-          {showCamera ? 'Tutup Kamera' : 'Ambil dari Kamera'}
-        </button>
-
-        {previewUrl && (
-          <button
-            type="button"
-            onClick={handleRemoveImage}
-            className="text-sm border px-3 py-1 rounded text-white font-semibold bg-red-500 hover:bg-red-600 cursor-pointer"
-          >
-            Hapus Gambar
-          </button>
-        )}
-      </div>
+      <Label>Update Status Package</Label>
 
       {showCamera && (
         <div className="space-y-2 flex flex-col items-center">
@@ -142,6 +99,26 @@ export default function UploadPackagePhoto({
           className="w-32 h-32 object-cover rounded-md border"
         />
       )}
+
+      <div className="flex gap-4 items-center">
+        <button
+          type="button"
+          onClick={() => setShowCamera(!showCamera)}
+          className="text-sm border px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer border-gray-500"
+        >
+          {showCamera ? 'Tutup Kamera' : 'Ambil dari Kamera'}
+        </button>
+
+        {previewUrl && (
+          <button
+            type="button"
+            onClick={handleRemoveImage}
+            className="text-sm border px-3 py-1 rounded text-white font-semibold bg-red-500 hover:bg-red-600 cursor-pointer"
+          >
+            Hapus Gambar
+          </button>
+        )}
+      </div>
     </div>
   );
 }

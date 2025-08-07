@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAllPackageService } from '@/services/admin/package/getAllPackage';
+import { getAllPackageWithoutPaginationService } from '@/services/admin/package/getAllPackage';
 import { deletePackageService } from '@/services/admin/package/deletePackage';
 import { imageUrl } from '@/config/api';
 import { toast } from 'sonner';
@@ -30,18 +30,19 @@ const HistoryTable = ({
   searchQuery,
   statusFilter,
   companyFilter,
+  selectedPackageId,
   onSelectionChange,
 }: {
   searchQuery?: string;
   statusFilter?: string;
   companyFilter?: string;
+  selectedPackageId: string[];
   onSelectionChange?: (selectedIds: string[]) => void;
 }) => {
   const query = searchQuery?.toLowerCase() || '';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [selectedPackageId, setSelectedPackageId] = useState<string[]>([]);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const router = useRouter();
 
@@ -49,7 +50,7 @@ const HistoryTable = ({
 
   const { data: packageData } = useQuery({
     queryKey: ['packageData'],
-    queryFn: () => getAllPackageService({ page: 1, per_page: 9999 }),
+    queryFn: getAllPackageWithoutPaginationService,
   });
 
   const { mutate: deletePackage } = useMutation({
@@ -66,10 +67,11 @@ const HistoryTable = ({
   if (!packageData) return <p>Loading...</p>;
   if (packageData.status === false) return <p>Failed to fetch data</p>;
 
-  const filteredData = packageData.data.filter((pkg) => {
+  const packages = packageData?.data || [];
+  const filteredData = packages.filter((pkg) => {
     const matchesSearchFilter =
       !query ||
-      pkg.user.user_name.toLowerCase().includes(query) ||
+      pkg.user?.user_name.toLowerCase().includes(query) ||
       pkg.package_description.toLowerCase().includes(query) ||
       pkg.package_tracking_code.toLowerCase().includes(query);
 
@@ -79,7 +81,7 @@ const HistoryTable = ({
         : pkg.package_status.toLowerCase() === statusFilter.toLowerCase();
 
     const matchesCompanyFilter = companyFilter
-      ? pkg.user.company.company_name.toLowerCase() ===
+      ? pkg.user?.company?.company_name.toLowerCase() ===
         companyFilter.toLowerCase()
       : true;
 
@@ -141,7 +143,6 @@ const HistoryTable = ({
                               (id) => id !== pkg.package_id
                             );
 
-                        setSelectedPackageId(updateSelection);
                         onSelectionChange?.(updateSelection);
                       }}
                       className="cursor-pointer"

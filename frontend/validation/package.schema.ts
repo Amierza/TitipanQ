@@ -82,10 +82,21 @@ export const UpdatePackageSchema = z.object({
     .uuid({ message: 'Locker ID harus berupa UUID yang valid' }),
 });
 
-export const UpdateStatusPackages = z.object({
+export const UpdateStatusPackagesSchema = z.object({
   package_ids: z
     .array(z.string(), {
       required_error: 'Package IDs wajib ada',
     })
     .min(1, { message: 'Paket yang diperbarui setidaknya berjumlah 1' }),
+  proof_image: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, {
+      message: 'Gambar tidak boleh kosong',
+    })
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: 'Ukuran gambar maksimal 5MB',
+    }),
+  recipient_id: z
+    .string()
+    .uuid({ message: 'User ID harus berupa UUID yang valid' }),
 });
