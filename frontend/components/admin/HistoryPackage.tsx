@@ -37,19 +37,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getAllCompanyService } from '@/services/admin/company/getAllCompany';
 import { useRouter } from 'next/navigation';
 import QrScannerModal from '../package/package-open-camera';
-import { updateStatusPackagesService } from '@/services/admin/package/updateStatusPackages';
-import { toast } from 'sonner';
+import UpdateStatusPackageModal from '../package/UpdatePackageModal';
 
 const HistoryPackageSection = () => {
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string[]>([]);
   const [openCameraModal, setOpenCameraModal] = useState(false);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [companyFilter, setCompanyFilter] = useState<string | undefined>();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
@@ -60,26 +59,20 @@ const HistoryPackageSection = () => {
     queryFn: getAllCompanyService,
   });
 
-  const { mutate: updateStatusPackages } = useMutation({
-    mutationFn: updateStatusPackagesService,
-    onSuccess: (result) => {
-      if (result.status) {
-        toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ['packageData'] });
-      } else {
-        toast.error(result.error);
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
   if (!companyData) return <p>Failed to fetch company data</p>;
   if (!companyData.status) return <p>Failed to fetch company data</p>;
 
   const openCamera = () => {
     setOpenCameraModal(true);
+  };
+
+  const handleRemoveSelectedPackage = (packageId: string) => {
+    const updatedSelected = selectedId.filter((id) => id !== packageId);
+    setSelectedId(updatedSelected);
+
+    if (updatedSelected.length === 0) {
+      setOpenUpdateModal(false);
+    }
   };
 
   return (
@@ -135,9 +128,7 @@ const HistoryPackageSection = () => {
                 disabled={selectedId.length === 0}
                 variant={'ghost'}
                 className="cursor-pointer bg-green-500 hover:bg-green-600"
-                onClick={() =>
-                  updateStatusPackages({ package_ids: selectedId })
-                }
+                onClick={() => setOpenUpdateModal(true)}
               >
                 Update Package
               </Button>
@@ -242,7 +233,7 @@ const HistoryPackageSection = () => {
                             <Check
                               className={cn(
                                 'ml-auto',
-                                value === company.company_id
+                                value === company.company_name
                                   ? 'opacity-100'
                                   : 'opacity-0'
                               )}
@@ -263,6 +254,7 @@ const HistoryPackageSection = () => {
               searchQuery={searchQuery}
               statusFilter={statusFilter}
               companyFilter={companyFilter}
+              selectedPackageId={selectedId}
               onSelectionChange={setSelectedId}
             />
           </div>
@@ -273,8 +265,19 @@ const HistoryPackageSection = () => {
         open={openCameraModal}
         onClose={() => setOpenCameraModal(false)}
         onScanSuccess={(result) => {
-          setSearchQuery(result); // misalnya langsung cari dengan QR hasil
+          setSearchQuery(result);
         }}
+      />
+
+      <UpdateStatusPackageModal
+        isOpen={openUpdateModal}
+        onClose={() => setOpenUpdateModal(false)}
+        onConfirm={() => {
+          setSelectedId([]);
+          setOpenUpdateModal(false);
+        }}
+        selectedPackage={selectedId}
+        onRemove={handleRemoveSelectedPackage}
       />
     </SidebarInset>
   );

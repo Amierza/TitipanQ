@@ -127,7 +127,7 @@ export default function PackageForm({
         <div className="p-4 border border-gray-300 rounded-lg space-y-3">
           <h3 className="font-semibold text-sm">Sender</h3>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               <FormField
                 name="package_sender_name"
                 control={control}
