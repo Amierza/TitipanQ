@@ -54,7 +54,7 @@ Kami akan segera memprosesnya.`,
 		p.Description,
 		p.Quantity,
 		p.Type,
-		p.SenderName,
+		p.Sender.Name,
 	)
 }
 
@@ -90,6 +90,6 @@ Silakan hubungi kantor TitipanQ untuk informasi lebih lanjut.`,
 		p.Description,
 		p.Quantity,
 		p.Type,
-		p.SenderName,
+		p.Sender.Name,
 	)
 }

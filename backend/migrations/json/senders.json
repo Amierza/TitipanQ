@@ -1,0 +1,62 @@
+[
+  {
+    "sender_id": "e7d69c64-0ac7-45c2-9798-cc04d35a9631",
+    "sender_name": "PT. Logistik Cepat",
+    "sender_phone_number": "081234567890",
+    "sender_address": "Jl. Raya Jakarta No. 1, Jakarta Pusat"
+  },
+  {
+    "sender_id": "d11a8a37-b022-49e6-80fc-62ad8c887bd7",
+    "sender_name": "PT. Ekspedisi Aman",
+    "sender_phone_number": "082345678901",
+    "sender_address": "Jl. Sudirman No. 5, Jakarta Selatan"
+  },
+  {
+    "sender_id": "9b6cf41e-8b94-4a96-a6f8-761e6d6f3f0b",
+    "sender_name": "CV. Kirim Kilat",
+    "sender_phone_number": "083456789012",
+    "sender_address": "Jl. Asia Afrika No. 10, Bandung"
+  },
+  {
+    "sender_id": "a38f21d9-cc17-45b8-8787-c7dd1fa1d28a",
+    "sender_name": "PT. Niaga Digital Indonesia",
+    "sender_phone_number": "085678901234",
+    "sender_address": "Jl. Gatot Subroto Kav. 3, Jakarta Selatan"
+  },
+  {
+    "sender_id": "4c86db95-29f9-4b12-8fd0-9f33c835537b",
+    "sender_name": "PT. Sentra Pangan Nusantara",
+    "sender_phone_number": "087890123456",
+    "sender_address": "Jl. Merdeka No. 20, Surabaya"
+  },
+  {
+    "sender_id": "97e5f3d7-bc4d-407f-9b4b-30de442171e1",
+    "sender_name": "CV. Elektronik Jaya",
+    "sender_phone_number": "088901234567",
+    "sender_address": "Jl. Kebon Sirih No. 15, Jakarta Pusat"
+  },
+  {
+    "sender_id": "a33bb08d-6e93-4428-937f-b5f73a4783ce",
+    "sender_name": "PT. Fashion Global",
+    "sender_phone_number": "089012345678",
+    "sender_address": "Jl. K.H. Wahid Hasyim No. 30, Jakarta Pusat"
+  },
+  {
+    "sender_id": "3d1f66ef-8a12-478a-9255-8721e930dd8b",
+    "sender_name": "PT. Medika Sehat",
+    "sender_phone_number": "081122334455",
+    "sender_address": "Jl. Jendral Sudirman Kav. 50, Jakarta Pusat"
+  },
+  {
+    "sender_id": "e5e3a31f-fec9-4a04-bd7f-53a818e1ed2d",
+    "sender_name": "CV. Bahan Bangunan Makmur",
+    "sender_phone_number": "081223344556",
+    "sender_address": "Jl. Pahlawan No. 45, Semarang"
+  },
+  {
+    "sender_id": "b33ac1d9-d037-4349-b12f-9a354c1a8a18",
+    "sender_name": "PT. Agro Jaya Sentosa",
+    "sender_phone_number": "082334455667",
+    "sender_address": "Jl. Diponegoro No. 7, Yogyakarta"
+  }
+]

@@ -10,6 +10,7 @@ func Migrate(db *gorm.DB) error {
 		&entity.Role{},
 		&entity.Permission{},
 		&entity.Company{},
+		&entity.Sender{},
 		&entity.User{},
 		&entity.Locker{},
 		&entity.Recipient{},
