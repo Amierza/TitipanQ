@@ -3,7 +3,7 @@ import { Meta, SuccessResponse } from './sucess';
 export type Sender = {
   sender_id: string;
   sender_name: string;
-  sender_email: string;
+  sender_address: string;
   sender_phone_number: string;
 };
 

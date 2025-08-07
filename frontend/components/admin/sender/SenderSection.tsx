@@ -167,23 +167,21 @@ const SenderSection = () => {
                           <User className="w-4 h-4 text-gray-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {sender.sender_name || 'Andi Prakasa'}
+                          {sender.sender_name}
                         </h3>
                       </div>
 
                       {/* Contact Information */}
                       <div className="space-y-1 pl-10">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Mail className="w-4 h-4 flex-shrink-0" />
-                          <span className="truncate">
-                            {sender.sender_email || 'andiprakasa@gmail.com'}
+                        <div className="flex items-start gap-3 text-sm text-gray-600">
+                          <Mail className="w-5 h-5 flex-shrink-0" />
+                          <span className="truncate text-wrap">
+                            {sender.sender_address}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Phone className="w-4 h-4 flex-shrink-0" />
-                          <span>
-                            {sender.sender_phone_number || '089238934893'}
-                          </span>
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                          <Phone className="w-5 h-5 flex-shrink-0" />
+                          <span>{sender.sender_phone_number}</span>
                         </div>
                       </div>
                     </div>

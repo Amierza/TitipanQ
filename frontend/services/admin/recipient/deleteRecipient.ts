@@ -2,23 +2,16 @@
 import { baseUrl } from '@/config/api';
 import axiosAdminConfig from '@/services/auth/auth.config';
 import { ErrorResponse } from '@/types/error';
-import { AllSenderResponse } from '@/types/sender.type';
+import { RecipientResponse } from '@/types/recipient.type';
 import { AxiosError } from 'axios';
 
-export const getSenderService = async ({
-  page,
-  pagination = true,
-}: {
-  page?: number;
-  pagination?: boolean;
-} = {}): Promise<AllSenderResponse | ErrorResponse> => {
+export const deleteRecipientService = async (
+  recipientId: string
+): Promise<RecipientResponse | ErrorResponse> => {
   const token = localStorage.getItem('access_token');
-
   try {
-    const queryParams = pagination ? `?page=${page || 1}` : `?pagination=false`;
-
-    const response = await axiosAdminConfig.get(
-      `${baseUrl}/admin/get-all-senders${queryParams}`,
+    const response = await axiosAdminConfig.delete(
+      `${baseUrl}/admin/deleted-recipient/${recipientId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -28,7 +21,7 @@ export const getSenderService = async ({
     );
 
     if (response.status === 200) {
-      return response.data as AllSenderResponse;
+      return response.data as RecipientResponse;
     } else {
       return response.data as ErrorResponse;
     }
@@ -39,7 +32,7 @@ export const getSenderService = async ({
       status: false,
       message:
         axiosError.response?.data?.message ||
-        'Terjadi kesalahan saat melakukan pengambilan data sender.',
+        'Terjadi kesalahan saat melakukan hapus data penerima.',
       timestamp: new Date().toISOString(),
       error: axiosError.message || 'Unknown error',
     };

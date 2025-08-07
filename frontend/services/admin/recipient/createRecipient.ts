@@ -2,33 +2,30 @@
 import { baseUrl } from '@/config/api';
 import axiosAdminConfig from '@/services/auth/auth.config';
 import { ErrorResponse } from '@/types/error';
-import { AllSenderResponse } from '@/types/sender.type';
+import { RecipientResponse } from '@/types/recipient.type';
+import { RecipientSchema } from '@/validation/recipient.schema';
 import { AxiosError } from 'axios';
+import { z } from 'zod';
 
-export const getSenderService = async ({
-  page,
-  pagination = true,
-}: {
-  page?: number;
-  pagination?: boolean;
-} = {}): Promise<AllSenderResponse | ErrorResponse> => {
+export const createRecipientService = async (
+  data: z.infer<typeof RecipientSchema>
+): Promise<RecipientResponse | ErrorResponse> => {
   const token = localStorage.getItem('access_token');
-
   try {
-    const queryParams = pagination ? `?page=${page || 1}` : `?pagination=false`;
-
-    const response = await axiosAdminConfig.get(
-      `${baseUrl}/admin/get-all-senders${queryParams}`,
+    const response = await axiosAdminConfig.post(
+      `${baseUrl}/admin/create-recipient`,
+      data,
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
           Accept: 'application/json',
         },
       }
     );
 
     if (response.status === 200) {
-      return response.data as AllSenderResponse;
+      return response.data as RecipientResponse;
     } else {
       return response.data as ErrorResponse;
     }
@@ -39,7 +36,7 @@ export const getSenderService = async ({
       status: false,
       message:
         axiosError.response?.data?.message ||
-        'Terjadi kesalahan saat melakukan pengambilan data sender.',
+        'Terjadi kesalahan saat melakukan pembuatan data penerima.',
       timestamp: new Date().toISOString(),
       error: axiosError.message || 'Unknown error',
     };

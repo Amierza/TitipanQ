@@ -102,6 +102,7 @@ const EditPackageSection = () => {
                   ? packageDetail.package_type
                   : PackageType.Other,
                 user_id: packageDetail.user.user_id,
+                locker_id: packageDetail.locker.locker_id,
                 package_status: packageDetail.package_status as PackageStatus,
               }}
             />

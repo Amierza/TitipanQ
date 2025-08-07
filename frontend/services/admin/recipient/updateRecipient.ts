@@ -1,34 +1,35 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseUrl } from '@/config/api';
-import axiosAdminConfig from '@/services/auth/auth.config';
 import { ErrorResponse } from '@/types/error';
-import { AllSenderResponse } from '@/types/sender.type';
 import { AxiosError } from 'axios';
+import { z } from 'zod';
+import axiosAdminConfig from '@/services/auth/auth.config';
+import { RecipientSchema } from '@/validation/recipient.schema';
+import { RecipientResponse } from '@/types/recipient.type';
 
-export const getSenderService = async ({
-  page,
-  pagination = true,
+export const updateRecipientService = async ({
+  recipientId,
+  data,
 }: {
-  page?: number;
-  pagination?: boolean;
-} = {}): Promise<AllSenderResponse | ErrorResponse> => {
+  recipientId: string;
+  data: Partial<z.infer<typeof RecipientSchema>>;
+}): Promise<RecipientResponse | ErrorResponse> => {
   const token = localStorage.getItem('access_token');
-
   try {
-    const queryParams = pagination ? `?page=${page || 1}` : `?pagination=false`;
-
-    const response = await axiosAdminConfig.get(
-      `${baseUrl}/admin/get-all-senders${queryParams}`,
+    const response = await axiosAdminConfig.patch(
+      `${baseUrl}/admin/update-recipient/${recipientId}`,
+      data,
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
           Accept: 'application/json',
         },
       }
     );
 
     if (response.status === 200) {
-      return response.data as AllSenderResponse;
+      return response.data as RecipientResponse;
     } else {
       return response.data as ErrorResponse;
     }
@@ -39,7 +40,7 @@ export const getSenderService = async ({
       status: false,
       message:
         axiosError.response?.data?.message ||
-        'Terjadi kesalahan saat melakukan pengambilan data sender.',
+        'Terjadi kesalahan saat melakukan pembaruan data penerima.',
       timestamp: new Date().toISOString(),
       error: axiosError.message || 'Unknown error',
     };
