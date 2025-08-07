@@ -21,35 +21,35 @@ import {
 } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Sender } from '@/types/sender.type';
-import { SenderSchema } from '@/validation/sender.schema';
-import { createSenderService } from '@/services/admin/sender/createSender';
-import { updateSenderService } from '@/services/admin/sender/updateSender';
+import { Recipient } from '@/types/recipient.type';
+import { RecipientSchema } from '@/validation/recipient.schema';
+import { updateRecipientService } from '@/services/admin/recipient/updateRecipient';
+import { createRecipientService } from '@/services/admin/recipient/createRecipient';
 
 interface SenderFormProps {
   isOpen: boolean;
   onClose: () => void;
-  sender: Sender | null;
+  recipient: Recipient | null;
 }
 
-const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
+const RecipientForm = ({ isOpen, onClose, recipient }: SenderFormProps) => {
   const queryClient = useQueryClient();
-  const form = useForm<z.infer<typeof SenderSchema>>({
-    resolver: zodResolver(SenderSchema),
+  const form = useForm<z.infer<typeof RecipientSchema>>({
+    resolver: zodResolver(RecipientSchema),
     mode: 'onChange',
     defaultValues: {
-      sender_name: sender?.sender_name || '',
-      sender_phone_number: sender?.sender_phone_number || '',
-      sender_address: sender?.sender_address || '',
+      recipient_name: recipient?.recipient_name || '',
+      recipient_phone_number: recipient?.recipient_phone_number || '',
+      recipient_email: recipient?.recipient_email || '',
     },
   });
 
-  const { mutate: createSender, isPending: isCreating } = useMutation({
-    mutationFn: createSenderService,
+  const { mutate: createRecipient, isPending: isCreating } = useMutation({
+    mutationFn: createRecipientService,
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ['sender'] });
+        queryClient.invalidateQueries({ queryKey: ['recipient'] });
         onClose();
       } else {
         toast.error(result.message);
@@ -60,12 +60,12 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
     },
   });
 
-  const { mutate: updateSender, isPending: isUpdating } = useMutation({
-    mutationFn: updateSenderService,
+  const { mutate: updateRecipient, isPending: isUpdating } = useMutation({
+    mutationFn: updateRecipientService,
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ['sender'] });
+        queryClient.invalidateQueries({ queryKey: ['recipient'] });
         onClose();
       } else {
         toast.error(result.message);
@@ -76,17 +76,17 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof SenderSchema>) => {
-    if (sender?.sender_id) {
+  const onSubmit = (values: z.infer<typeof RecipientSchema>) => {
+    if (recipient?.recipient_id) {
       const diff = Object.fromEntries(
         Object.entries(values).filter(
-          ([key, val]) => val !== (sender as any)[key]
+          ([key, val]) => val !== (recipient as any)[key]
         )
       ) as Partial<typeof values>;
 
-      updateSender({ senderId: sender.sender_id, data: diff });
+      updateRecipient({ recipientId: recipient.recipient_id, data: diff });
     } else {
-      createSender(values);
+      createRecipient(values);
     }
   };
 
@@ -94,13 +94,15 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{sender ? 'Edit Sender' : 'Add New Sender'}</DialogTitle>
+          <DialogTitle>
+            {recipient ? 'Edit Recipient' : 'Add New Recipient'}
+          </DialogTitle>
         </DialogHeader>
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="sender_name"
+              name="recipient_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
@@ -114,12 +116,16 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
 
             <FormField
               control={form.control}
-              name="sender_phone_number"
+              name="recipient_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="08**********" type="tel" {...field} />
+                    <Input
+                      placeholder="jokosusilo@gmail.com"
+                      type="email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,16 +134,12 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
 
             <FormField
               control={form.control}
-              name="sender_address"
+              name="recipient_phone_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Jalan Ahmad Yani no.123, Surabaya"
-                      type="text"
-                      {...field}
-                    />
+                    <Input placeholder="08**********" type="tel" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,7 +152,7 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
                 type="submit"
                 className="cursor-pointer"
               >
-                {sender ? 'Update' : 'Create'}
+                {recipient ? 'Update' : 'Create'}
               </Button>
             </div>
           </form>
@@ -160,4 +162,4 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
   );
 };
 
-export default SenderForm;
+export default RecipientForm;
