@@ -40,7 +40,7 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
     defaultValues: {
       sender_name: sender?.sender_name || '',
       sender_phone_number: sender?.sender_phone_number || '',
-      sender_email: sender?.sender_email || '',
+      sender_address: sender?.sender_address || '',
     },
   });
 
@@ -114,7 +114,7 @@ const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {
 
             <FormField
               control={form.control}
-              name="sender_email"
+              name="sender_address"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>

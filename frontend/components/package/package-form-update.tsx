@@ -120,6 +120,7 @@ const PackageFormUpdate = ({
         package_quantity: packageData.data.package_quantity.toString() ?? '',
         package_description: packageData.data.package_description ?? '',
         user_id: packageData.data.user?.user_id ?? '',
+        locker_id: packageData.data.locker.locker_id ?? '',
         package_type:
           (packageData.data.package_type as PackageType) ??
           PackageType.Document,
