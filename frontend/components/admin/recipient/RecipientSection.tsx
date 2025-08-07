@@ -20,40 +20,42 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getSenderService } from '@/services/admin/sender/getAllSender';
-import { Sender } from '@/types/sender.type';
-import { deleteSenderService } from '@/services/admin/sender/deleteSender';
 import { toast } from 'sonner';
-import SenderDeleteConfirmation from './SenderDeleteConfirmation';
-import { MapPin, Pencil, Phone, Trash2, User } from 'lucide-react';
-import SenderForm from './SenderForm';
+import { Mail, Pencil, Phone, Trash2, User } from 'lucide-react';
+import { getAllRecipientService } from '@/services/admin/recipient/getAllRecipient';
+import { deleteRecipientService } from '@/services/admin/recipient/deleteRecipient';
+import { Recipient } from '@/types/recipient.type';
+import RecipientForm from './RecipientForm';
+import RecipientDeleteConfirmation from './RecipientDeleteConfirmation';
 
-const SenderSection = () => {
+const RecipientSection = () => {
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSender, setSelectedSender] = useState<Sender | null>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
+    null
+  );
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const { data: senderData } = useQuery({
-    queryKey: ['sender', { page, pagination: true }],
+  const { data: recipientData } = useQuery({
+    queryKey: ['recipient', { page, pagination: true }],
     queryFn: ({ queryKey }) => {
       const [, rawParams] = queryKey;
 
       if (typeof rawParams === 'object' && rawParams !== null) {
-        return getSenderService(rawParams);
+        return getAllRecipientService(rawParams);
       }
-      return getSenderService();
+      return getAllRecipientService();
     },
   });
 
-  const { mutate: deleteSender } = useMutation({
-    mutationFn: deleteSenderService,
+  const { mutate: deleteRecipient } = useMutation({
+    mutationFn: deleteRecipientService,
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ['sender'] });
+        queryClient.invalidateQueries({ queryKey: ['recipient'] });
       } else {
         toast.error(result.message);
       }
@@ -63,40 +65,36 @@ const SenderSection = () => {
     },
   });
 
-  if (!senderData) return <p>Failed to fetch sender data</p>;
-  if (!senderData.status) return <p>Failed to fetch sender data</p>;
+  if (!recipientData) return <p>Failed to fetch recipient data</p>;
+  if (!recipientData.status) return <p>Failed to fetch recipient data</p>;
 
-  const handleCreate = () => {
-    setSelectedSender(null);
+  const handleEdit = (recipient: Recipient) => {
+    setSelectedRecipient(recipient);
     setIsFormOpen(true);
   };
 
-  const handleEdit = (sender: Sender) => {
-    setSelectedSender(sender);
-    setIsFormOpen(true);
-  };
-
-  const handleDelete = (sender: Sender) => {
-    setSelectedSender(sender);
+  const handleDelete = (recipient: Recipient) => {
+    setSelectedRecipient(recipient);
     setIsDeleteOpen(true);
   };
 
-  const confirmDelete = (sender: Sender) => {
-    if (selectedSender) {
-      deleteSender(sender.sender_id);
+  const confirmDelete = (recipient: Recipient) => {
+    if (selectedRecipient) {
+      deleteRecipient(recipient.recipient_id);
     }
     setIsDeleteOpen(false);
   };
 
-  const filteredData = senderData.data.filter((sender) => {
+  const filteredData = recipientData.data.filter((recipient) => {
     return (
-      !searchQuery || sender.sender_name.toLowerCase().includes(searchQuery)
+      !searchQuery ||
+      recipient.recipient_name.toLowerCase().includes(searchQuery)
     );
   });
 
   const paginatedData = filteredData.slice(
-    (page - 1) * senderData.meta.per_page,
-    page * senderData.meta.per_page
+    (page - 1) * recipientData.meta.per_page,
+    page * recipientData.meta.per_page
   );
 
   return (
@@ -111,7 +109,7 @@ const SenderSection = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">List Sender</BreadcrumbLink>
+              <BreadcrumbLink href="#">List Recipient</BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -124,17 +122,11 @@ const SenderSection = () => {
             {/* Title + Deskripsi */}
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                List Sender
+                List Recipient
               </h1>
               <p className="text-gray-600">
-                View senders whose packages have been sent
+                View recipient whose packages have been received
               </p>
-            </div>
-
-            <div className="flex gap-4">
-              <Button className="cursor-pointer" onClick={handleCreate}>
-                + Add New Sender
-              </Button>
             </div>
           </div>
 
@@ -153,9 +145,9 @@ const SenderSection = () => {
 
           {paginatedData.length > 0 ? (
             <div className="grid grid-cols-3 gap-4">
-              {paginatedData.map((sender) => (
+              {paginatedData.map((recipient) => (
                 <div
-                  key={sender.sender_id}
+                  key={recipient.recipient_id}
                   className="group border border-gray-200 rounded-lg px-4 py-4 hover:shadow-md hover:border-gray-300 transition-all duration-200 bg-white"
                 >
                   <div className="flex items-center justify-between">
@@ -167,21 +159,21 @@ const SenderSection = () => {
                           <User className="w-4 h-4 text-gray-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {sender.sender_name}
+                          {recipient.recipient_name}
                         </h3>
                       </div>
 
                       {/* Contact Information */}
                       <div className="space-y-1 pl-10">
                         <div className="flex items-start gap-3 text-sm text-gray-600">
-                          <MapPin className="w-5 h-5 flex-shrink-0" />
+                          <Mail className="w-5 h-5 flex-shrink-0" />
                           <span className="truncate text-wrap">
-                            {sender.sender_address}
+                            {recipient.recipient_email}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-gray-600">
                           <Phone className="w-5 h-5 flex-shrink-0" />
-                          <span>{sender.sender_phone_number}</span>
+                          <span>{recipient.recipient_phone_number}</span>
                         </div>
                       </div>
                     </div>
@@ -191,7 +183,7 @@ const SenderSection = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEdit(sender)}
+                        onClick={() => handleEdit(recipient)}
                         className="cursor-pointer bg-amber-400 hover:bg-amber-500 text-white hover:text-white p-2 rounded-md opacity-70 group-hover:opacity-100 transition-opacity"
                         aria-label="Edit sender"
                       >
@@ -200,7 +192,7 @@ const SenderSection = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(sender)}
+                        onClick={() => handleDelete(recipient)}
                         className="cursor-pointer bg-red-500 hover:bg-red-600 text-white hover:text-white p-2 rounded-md opacity-70 group-hover:opacity-100 transition-opacity"
                         aria-label="Delete sender"
                       >
@@ -217,7 +209,7 @@ const SenderSection = () => {
             </p>
           )}
 
-          {senderData.meta.max_page > 1 && (
+          {recipientData.meta.max_page > 1 && (
             <div className="mt-4">
               <Pagination>
                 <PaginationContent>
@@ -229,7 +221,7 @@ const SenderSection = () => {
                   </PaginationItem>
 
                   {Array.from(
-                    { length: senderData.meta.max_page },
+                    { length: recipientData.meta.max_page },
                     (_, index) => (
                       <PaginationItem key={index}>
                         <PaginationLink
@@ -247,7 +239,7 @@ const SenderSection = () => {
                     <PaginationNext
                       className="cursor-pointer"
                       onClick={() =>
-                        page < senderData.meta.max_page &&
+                        page < recipientData.meta.max_page &&
                         setPage((prev) => prev + 1)
                       }
                     />
@@ -257,20 +249,20 @@ const SenderSection = () => {
             </div>
           )}
 
-          <SenderForm
-            key={selectedSender?.sender_id ?? 'new'}
+          <RecipientForm
+            key={selectedRecipient?.recipient_id ?? 'new'}
             isOpen={isFormOpen}
             onClose={() => setIsFormOpen(false)}
-            sender={selectedSender}
+            recipient={selectedRecipient}
           />
 
-          <SenderDeleteConfirmation
+          <RecipientDeleteConfirmation
             isOpen={isDeleteOpen}
             onClose={() => setIsDeleteOpen(false)}
             onConfirm={() => {
-              if (selectedSender) confirmDelete(selectedSender);
+              if (selectedRecipient) confirmDelete(selectedRecipient);
             }}
-            sender={selectedSender}
+            recipient={selectedRecipient}
           />
         </div>
       </div>
@@ -278,4 +270,4 @@ const SenderSection = () => {
   );
 };
 
-export default SenderSection;
+export default RecipientSection;
