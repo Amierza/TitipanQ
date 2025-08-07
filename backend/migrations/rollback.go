@@ -11,6 +11,7 @@ func Rollback(db *gorm.DB) error {
 		&entity.Package{},
 		&entity.User{},
 		&entity.Company{},
+		&entity.Sender{},
 		&entity.Locker{},
 		&entity.Recipient{},
 		&entity.Permission{},

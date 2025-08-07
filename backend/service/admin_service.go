@@ -70,6 +70,14 @@ type (
 		GetLockerByID(ctx context.Context, lockerID string) (dto.LockerResponse, error)
 		UpdateLocker(ctx context.Context, req dto.UpdateLockerRequest) (dto.LockerResponse, error)
 		DeleteLocker(ctx context.Context, req dto.DeleteLockerRequest) (dto.LockerResponse, error)
+
+		// Sender
+		CreateSender(ctx context.Context, req dto.CreateSenderRequest) (dto.SenderResponse, error)
+		GetAllSender(ctx context.Context) ([]dto.SenderResponse, error)
+		GetAllSenderWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.SenderPaginationResponse, error)
+		GetSenderByID(ctx context.Context, senderID string) (dto.SenderResponse, error)
+		UpdateSender(ctx context.Context, req dto.UpdateSenderRequest) (dto.SenderResponse, error)
+		DeleteSender(ctx context.Context, req dto.DeleteSenderRequest) (dto.SenderResponse, error)
 	}
 
 	AdminService struct {
@@ -511,32 +519,23 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		return dto.PackageResponse{}, dto.ErrInvalidPackageType
 	}
 
-	if req.SenderPhoneNumber != "" {
-		req.SenderPhoneNumber, err = helpers.StandardizePhoneNumber(req.SenderPhoneNumber)
-		if err != nil {
-			return dto.PackageResponse{}, dto.ErrFormatPhoneNumber
-		}
-	}
-
 	user, flag, err := as.adminRepo.GetUserByID(ctx, nil, req.UserID.String())
 	if !flag || err != nil {
 		return dto.PackageResponse{}, dto.ErrUserNotFound
 	}
 
 	pkg := entity.Package{
-		ID:                uuid.New(),
-		TrackingCode:      req.TrackingCode,
-		Description:       req.Description,
-		Image:             req.Image,
-		Type:              req.Type,
-		Status:            entity.Received,
-		Quantity:          req.Quantity,
-		SenderName:        req.SenderName,
-		SenderPhoneNumber: req.SenderPhoneNumber,
-		SenderAddress:     req.SenderAddress,
-		UserID:            &user.ID,
-		LockerID:          req.LockerID,
-		RecipientID:       nil,
+		ID:           uuid.New(),
+		TrackingCode: req.TrackingCode,
+		Description:  req.Description,
+		Image:        req.Image,
+		Type:         req.Type,
+		Status:       entity.Received,
+		Quantity:     req.Quantity,
+		SenderID:     req.SenderID,
+		UserID:       &user.ID,
+		LockerID:     req.LockerID,
+		RecipientID:  nil,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: now,
 			UpdatedAt: now,
@@ -545,6 +544,11 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 
 	if err := as.adminRepo.CreatePackage(ctx, nil, pkg); err != nil {
 		return dto.PackageResponse{}, dto.ErrCreatePackage
+	}
+
+	sender, found, err := as.adminRepo.GetSenderByID(ctx, nil, req.SenderID.String())
+	if err != nil || !found {
+		return dto.PackageResponse{}, dto.ErrSenderNotFound
 	}
 
 	message := utils.BuildReceivedMessage(&pkg)
@@ -565,18 +569,21 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 	}
 
 	return dto.PackageResponse{
-		ID:                pkg.ID,
-		TrackingCode:      pkg.TrackingCode,
-		Description:       pkg.Description,
-		Image:             pkg.Image,
-		Type:              pkg.Type,
-		Status:            pkg.Status,
-		Quantity:          pkg.Quantity,
-		CompletedAt:       pkg.CompletedAt,
-		ExpiredAt:         pkg.ExpiredAt,
-		SenderName:        pkg.SenderName,
-		SenderPhoneNumber: pkg.SenderPhoneNumber,
-		SenderAddress:     pkg.SenderAddress,
+		ID:           pkg.ID,
+		TrackingCode: pkg.TrackingCode,
+		Description:  pkg.Description,
+		Image:        pkg.Image,
+		Type:         pkg.Type,
+		Status:       pkg.Status,
+		Quantity:     pkg.Quantity,
+		CompletedAt:  pkg.CompletedAt,
+		ExpiredAt:    pkg.ExpiredAt,
+		Sender: dto.SenderResponse{
+			ID:          sender.ID,
+			Name:        sender.Name,
+			PhoneNumber: sender.PhoneNumber,
+			Address:     sender.Address,
+		},
 		Locker: dto.LockerResponse{
 			ID:         locker.ID,
 			LockerCode: locker.LockerCode,
@@ -605,6 +612,7 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		},
 	}, nil
 }
+
 func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, pkgType string) ([]dto.PackageResponse, error) {
 	packages, err := as.adminRepo.GetAllPackage(ctx, nil, userID, pkgType)
 	if err != nil {
@@ -624,18 +632,21 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, 
 		}
 
 		data := dto.PackageResponse{
-			ID:                pkg.ID,
-			TrackingCode:      pkg.TrackingCode,
-			Description:       pkg.Description,
-			Image:             pkg.Image,
-			Type:              pkg.Type,
-			Status:            pkg.Status,
-			Quantity:          pkg.Quantity,
-			CompletedAt:       pkg.CompletedAt,
-			ExpiredAt:         pkg.ExpiredAt,
-			SenderName:        pkg.SenderName,
-			SenderPhoneNumber: pkg.SenderPhoneNumber,
-			SenderAddress:     pkg.SenderAddress,
+			ID:           pkg.ID,
+			TrackingCode: pkg.TrackingCode,
+			Description:  pkg.Description,
+			Image:        pkg.Image,
+			Type:         pkg.Type,
+			Status:       pkg.Status,
+			Quantity:     pkg.Quantity,
+			CompletedAt:  pkg.CompletedAt,
+			ExpiredAt:    pkg.ExpiredAt,
+			Sender: dto.SenderResponse{
+				ID:          pkg.Sender.ID,
+				Name:        pkg.Sender.Name,
+				Address:     pkg.Sender.Address,
+				PhoneNumber: pkg.Sender.PhoneNumber,
+			},
 			Locker: dto.LockerResponse{
 				ID:         pkg.LockerID,
 				LockerCode: pkg.Locker.LockerCode,
@@ -692,18 +703,21 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 		}
 
 		data := dto.PackageResponse{
-			ID:                pkg.ID,
-			TrackingCode:      pkg.TrackingCode,
-			Description:       pkg.Description,
-			Image:             pkg.Image,
-			Type:              pkg.Type,
-			Status:            pkg.Status,
-			Quantity:          pkg.Quantity,
-			CompletedAt:       pkg.CompletedAt,
-			ExpiredAt:         pkg.ExpiredAt,
-			SenderName:        pkg.SenderName,
-			SenderPhoneNumber: pkg.SenderPhoneNumber,
-			SenderAddress:     pkg.SenderAddress,
+			ID:           pkg.ID,
+			TrackingCode: pkg.TrackingCode,
+			Description:  pkg.Description,
+			Image:        pkg.Image,
+			Type:         pkg.Type,
+			Status:       pkg.Status,
+			Quantity:     pkg.Quantity,
+			CompletedAt:  pkg.CompletedAt,
+			ExpiredAt:    pkg.ExpiredAt,
+			Sender: dto.SenderResponse{
+				ID:          pkg.Sender.ID,
+				Name:        pkg.Sender.Name,
+				Address:     pkg.Sender.Address,
+				PhoneNumber: pkg.Sender.PhoneNumber,
+			},
 			Locker: dto.LockerResponse{
 				ID:         pkg.LockerID,
 				LockerCode: pkg.Locker.LockerCode,
@@ -773,18 +787,21 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 	}
 
 	return dto.PackageResponse{
-		ID:                pkg.ID,
-		TrackingCode:      pkg.TrackingCode,
-		Description:       pkg.Description,
-		Image:             pkg.Image,
-		Type:              pkg.Type,
-		Status:            pkg.Status,
-		Quantity:          pkg.Quantity,
-		CompletedAt:       pkg.CompletedAt,
-		ExpiredAt:         pkg.ExpiredAt,
-		SenderName:        pkg.SenderName,
-		SenderPhoneNumber: pkg.SenderPhoneNumber,
-		SenderAddress:     pkg.SenderAddress,
+		ID:           pkg.ID,
+		TrackingCode: pkg.TrackingCode,
+		Description:  pkg.Description,
+		Image:        pkg.Image,
+		Type:         pkg.Type,
+		Status:       pkg.Status,
+		Quantity:     pkg.Quantity,
+		CompletedAt:  pkg.CompletedAt,
+		ExpiredAt:    pkg.ExpiredAt,
+		Sender: dto.SenderResponse{
+			ID:          pkg.Sender.ID,
+			Name:        pkg.Sender.Name,
+			Address:     pkg.Sender.Address,
+			PhoneNumber: pkg.Sender.PhoneNumber,
+		},
 		Locker: dto.LockerResponse{
 			ID:         pkg.LockerID,
 			LockerCode: pkg.Locker.LockerCode,
@@ -807,7 +824,7 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 				Name: pkg.User.Role.Name,
 			},
 		},
-		Recipient: recipient, 
+		Recipient: recipient,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: pkg.CreatedAt,
 			UpdatedAt: pkg.UpdatedAt,
@@ -940,31 +957,6 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		p.Quantity = *req.Quantity
 	}
 
-	if req.SenderName != "" {
-		if p.SenderName != req.SenderName {
-			descriptionChanges = append(descriptionChanges, "sender name changed")
-			p.SenderName = req.SenderName
-		}
-	}
-
-	if req.SenderPhoneNumber != "" {
-		formattedPhoneNumber, err := helpers.StandardizePhoneNumber(req.SenderPhoneNumber)
-		if err != nil {
-			return dto.UpdatePackageResponse{}, dto.ErrFormatPhoneNumber
-		}
-
-		if p.SenderPhoneNumber != formattedPhoneNumber {
-			descriptionChanges = append(descriptionChanges, "sender phone number changed")
-			p.SenderPhoneNumber = formattedPhoneNumber
-		}
-	}
-
-	if req.SenderAddress != "" {
-		if p.SenderAddress != req.SenderAddress {
-			descriptionChanges = append(descriptionChanges, "sender address changed")
-			p.SenderAddress = req.SenderAddress
-		}
-	}
 	if len(descriptionChanges) > 0 {
 		message := fmt.Sprintf(
 			"🙏 Mohon maaf, terdapat pembaruan data pada paket Anda dengan kode paket *%s* karena kesalahan input sebelumnya.\n\nPerubahan yang dilakukan:\n- %s\n\nSilakan cek aplikasi untuk melihat detail terbaru. Terima kasih atas pengertiannya.",
@@ -1004,6 +996,16 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 
 			p.Status = entity.Status(req.Status)
 		}
+	}
+
+	sender, found, err := as.adminRepo.GetSenderByID(ctx, nil, req.SenderID)
+	if err != nil || !found {
+		return dto.UpdatePackageResponse{}, dto.ErrSenderNotFound
+	}
+
+	if p.SenderID != sender.ID {
+		descriptionChanges = append(descriptionChanges, "sender changed")
+		p.SenderID = sender.ID
 	}
 
 	if err := as.adminRepo.UpdatePackage(ctx, nil, p); err != nil {
@@ -1052,19 +1054,22 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	}
 
 	return dto.UpdatePackageResponse{
-		ID:                p.ID,
-		TrackingCode:      p.TrackingCode,
-		Description:       p.Description,
-		Image:             p.Image,
-		Type:              p.Type,
-		Status:            p.Status,
-		Quantity:          p.Quantity,
-		CompletedAt:       p.CompletedAt,
-		ExpiredAt:         p.ExpiredAt,
-		SenderName:        p.SenderName,
-		SenderPhoneNumber: p.SenderPhoneNumber,
-		SenderAddress:     p.SenderAddress,
-		User:              client,
+		ID:           p.ID,
+		TrackingCode: p.TrackingCode,
+		Description:  p.Description,
+		Image:        p.Image,
+		Type:         p.Type,
+		Status:       p.Status,
+		Quantity:     p.Quantity,
+		CompletedAt:  p.CompletedAt,
+		ExpiredAt:    p.ExpiredAt,
+		Sender: dto.SenderResponse{
+			ID: p.SenderID,
+			Name: p.Sender.Name,
+			Address: p.Sender.Address,
+			PhoneNumber: p.Sender.PhoneNumber,
+		},
+		User:         client,
 		Locker: dto.LockerResponse{
 			ID:         p.LockerID,
 			LockerCode: p.Locker.LockerCode,
@@ -1078,6 +1083,7 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		},
 	}, nil
 }
+
 func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.UpdateStatusPackages) error {
 	token := ctx.Value("Authorization").(string)
 
@@ -1194,9 +1200,12 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		Quantity:          deletedPackage.Quantity,
 		CompletedAt:       deletedPackage.CompletedAt,
 		ExpiredAt:         deletedPackage.ExpiredAt,
-		SenderName:        deletedPackage.SenderName,
-		SenderPhoneNumber: deletedPackage.SenderPhoneNumber,
-		SenderAddress:     deletedPackage.SenderAddress,
+		Sender: dto.SenderResponse{
+			ID: deletedPackage.Sender.ID,
+			Name: deletedPackage.Sender.Name,
+			Address: deletedPackage.Sender.Address,
+			PhoneNumber: deletedPackage.Sender.PhoneNumber,
+		},
 		Locker: dto.LockerResponse{
 			ID:         deletedPackage.LockerID,
 			LockerCode: deletedPackage.Locker.LockerCode,
@@ -1219,7 +1228,7 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 				Name: deletedPackage.User.Role.Name,
 			},
 		},
-		Recipient: recipient, 
+		Recipient: recipient,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: deletedPackage.CreatedAt,
 			UpdatedAt: deletedPackage.UpdatedAt,
@@ -1229,7 +1238,6 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 
 	return res, nil
 }
-
 
 // Cron
 func (as *AdminService) AutoExpirePackages() error {
@@ -1721,6 +1729,153 @@ func (as *AdminService) DeleteLocker(ctx context.Context, req dto.DeleteLockerRe
 		ID:         deletedSender.ID,
 		LockerCode: deletedSender.LockerCode,
 		Location:   deletedSender.Location,
+	}
+
+	return res, nil
+}
+
+// Sender
+func (as *AdminService) CreateSender(ctx context.Context, req dto.CreateSenderRequest) (dto.SenderResponse, error) {
+	if len(req.Name) < 3 {
+		return dto.SenderResponse{}, dto.ErrInvalidSenderName
+	}
+	if len(req.Address) < 3 {
+		return dto.SenderResponse{}, dto.ErrInvalidAddressName
+	}
+	phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
+	if err != nil {
+		return dto.SenderResponse{}, dto.ErrFormatPhoneNumber
+	}
+
+	sender := entity.Sender{
+		ID:          uuid.New(),
+		Name:        req.Name,
+		Address:     req.Address,
+		PhoneNumber: phoneNumberFormatted,
+	}
+
+	if err := as.adminRepo.CreateSender(ctx, nil, sender); err != nil {
+		return dto.SenderResponse{}, dto.ErrCreateSender
+	}
+
+	return dto.SenderResponse{
+		ID:          sender.ID,
+		Name:        sender.Name,
+		Address:     sender.Address,
+		PhoneNumber: sender.PhoneNumber,
+	}, nil
+}
+
+func (as *AdminService) GetSenderByID(ctx context.Context, senderID string) (dto.SenderResponse, error) {
+	recipient, flag, err := as.adminRepo.GetSenderByID(ctx, nil, senderID)
+	if err != nil || !flag {
+		return dto.SenderResponse{}, dto.ErrSenderNotFound
+	}
+
+	return dto.SenderResponse{
+		ID:          recipient.ID,
+		Name:        recipient.Name,
+		Address:     recipient.Address,
+		PhoneNumber: recipient.PhoneNumber,
+	}, nil
+}
+func (as *AdminService) GetAllSender(ctx context.Context) ([]dto.SenderResponse, error) {
+	senders, err := as.adminRepo.GetAllSender(ctx, nil)
+	if err != nil {
+		return nil, dto.ErrGetAllRecipients
+	}
+
+	var datas []dto.SenderResponse
+	for _, senders := range senders {
+		datas = append(datas, dto.SenderResponse{
+			ID:          senders.ID,
+			Name:        senders.Name,
+			Address:     senders.Address,
+			PhoneNumber: senders.PhoneNumber,
+		})
+	}
+
+	return datas, nil
+}
+
+func (as *AdminService) GetAllSenderWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.SenderPaginationResponse, error) {
+	dataWithPaginate, err := as.adminRepo.GetAllSenderWithPagination(ctx, nil, req)
+	if err != nil {
+		return dto.SenderPaginationResponse{}, dto.ErrGetAllSendersWithPagination
+	}
+
+	var datas []dto.SenderResponse
+	for _, sender := range dataWithPaginate.Senders {
+		datas = append(datas, dto.SenderResponse{
+			ID:          sender.ID,
+			Name:        sender.Name,
+			Address:     sender.Address,
+			PhoneNumber: sender.PhoneNumber,
+		})
+	}
+
+	return dto.SenderPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    dataWithPaginate.Page,
+			PerPage: dataWithPaginate.PerPage,
+			MaxPage: dataWithPaginate.MaxPage,
+			Count:   dataWithPaginate.Count,
+		},
+	}, nil
+}
+func (as *AdminService) UpdateSender(ctx context.Context, req dto.UpdateSenderRequest) (dto.SenderResponse, error) {
+	sender, _, err := as.adminRepo.GetSenderByID(ctx, nil, req.ID)
+	if err != nil {
+		return dto.SenderResponse{}, dto.ErrGetSenderByID
+	}
+
+	if req.Name != "" {
+		if len(req.Name) < 3 {
+			return dto.SenderResponse{}, dto.ErrInvalidName
+		}
+		sender.Name = req.Name
+	}
+
+	if req.PhoneNumber != "" {
+		phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
+		if err != nil {
+			return dto.SenderResponse{}, dto.ErrFormatPhoneNumber
+		}
+
+		sender.PhoneNumber = phoneNumberFormatted
+	}
+
+	err = as.adminRepo.UpdateSender(ctx, nil, sender)
+	if err != nil {
+		return dto.SenderResponse{}, dto.ErrUpdateSender
+	}
+
+	res := dto.SenderResponse{
+		ID:          sender.ID,
+		Name:        sender.Name,
+		Address:     sender.Address,
+		PhoneNumber: sender.PhoneNumber,
+	}
+
+	return res, nil
+}
+func (as *AdminService) DeleteSender(ctx context.Context, req dto.DeleteSenderRequest) (dto.SenderResponse, error) {
+	deletedSender, flag, err := as.adminRepo.GetSenderByID(ctx, nil, req.SenderID)
+	if err != nil || !flag {
+		return dto.SenderResponse{}, dto.ErrSenderNotFound
+	}
+
+	err = as.adminRepo.DeleteRecipientByID(ctx, nil, req.SenderID)
+	if err != nil {
+		return dto.SenderResponse{}, dto.ErrDeletedSender
+	}
+
+	res := dto.SenderResponse{
+		ID:          deletedSender.ID,
+		Name:        deletedSender.Name,
+		Address:     deletedSender.Address,
+		PhoneNumber: deletedSender.PhoneNumber,
 	}
 
 	return res, nil

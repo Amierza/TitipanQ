@@ -55,6 +55,13 @@ func Admin(route *gin.Engine, adminHandler handler.IAdminHandler, jwtService ser
 			routes.GET("/get-detail-locker/:id", adminHandler.GetDetailLocker)
 			routes.PATCH("/update-locker/:id", adminHandler.UpdateLocker)
 			routes.DELETE("/delete-locker/:id", adminHandler.DeleteLocker)
+
+			// sender 
+			routes.POST("/create-sender", adminHandler.CreateSender)
+			routes.GET("/get-all-senders", adminHandler.ReadAllSender)
+			routes.GET("/get-detail-sender/:id", adminHandler.GetDetailSender)
+			routes.PATCH("/update-sender/:id", adminHandler.UpdateSender)
+			routes.DELETE("/delete-sender/:id", adminHandler.DeleteSender)
 		}
 	}
 }

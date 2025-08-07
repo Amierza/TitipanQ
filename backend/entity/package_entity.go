@@ -10,19 +10,16 @@ import (
 )
 
 type Package struct {
-	ID                uuid.UUID  `gorm:"type:uuid;primaryKey" json:"package_id"`
-	TrackingCode      string     `gorm:"unique,not null" json:"package_tracking_code"`
-	Description       string     `gorm:"type:text" json:"package_description"`
-	Image             string     `gorm:"type:text" json:"package_image"`
-	Type              Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
-	Status            Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
-	Quantity          int        `gorm:"not null;default:0" json:"package_quantity"`
-	CompletedAt       *time.Time `json:"package_completed_at"`
-	ExpiredAt         *time.Time `json:"package_expired_at"`
-	SenderName        string     `json:"package_sender_name"`
-	SenderPhoneNumber string     `json:"package_sender_phone_number"`
-	SenderAddress     string     `json:"package_sender_address"`
-	ProofImage        *string    `gorm:"type:text" json:"package_proof_Image"`
+	ID           uuid.UUID  `gorm:"type:uuid;primaryKey" json:"package_id"`
+	TrackingCode string     `gorm:"unique,not null" json:"package_tracking_code"`
+	Description  string     `gorm:"type:text" json:"package_description"`
+	Image        string     `gorm:"type:text" json:"package_image"`
+	Type         Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
+	Status       Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
+	Quantity     int        `gorm:"not null;default:0" json:"package_quantity"`
+	CompletedAt  *time.Time `json:"package_completed_at"`
+	ExpiredAt    *time.Time `json:"package_expired_at"`
+	ProofImage   *string    `gorm:"type:text" json:"package_proof_Image"`
 
 	PackageHistories []PackageHistory `gorm:"foreignKey:PackageID"`
 
@@ -31,6 +28,9 @@ type Package struct {
 
 	LockerID uuid.UUID `gorm:"type:uuid;not null" json:"locker_id"`
 	Locker   Locker    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+
+	SenderID uuid.UUID `gorm:"type:uuid;not null" json:"sender_id"`
+	Sender   Sender    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 
 	RecipientID *uuid.UUID `gorm:"type:uuid" json:"recipient_id"`
 	Recipient   Recipient  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"recipient"`
