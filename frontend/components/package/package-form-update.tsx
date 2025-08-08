@@ -524,7 +524,7 @@ const PackageFormUpdate = ({
                     <FormLabel>Package Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl className="w-full">
-                        <SelectTrigger>
+                        <SelectTrigger disabled>
                           <SelectValue placeholder="Select Package Status" />
                         </SelectTrigger>
                       </FormControl>
