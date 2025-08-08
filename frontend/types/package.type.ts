@@ -1,4 +1,5 @@
 import { Locker } from './locker.type';
+import { Sender } from './sender.type';
 import { Meta, SuccessResponse } from './sucess';
 import { User } from './user.type';
 
@@ -11,9 +12,7 @@ export type Package = {
   package_quantity: number;
   package_status: string;
   package_expired_at: string;
-  package_sender_name: string;
-  package_sender_phone_number: string;
-  package_sender_address: string;
+  sender: Sender;
   user: User;
   locker: Locker;
   created_at: string;

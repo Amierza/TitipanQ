@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { useQuery } from '@tanstack/react-query';
 import { getAllUserService } from '@/services/admin/user/getAllUser';
 import { getAllLockerService } from '@/services/admin/locker/getAllLocker';
+import { getSenderService } from '@/services/admin/sender/getAllSender';
 
 const NewPackageSection = () => {
   const {
@@ -21,6 +22,11 @@ const NewPackageSection = () => {
   } = useQuery({
     queryKey: ['users'],
     queryFn: getAllUserService,
+  });
+
+  const { data: senderData } = useQuery({
+    queryKey: ['sender'],
+    queryFn: () => getSenderService({ pagination: false }),
   });
 
   const { data: lockerData } = useQuery({
@@ -62,6 +68,16 @@ const NewPackageSection = () => {
                 ? userData.data.map((user) => ({
                     id: user.user_id,
                     name: user.user_name,
+                  }))
+                : []
+            }
+            senders={
+              senderData?.status
+                ? senderData.data.map((sender) => ({
+                    sender_id: sender.sender_id,
+                    sender_name: sender.sender_name,
+                    sender_phone_number: sender.sender_phone_number,
+                    sender_address: sender.sender_address,
                   }))
                 : []
             }

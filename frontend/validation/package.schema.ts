@@ -13,8 +13,6 @@ export enum PackageStatus {
   Deleted = 'deleted',
 }
 
-const phoneNumberRegex = /^(?:\+62|62|0)8[1-9][0-9]{6,10}$/;
-
 export const PackageSchema = z.object({
   package_tracking_code: z
     .string()
@@ -40,11 +38,14 @@ export const PackageSchema = z.object({
       /^[1-9][0-9]*$/,
       'Quantity harus berupa angka positif tanpa nol di depan'
     ),
-  package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
-  package_sender_phone_number: z
+  // package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
+  // package_sender_phone_number: z
+  //   .string()
+  //   .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
+  // package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+  sender_id: z
     .string()
-    .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
-  package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+    .uuid({ message: 'Sender ID harus berupa UUID yang valid' }),
   user_id: z.string().uuid({ message: 'User ID harus berupa UUID yang valid' }),
   locker_id: z
     .string()
@@ -71,11 +72,14 @@ export const UpdatePackageSchema = z.object({
       /^[1-9][0-9]*$/,
       'Quantity harus berupa angka positif tanpa nol di depan'
     ),
-  package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
-  package_sender_phone_number: z
+  // package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
+  // package_sender_phone_number: z
+  //   .string()
+  //   .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
+  // package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+  sender_id: z
     .string()
-    .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
-  package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+    .uuid({ message: 'Sender ID harus berupa UUID yang valid' }),
   user_id: z.string().uuid({ message: 'User ID harus berupa UUID yang valid' }),
   locker_id: z
     .string()

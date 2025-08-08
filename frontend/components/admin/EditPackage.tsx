@@ -16,6 +16,7 @@ import { getPackageService } from '@/services/admin/package/getDetailPackage';
 import { PackageStatus, PackageType } from '@/validation/package.schema';
 import PackageFormUpdate from '../package/package-form-update';
 import { getAllLockerService } from '@/services/admin/locker/getAllLocker';
+import { getSenderService } from '@/services/admin/sender/getAllSender';
 
 const EditPackageSection = () => {
   const params = useParams();
@@ -38,6 +39,11 @@ const EditPackageSection = () => {
     queryKey: ['package', packageId],
     queryFn: () => getPackageService(packageId),
     enabled: !!packageId,
+  });
+
+  const { data: senderData } = useQuery({
+    queryKey: ['sender'],
+    queryFn: () => getSenderService({ pagination: false }),
   });
 
   if (userData?.status === false || packageData?.status === false) {
@@ -84,6 +90,16 @@ const EditPackageSection = () => {
                   ? userData.data.map((user) => ({
                       id: user.user_id,
                       name: user.user_name,
+                    }))
+                  : []
+              }
+              senders={
+                senderData?.status
+                  ? senderData.data.map((sender) => ({
+                      sender_id: sender.sender_id,
+                      sender_name: sender.sender_name,
+                      sender_phone_number: sender.sender_phone_number,
+                      sender_address: sender.sender_address,
                     }))
                   : []
               }
