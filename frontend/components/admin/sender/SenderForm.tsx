@@ -29,7 +29,7 @@ import { updateSenderService } from '@/services/admin/sender/updateSender';
 interface SenderFormProps {
   isOpen: boolean;
   onClose: () => void;
-  sender: Sender | null;
+  sender?: Sender | null;
 }
 
 const SenderForm = ({ isOpen, onClose, sender }: SenderFormProps) => {

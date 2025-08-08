@@ -256,18 +256,18 @@ const DetailPackageSection = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <PackageInfoComponent
                       title="Name"
-                      information={packageData.data.package_sender_name}
+                      information={packageData.data.sender.sender_name}
                       icon={<User className="w-4 h-4" />}
                     />
                     <PackageInfoComponent
                       title="Phone Number"
-                      information={packageData.data.package_sender_phone_number}
+                      information={packageData.data.sender.sender_phone_number}
                       icon={<Phone className="w-4 h-4" />}
                     />
                     <div className="md:col-span-2">
                       <PackageInfoComponent
                         title="Address"
-                        information={packageData.data.package_sender_address}
+                        information={packageData.data.sender.sender_address}
                         icon={<MapPin className="w-4 h-4" />}
                       />
                     </div>
