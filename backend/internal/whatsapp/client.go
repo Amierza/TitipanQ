@@ -3,6 +3,7 @@ package whatsapp
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 	"github.com/Amierza/TitipanQ/backend/internal/openai"
 	"github.com/Amierza/TitipanQ/backend/repository"
 	_ "github.com/mattn/go-sqlite3"
+	"google.golang.org/protobuf/proto"
 
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
 	"go.mau.fi/whatsmeow"
@@ -123,14 +125,14 @@ func handleIncomingMessage(userPhone, message string) {
 	}
 
 	if chatbotNLPService == nil {
-		SendTextMessage(userPhone, "❌ Sistem belum siap.")
+		SendTextMessage(userPhone, "❌ Sistem belum siap.", "", "")
 		return
 	}
 
 	intentResult, err := chatbotNLPService.GetIntent(message)
 	if err != nil {
 		fmt.Println("[ChatBot] Gagal proses NLP:", err)
-		SendTextMessage(userPhone, "❌ Maaf, sistem mengalami kendala.")
+		SendTextMessage(userPhone, "❌ Maaf, sistem mengalami kendala.", "", "")
 		return
 	}
 
@@ -146,7 +148,7 @@ func handleIncomingMessage(userPhone, message string) {
 
 	case "check_package":
 		if intentResult.TrackingCode == "" {
-			SendTextMessage(userPhone, "❌ Mohon sertakan kode paket. Contoh: cek paket PACK123456")
+			SendTextMessage(userPhone, "❌ Mohon sertakan kode paket. Contoh: cek paket PACK123456", "", "")
 			return
 		}
 		handlePackageCheck(userPhone, intentResult.TrackingCode)
@@ -166,10 +168,10 @@ func handleIncomingMessage(userPhone, message string) {
 				naturalMsg = "🤔 Maaf, aku belum paham maksudmu. Kamu bisa coba ketik *cek paket PACKxxxxx* atau *paket saya hari ini*."
 			}
 		}
-		SendTextMessage(userPhone, naturalMsg)
+		SendTextMessage(userPhone, naturalMsg, "", "")
 
 	default:
-		SendTextMessage(userPhone, "🤔 Maaf, aku belum paham maksud kamu. Coba ketik *cek paket PACKxxxxx*.")
+		SendTextMessage(userPhone, "🤔 Maaf, aku belum paham maksud kamu. Coba ketik *cek paket PACKxxxxx*.", "", "")
 	}
 }
 
@@ -177,7 +179,7 @@ func handleTotalAllPackage(userPhone string) {
 	totalPackages, err := chatbotRepo.CountTotalAllPackagesByUserPhone(userPhone, nil)
 	if err != nil {
 		fmt.Println("[ChatBot] Gagal mengambil jumlah total paket untuk nomor:", userPhone)
-		SendTextMessage(userPhone, "❌ Terjadi kesalahan saat memeriksa jumlah paket kamu.")
+		SendTextMessage(userPhone, "❌ Terjadi kesalahan saat memeriksa jumlah paket kamu.", "", "")
 		return
 	}
 
@@ -188,14 +190,14 @@ func handleTotalAllPackage(userPhone string) {
 	if err != nil {
 		naturalMsg = fmt.Sprintf("📦 Kamu memiliki total *%d* paket yang tercatat dalam sistem.", totalPackages)
 	}
-	SendTextMessage(userPhone, naturalMsg)
+	SendTextMessage(userPhone, naturalMsg, "", "")
 }
 
 func handleListPackageAll(userPhone string) {
 	packages, err := chatbotRepo.FindAllPackagesByUserPhone(userPhone, nil)
 	if err != nil || len(packages) == 0 {
 		fmt.Println("[ChatBot] Tidak ada paket ditemukan")
-		SendTextMessage(userPhone, "📦 Tidak ada paket yang ditemukan atas nomor ini.")
+		SendTextMessage(userPhone, "📦 Tidak ada paket yang ditemukan atas nomor ini.", "", "")
 		return
 	}
 
@@ -213,13 +215,13 @@ func handleListPackageAll(userPhone string) {
 		naturalMsg = fmt.Sprintf("📦 Daftar semua paket kamu:\n%s\n\nKetik *cek paket <tracking_code>* untuk lihat detail.", list)
 	}
 
-	SendTextMessage(userPhone, naturalMsg)
+	SendTextMessage(userPhone, naturalMsg, "", "")
 }
 
 func handleListPackageToday(userPhone string) {
 	packages, err := chatbotRepo.FindTodayPackagesByUserPhone(userPhone, nil)
 	if err != nil || len(packages) == 0 {
-		SendTextMessage(userPhone, "📦 Tidak ada paket hari ini.")
+		SendTextMessage(userPhone, "📦 Tidak ada paket hari ini.", "", "")
 		return
 	}
 
@@ -237,7 +239,7 @@ func handleListPackageToday(userPhone string) {
 		naturalMsg = fmt.Sprintf("📦 Berikut daftar paket kamu hari ini:\n%s\n\nKetik *cek paket <tracking_code>* untuk lihat detail.", list)
 	}
 
-	SendTextMessage(userPhone, naturalMsg)
+	SendTextMessage(userPhone, naturalMsg, "", "")
 }
 
 func handlePackageCheck(userPhone, trackingCode string) {
@@ -245,14 +247,14 @@ func handlePackageCheck(userPhone, trackingCode string) {
 
 	if chatbotRepo == nil {
 		fmt.Println("[ChatBot] Repository belum di-inject")
-		SendTextMessage(userPhone, "❌ Sistem belum siap.")
+		SendTextMessage(userPhone, "❌ Sistem belum siap.", "", "")
 		return
 	}
 
 	pkg, err := chatbotRepo.FindByTrackingCode(trackingCode, nil)
 	if err != nil || pkg == nil {
 		fmt.Println("[ChatBot] Paket tidak ditemukan")
-		SendTextMessage(userPhone, "❌ Paket tidak ditemukan.")
+		SendTextMessage(userPhone, "❌ Paket tidak ditemukan.", "", "")
 		return
 	}
 
@@ -273,19 +275,58 @@ func handlePackageCheck(userPhone, trackingCode string) {
 		)
 	}
 
-	SendTextMessage(userPhone, naturalMsg)
+	SendTextMessage(userPhone, naturalMsg, "", "")
 }
 
 // ========== SEND MESSAGE ==========
 
-func SendTextMessage(jidStr, message string) error {
+func SendTextMessage(jidStr, message, imagePath, mimeType string) error {
 	if Client == nil {
 		return fmt.Errorf("WhatsApp client not initialized")
 	}
 
 	jid := types.NewJID(jidStr, "s.whatsapp.net")
-	msg := &waE2E.Message{
+	var msg *waE2E.Message
+	msg = &waE2E.Message{
 		Conversation: &message,
+	}
+
+	// Cek apakah ada gambar yang dikirim
+	if imagePath != "" {
+		// Baca gambar sebagai byte array
+		imageBytes, err := ioutil.ReadFile(imagePath)
+		if err != nil {
+			return fmt.Errorf("failed to read image file: %w", err)
+		}
+
+		// Upload ke WhatsApp
+		uploadResp, err := Client.Upload(context.Background(), imageBytes, whatsmeow.MediaImage)
+		if err != nil {
+			return fmt.Errorf("failed to upload image: %w", err)
+		}
+
+		// Buat ImageMessage
+		imageMsg := &waE2E.ImageMessage{
+			Caption:       proto.String(message),
+			Mimetype:      proto.String(mimeType),
+			URL:           &uploadResp.URL,
+			DirectPath:    &uploadResp.DirectPath,
+			MediaKey:      uploadResp.MediaKey,
+			FileEncSHA256: uploadResp.FileEncSHA256,
+			FileSHA256:    uploadResp.FileSHA256,
+			FileLength:    &uploadResp.FileLength,
+		}
+
+		msg = &waE2E.Message{
+			ImageMessage: imageMsg,
+		}
+		fmt.Println("[WA] Kirim gambar ke", jid.String(), "dengan caption:", message)
+	} else {
+		// Kirim pesan teks biasa
+		msg = &waE2E.Message{
+			Conversation: proto.String(message),
+		}
+		fmt.Println("[WA] Kirim teks ke", jid.String(), ":", message)
 	}
 
 	fmt.Println("[WA] Kirim pesan ke", jid.String(), "dengan isi:", message)
