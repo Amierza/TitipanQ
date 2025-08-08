@@ -400,6 +400,9 @@ func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
 	payload.Status = entity.Status(ctx.PostForm("package_status"))
 	payload.Type = entity.Type(ctx.PostForm("package_type"))
 	payload.SenderID = ctx.PostForm("sender_id")
+	payload.LockerID = ctx.PostForm("locker_id")
+	payload.RecipientID = ctx.PostForm("recipient_id")
+	payload.RecipientUserID = ctx.PostForm("recipient_user_id")
 
 	// Quantity
 	if quantityStr := ctx.PostForm("package_quantity"); quantityStr != "" {

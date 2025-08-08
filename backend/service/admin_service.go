@@ -832,7 +832,6 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 		},
 	}, nil
 }
-
 func (as *AdminService) ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllPackageHistory(ctx, nil, pkgID)
 	if err != nil {
@@ -957,6 +956,18 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		p.Quantity = *req.Quantity
 	}
 
+	if req.SenderID != "" {
+		sender, found, err := as.adminRepo.GetSenderByID(ctx, nil, req.SenderID)
+		if err != nil || !found {
+			return dto.UpdatePackageResponse{}, dto.ErrSenderNotFound
+		}
+
+		if p.SenderID != sender.ID {
+			descriptionChanges = append(descriptionChanges, "sender changed")
+			p.SenderID = sender.ID
+		}
+	}
+
 	if len(descriptionChanges) > 0 {
 		message := fmt.Sprintf(
 			"🙏 Mohon maaf, terdapat pembaruan data pada paket Anda dengan kode paket *%s* karena kesalahan input sebelumnya.\n\nPerubahan yang dilakukan:\n- %s\n\nSilakan cek aplikasi untuk melihat detail terbaru. Terima kasih atas pengertiannya.",
@@ -967,6 +978,46 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message, "", ""); err != nil {
 			log.Println("Failed to send WhatsApp notification:", err)
 		}
+	}
+
+	if req.LockerID != "" {
+		locker, found, err := as.adminRepo.GetLockerByID(ctx, nil, req.LockerID)
+		if err != nil || !found {
+			return dto.UpdatePackageResponse{}, dto.ErrLockerNotFound
+		}
+
+		if p.LockerID != locker.ID {
+			descriptionChanges = append(descriptionChanges, "locker changed")
+			p.LockerID = locker.ID
+		}
+	}
+
+	if req.RecipientID != "" {
+		recipient, foundRecipient, err := as.adminRepo.GetRecipientByID(ctx, nil, req.RecipientID)
+		if err != nil {
+			return dto.UpdatePackageResponse{}, err
+		}
+		if !foundRecipient {
+			return dto.UpdatePackageResponse{}, dto.ErrRecipientNotFound
+		}
+
+		descriptionChanges = append(descriptionChanges, "recipient changed (taken by representative)")
+		p.RecipientID = &recipient.ID
+		p.Recipient = recipient
+	}
+
+	if req.RecipientUserID != "" {
+		user, foundRecipient, err := as.adminRepo.GetUserByID(ctx, nil, req.RecipientUserID)
+		if err != nil {
+			return dto.UpdatePackageResponse{}, err
+		}
+		if !foundRecipient {
+			return dto.UpdatePackageResponse{}, dto.ErrRecipientNotFound
+		}
+
+		descriptionChanges = append(descriptionChanges, "recipient changed (taken by user)")
+		p.RecipientUserID = &user.ID
+		p.RecipientUser = user
 	}
 
 	var validStatusOrder = map[entity.Status]entity.Status{
@@ -998,33 +1049,13 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		}
 	}
 
-	sender, found, err := as.adminRepo.GetSenderByID(ctx, nil, req.SenderID)
-	if err != nil || !found {
-		return dto.UpdatePackageResponse{}, dto.ErrSenderNotFound
-	}
-
-	if p.SenderID != sender.ID {
-		descriptionChanges = append(descriptionChanges, "sender changed")
-		p.SenderID = sender.ID
-	}
-
 	if err := as.adminRepo.UpdatePackage(ctx, nil, p); err != nil {
 		return dto.UpdatePackageResponse{}, dto.ErrUpdatePackage
 	}
 
-	var message string
-
-	switch req.Status {
-	case entity.Completed:
-		message = utils.BuildCompletedMessage(&p)
-	case entity.Expired:
-		message = utils.BuildExpiredMessage(&p)
-	}
-
-	if message != "" {
-		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message, "", ""); err != nil {
-			log.Println("Failed to send WhatsApp notification:", err)
-		}
+	message := utils.BuildCompletedMessage(&p)
+	if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message, "", ""); err != nil {
+		log.Println("Failed to send WhatsApp notification:", err)
 	}
 
 	descriptionPkgH := strings.Join(descriptionChanges, ", ")
