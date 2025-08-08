@@ -34,7 +34,7 @@ type (
 		DeleteUser(ctx context.Context, req dto.DeleteUserRequest) (dto.UserResponse, error)
 
 		// cron
-		AutoExpirePackages() error
+		MonthlyReminderPackages() error
 		AutoSoftDeletePackages() error
 
 		// Package
@@ -551,8 +551,11 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		return dto.PackageResponse{}, dto.ErrSenderNotFound
 	}
 
+	pkg.Sender = sender
+
 	message := utils.BuildReceivedMessage(&pkg)
-	if err := whatsapp.SendTextMessage(user.PhoneNumber, message); err != nil {
+	imagePath := "assets/package/" + pkg.Image
+	if err := whatsapp.SendTextMessage(user.PhoneNumber, message, imagePath, "image/png"); err != nil {
 		log.Println("Failed to send WhatsApp notification:", err)
 	}
 
@@ -612,7 +615,6 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		},
 	}, nil
 }
-
 func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, pkgType string) ([]dto.PackageResponse, error) {
 	packages, err := as.adminRepo.GetAllPackage(ctx, nil, userID, pkgType)
 	if err != nil {
@@ -681,7 +683,6 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, 
 
 	return datas, nil
 }
-
 func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dto.PaginationRequest, userID, pkgType string) (dto.PackagePaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllPackageWithPagination(ctx, nil, req, userID, pkgType)
 	if err != nil {
@@ -760,7 +761,6 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 		},
 	}, nil
 }
-
 func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string) (dto.PackageResponse, error) {
 	var pkg entity.Package
 	var err error
@@ -964,7 +964,7 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 			strings.Join(descriptionChanges, "\n- "),
 		)
 
-		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
+		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message, "", ""); err != nil {
 			log.Println("Failed to send WhatsApp notification:", err)
 		}
 	}
@@ -1022,7 +1022,7 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 	}
 
 	if message != "" {
-		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
+		if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message, "", ""); err != nil {
 			log.Println("Failed to send WhatsApp notification:", err)
 		}
 	}
@@ -1064,12 +1064,12 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		CompletedAt:  p.CompletedAt,
 		ExpiredAt:    p.ExpiredAt,
 		Sender: dto.SenderResponse{
-			ID: p.SenderID,
-			Name: p.Sender.Name,
-			Address: p.Sender.Address,
+			ID:          p.SenderID,
+			Name:        p.Sender.Name,
+			Address:     p.Sender.Address,
 			PhoneNumber: p.Sender.PhoneNumber,
 		},
-		User:         client,
+		User: client,
 		Locker: dto.LockerResponse{
 			ID:         p.LockerID,
 			LockerCode: p.Locker.LockerCode,
@@ -1083,7 +1083,6 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		},
 	}, nil
 }
-
 func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.UpdateStatusPackages) error {
 	token := ctx.Value("Authorization").(string)
 
@@ -1149,7 +1148,7 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 
 		message := utils.BuildCompletedMessage(&p)
 		if message != "" {
-			if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message); err != nil {
+			if err := whatsapp.SendTextMessage(p.User.PhoneNumber, message, "", ""); err != nil {
 				log.Println("Failed to send WhatsApp notification:", err)
 			}
 		}
@@ -1168,7 +1167,6 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 
 	return nil
 }
-
 func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error) {
 	deletedPackage, _, err := as.adminRepo.GetPackageByID(ctx, nil, req.PackageID)
 	if err != nil {
@@ -1191,19 +1189,19 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 	}
 
 	res := dto.PackageResponse{
-		ID:                deletedPackage.ID,
-		TrackingCode:      deletedPackage.TrackingCode,
-		Description:       deletedPackage.Description,
-		Image:             deletedPackage.Image,
-		Type:              deletedPackage.Type,
-		Status:            deletedPackage.Status,
-		Quantity:          deletedPackage.Quantity,
-		CompletedAt:       deletedPackage.CompletedAt,
-		ExpiredAt:         deletedPackage.ExpiredAt,
+		ID:           deletedPackage.ID,
+		TrackingCode: deletedPackage.TrackingCode,
+		Description:  deletedPackage.Description,
+		Image:        deletedPackage.Image,
+		Type:         deletedPackage.Type,
+		Status:       deletedPackage.Status,
+		Quantity:     deletedPackage.Quantity,
+		CompletedAt:  deletedPackage.CompletedAt,
+		ExpiredAt:    deletedPackage.ExpiredAt,
 		Sender: dto.SenderResponse{
-			ID: deletedPackage.Sender.ID,
-			Name: deletedPackage.Sender.Name,
-			Address: deletedPackage.Sender.Address,
+			ID:          deletedPackage.Sender.ID,
+			Name:        deletedPackage.Sender.Name,
+			Address:     deletedPackage.Sender.Address,
 			PhoneNumber: deletedPackage.Sender.PhoneNumber,
 		},
 		Locker: dto.LockerResponse{
@@ -1240,34 +1238,106 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 }
 
 // Cron
-func (as *AdminService) AutoExpirePackages() error {
+func sameDay(t1, t2 time.Time) bool {
+	y1, m1, d1 := t1.Date()
+	y2, m2, d2 := t2.Date()
+	return y1 == y2 && m1 == m2 && d1 == d2
+}
+func (as *AdminService) MonthlyReminderPackages() error {
 	now := time.Now()
 
-	var packages []entity.Package
-	err := as.adminRepo.GetAllExpiredPackages(now, &packages)
+	packages, err := as.adminRepo.GetAllUnclaimedPackages()
 	if err != nil {
 		return err
 	}
 
 	for _, pkg := range packages {
-		err := as.adminRepo.UpdatePackageStatusToExpired(pkg.ID, entity.Expired)
-		if err != nil {
-			log.Printf("[AutoExpire] failed to update package %s: %v", pkg.ID, err)
+		receivedAt := pkg.CreatedAt
+		// Cek expired duluan
+		if now.After(receivedAt.AddDate(0, 3, 0)) {
+			err := as.adminRepo.UpdatePackageStatusToExpired(pkg.ID, entity.Expired, &now)
+			if err != nil {
+				log.Printf("Failed to expire package %d: %v", pkg.ID, err)
+			} else {
+				log.Printf("Package %d expired after 3 months", pkg.ID)
+			}
+
+			err = as.adminRepo.UpdateLastReminderSentAt(pkg.ID.String(), &now)
+			if err != nil {
+				log.Printf("Gagal update reminder_sent_at untuk package %d: %v", pkg.ID, err)
+			}
+
+			msg := fmt.Sprintf("Paket Anda yang diterima pada %s telah melewati batas penyimpanan selama 3 bulan dan dinyatakan *kadaluarsa*. Mulai hari ini, paket tersebut *bukan lagi menjadi tanggung jawab kami*. Terima kasih atas pengertiannya.",
+				receivedAt.Format("02 Jan 2006"))
+			err = whatsapp.SendTextMessage(pkg.User.PhoneNumber, msg, "", "")
+			if err != nil {
+				log.Printf("Gagal kirim reminder ke %s: %v", pkg.User.PhoneNumber, err)
+				continue
+			}
+
+			history := entity.PackageHistory{
+				ID:          uuid.New(),
+				Status:      entity.Expired,
+				Description: "package expired automatically",
+				PackageID:   &pkg.ID,
+				ChangedBy:   nil,
+				TimeStamp: entity.TimeStamp{
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+			}
+			_ = as.adminRepo.CreatePackageHistory(nil, nil, history)
 			continue
 		}
 
-		history := entity.PackageHistory{
-			ID:          uuid.New(),
-			Status:      entity.Expired,
-			Description: "package expired automatically",
-			PackageID:   &pkg.ID,
-			ChangedBy:   nil,
-			TimeStamp: entity.TimeStamp{
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
+		// Reminder kalau belum expired
+		monthsPassed := int(now.Sub(receivedAt).Hours() / 24 / 30)
+		if monthsPassed >= 1 && monthsPassed <= 2 &&
+			now.Day() == receivedAt.Day() &&
+			(pkg.LastReminderSentAt == nil || !sameDay(*pkg.LastReminderSentAt, now)) {
+
+			if monthsPassed == 2 {
+				msg := fmt.Sprintf(
+					"Pemberitahuan: Paket Anda yang diterima pada %s hingga saat ini belum diambil. Kami mohon agar paket tersebut dapat segera diambil selambat-lambatnya tanggal %s. Setelah tanggal tersebut, kami tidak lagi bertanggung jawab atas keberadaan paket tersebut.",
+					receivedAt.Format("02 Jan 2006"),
+					now.AddDate(0, 1, 0).Format("02 Jan 2006"),
+				)
+				err := whatsapp.SendTextMessage(pkg.User.PhoneNumber, msg, "", "")
+				if err != nil {
+					log.Printf("Gagal kirim reminder ke %s: %v", pkg.User.PhoneNumber, err)
+					continue
+				}
+			} else {
+				msg := fmt.Sprintf(
+					"Pemberitahuan: Paket Anda yang diterima pada tanggal %s hingga saat ini belum diambil. Mohon segera diambil.",
+					receivedAt.Format("02 Jan 2006"),
+				)
+				err := whatsapp.SendTextMessage(pkg.User.PhoneNumber, msg, "", "")
+				if err != nil {
+					log.Printf("Gagal kirim reminder ke %s: %v", pkg.User.PhoneNumber, err)
+					continue
+				}
+			}
+
+			err = as.adminRepo.UpdateLastReminderSentAt(pkg.ID.String(), &now)
+			if err != nil {
+				log.Printf("Gagal update reminder_sent_at untuk package %d: %v", pkg.ID, err)
+			}
+
+			desc := fmt.Sprintf("package alert - %d", monthsPassed)
+			history := entity.PackageHistory{
+				ID:          uuid.New(),
+				Status:      entity.Received,
+				Description: desc,
+				PackageID:   &pkg.ID,
+				ChangedBy:   nil,
+				TimeStamp: entity.TimeStamp{
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+			}
+			_ = as.adminRepo.CreatePackageHistory(nil, nil, history)
 		}
-		_ = as.adminRepo.CreatePackageHistory(nil, nil, history)
 	}
 
 	return nil
@@ -1285,9 +1355,10 @@ func (as *AdminService) AutoSoftDeletePackages() error {
 	for _, pkg := range expiredPackages {
 		err := as.adminRepo.UpdateSoftDeletePackage(pkg.ID, now)
 		if err != nil {
-			log.Printf("[AutoExpire] failed to update package %s: %v", pkg.ID, err)
+			log.Printf("[AutoDelete] failed to update package %s: %v", pkg.ID, err)
 			continue
 		}
+		log.Printf("[AutoDelete] success to delete package %s: %v", pkg.ID, err)
 
 		history := entity.PackageHistory{
 			ID:          uuid.New(),
@@ -1349,7 +1420,6 @@ func (as *AdminService) ReadAllCompanyNoPagination(ctx context.Context) ([]dto.C
 
 	return datas, nil
 }
-
 func (as *AdminService) ReadAllCompanyWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.CompanyPaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllCompanyWithPagination(ctx, nil, req)
 	if err != nil {
@@ -1418,7 +1488,6 @@ func (as *AdminService) UpdateCompany(ctx context.Context, req dto.UpdateCompany
 		Address: company.Address,
 	}, nil
 }
-
 func (as *AdminService) DeleteCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error) {
 	deletedCompany, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, companyID)
 	if err != nil || !flag {
@@ -1476,7 +1545,6 @@ func (as *AdminService) CreateRecipient(ctx context.Context, req dto.CreateRecip
 		PhoneNumber: recipient.PhoneNumber,
 	}, nil
 }
-
 func (as *AdminService) GetAllRecipient(ctx context.Context) ([]dto.RecipientResponse, error) {
 	recipients, err := as.adminRepo.GetAllRecipient(ctx, nil)
 	if err != nil {
@@ -1495,7 +1563,6 @@ func (as *AdminService) GetAllRecipient(ctx context.Context) ([]dto.RecipientRes
 
 	return datas, nil
 }
-
 func (as *AdminService) GetRecipientByID(ctx context.Context, recipientID string) (dto.RecipientResponse, error) {
 	recipient, flag, err := as.adminRepo.GetRecipientByID(ctx, nil, recipientID)
 	if err != nil || !flag {
@@ -1509,7 +1576,6 @@ func (as *AdminService) GetRecipientByID(ctx context.Context, recipientID string
 		PhoneNumber: recipient.PhoneNumber,
 	}, nil
 }
-
 func (as *AdminService) UpdateRecipient(ctx context.Context, req dto.UpdateRecipientRequest) (dto.RecipientResponse, error) {
 	recipient, _, err := as.adminRepo.GetRecipientByID(ctx, nil, req.ID)
 	if err != nil {
@@ -1578,7 +1644,6 @@ func (as *AdminService) DeleteRecipient(ctx context.Context, req dto.DeleteRecip
 
 	return res, nil
 }
-
 func (as *AdminService) GetAllRecipientsWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.RecipientPaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllRecipientWithPagination(ctx, nil, req)
 	if err != nil {
@@ -1713,7 +1778,6 @@ func (as *AdminService) UpdateLocker(ctx context.Context, req dto.UpdateLockerRe
 
 	return res, nil
 }
-
 func (as *AdminService) DeleteLocker(ctx context.Context, req dto.DeleteLockerRequest) (dto.LockerResponse, error) {
 	deletedSender, flag, err := as.adminRepo.GetLockerByID(ctx, nil, req.LockerID)
 	if err != nil || !flag {
@@ -1765,7 +1829,6 @@ func (as *AdminService) CreateSender(ctx context.Context, req dto.CreateSenderRe
 		PhoneNumber: sender.PhoneNumber,
 	}, nil
 }
-
 func (as *AdminService) GetSenderByID(ctx context.Context, senderID string) (dto.SenderResponse, error) {
 	recipient, flag, err := as.adminRepo.GetSenderByID(ctx, nil, senderID)
 	if err != nil || !flag {
@@ -1797,7 +1860,6 @@ func (as *AdminService) GetAllSender(ctx context.Context) ([]dto.SenderResponse,
 
 	return datas, nil
 }
-
 func (as *AdminService) GetAllSenderWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.SenderPaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllSenderWithPagination(ctx, nil, req)
 	if err != nil {

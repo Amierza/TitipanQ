@@ -7,6 +7,8 @@ import (
 	"github.com/Amierza/TitipanQ/backend/cmd"
 	"github.com/Amierza/TitipanQ/backend/config/database"
 	"github.com/Amierza/TitipanQ/backend/handler"
+	"github.com/Amierza/TitipanQ/backend/internal/openai"
+	"github.com/Amierza/TitipanQ/backend/internal/whatsapp"
 	"github.com/Amierza/TitipanQ/backend/middleware"
 	"github.com/Amierza/TitipanQ/backend/repository"
 	"github.com/Amierza/TitipanQ/backend/routes"
@@ -33,25 +35,25 @@ func main() {
 		userRepo     = repository.NewUserRepository(db)
 		userService  = service.NewUserService(userRepo, jwtService)
 		userHandler  = handler.NewUserHandler(userService)
-		// chatbotRepo  = repository.NewChatBotRepository(db)
+		chatbotRepo  = repository.NewChatBotRepository(db)
 	)
 
 	c := cron.New()
 	// @every 10s
 	// @daily
-	// Update status to expired
-	c.AddFunc("@daily", func() {
-		log.Println("[CRON] AutoExpirePackages triggered...")
-		err := adminService.AutoExpirePackages()
+	// Monthly Reminder Packages
+	c.AddFunc("@every 10s", func() {
+		log.Println("[CRON] MonthlyReminderPackages triggered...")
+		err := adminService.MonthlyReminderPackages()
 		if err != nil {
-			log.Println("[CRON] AutoExpirePackages error:", err)
+			log.Println("[CRON] MonthlyReminderPackages error:", err)
 		} else {
-			log.Println("[CRON] AutoExpirePackages success")
+			log.Println("[CRON] MonthlyReminderPackages success")
 		}
 	})
 
 	// Fill deleted at after through 2 weeks after status change
-	c.AddFunc("@daily", func() {
+	c.AddFunc("@every 10s", func() {
 		log.Println("[CRON] AutoSoftDeletePackages triggered...")
 		err := adminService.AutoSoftDeletePackages()
 		if err != nil {
@@ -65,14 +67,14 @@ func main() {
 	server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
 
-	// err := whatsapp.InitClient()
-	// if err != nil {
-	// 	log.Fatalf("failed to initialize WhatsApp client: %v", err)
-	// }
-	// whatsapp.InjectRepository(chatbotRepo)
+	err := whatsapp.InitClient()
+	if err != nil {
+		log.Fatalf("failed to initialize WhatsApp client: %v", err)
+	}
+	whatsapp.InjectRepository(chatbotRepo)
 
-	// nlpService := openai.NewChatbotNLPService(os.Getenv("OPENAI_API_KEY"))
-	// whatsapp.InjectNLPService(nlpService)
+	nlpService := openai.NewChatbotNLPService(os.Getenv("OPENAI_API_KEY"))
+	whatsapp.InjectNLPService(nlpService)
 
 	routes.User(server, userHandler, jwtService)
 	routes.Admin(server, adminHandler, jwtService)

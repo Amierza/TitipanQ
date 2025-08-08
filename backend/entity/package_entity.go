@@ -10,16 +10,17 @@ import (
 )
 
 type Package struct {
-	ID           uuid.UUID  `gorm:"type:uuid;primaryKey" json:"package_id"`
-	TrackingCode string     `gorm:"unique,not null" json:"package_tracking_code"`
-	Description  string     `gorm:"type:text" json:"package_description"`
-	Image        string     `gorm:"type:text" json:"package_image"`
-	Type         Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
-	Status       Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
-	Quantity     int        `gorm:"not null;default:0" json:"package_quantity"`
-	CompletedAt  *time.Time `json:"package_completed_at"`
-	ExpiredAt    *time.Time `json:"package_expired_at"`
-	ProofImage   *string    `gorm:"type:text" json:"package_proof_Image"`
+	ID                 uuid.UUID  `gorm:"type:uuid;primaryKey" json:"package_id"`
+	TrackingCode       string     `gorm:"unique,not null" json:"package_tracking_code"`
+	Description        string     `gorm:"type:text" json:"package_description"`
+	Image              string     `gorm:"type:text" json:"package_image"`
+	Type               Type       `gorm:"not null;type:varchar(20)" json:"package_type"`
+	Status             Status     `gorm:"not null;type:varchar(20)" json:"package_status"`
+	Quantity           int        `gorm:"not null;default:0" json:"package_quantity"`
+	CompletedAt        *time.Time `json:"package_completed_at"`
+	ExpiredAt          *time.Time `json:"package_expired_at"`
+	LastReminderSentAt *time.Time `json:"package_last_reminder_sent_at"`
+	ProofImage         *string    `gorm:"type:text" json:"package_proof_Image"`
 
 	PackageHistories []PackageHistory `gorm:"foreignKey:PackageID"`
 

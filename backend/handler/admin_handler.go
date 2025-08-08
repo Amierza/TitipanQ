@@ -231,7 +231,7 @@ func (ah *AdminHandler) DeleteUser(ctx *gin.Context) {
 
 // Cron
 func (ah *AdminHandler) TriggerExpire(ctx *gin.Context) {
-	err := ah.adminService.AutoExpirePackages()
+	err := ah.adminService.MonthlyReminderPackages()
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DETAIL_USER, err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -317,7 +317,6 @@ func (ah *AdminHandler) CreatePackage(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_PACKAGE, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) ReadAllPackage(ctx *gin.Context) {
 	paginationParam := ctx.DefaultQuery("pagination", "true")
 	usePagination := paginationParam != "false"
@@ -398,9 +397,9 @@ func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
 
 	payload.TrackingCode = ctx.PostForm("package_tracking_code")
 	payload.Description = ctx.PostForm("package_description")
-	payload.Status = entity.Status(ctx.PostForm("package_status"))      
-	payload.Type = entity.Type(ctx.PostForm("package_type"))          
-	payload.SenderID = ctx.PostForm("sender_id")  
+	payload.Status = entity.Status(ctx.PostForm("package_status"))
+	payload.Type = entity.Type(ctx.PostForm("package_type"))
+	payload.SenderID = ctx.PostForm("sender_id")
 
 	// Quantity
 	if quantityStr := ctx.PostForm("package_quantity"); quantityStr != "" {
@@ -437,8 +436,6 @@ func (ah *AdminHandler) UpdatePackage(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_PACKAGE, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
-
 func (ah *AdminHandler) UpdateStatusPackages(ctx *gin.Context) {
 	var payload dto.UpdateStatusPackages
 
@@ -481,7 +478,6 @@ func (ah *AdminHandler) UpdateStatusPackages(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_STATUS_PACKAGES, nil)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) DeletePackage(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	var payload dto.DeletePackageRequest
@@ -627,7 +623,6 @@ func (ah *AdminHandler) CreateRecipient(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_CREATE_RECIPIENT, result)
 	ctx.JSON(http.StatusCreated, res)
 }
-
 func (ah *AdminHandler) ReadAllRecipient(ctx *gin.Context) {
 	paginationParam := ctx.DefaultQuery("pagination", "true")
 	usePagination := paginationParam != "false"
@@ -668,7 +663,6 @@ func (ah *AdminHandler) ReadAllRecipient(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) GetDetailRecipient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	result, err := ah.adminService.GetRecipientByID(ctx.Request.Context(), idStr)
@@ -681,7 +675,6 @@ func (ah *AdminHandler) GetDetailRecipient(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_RECIPIENT, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) UpdateRecipient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	var payload dto.UpdateRecipientRequest
@@ -703,7 +696,6 @@ func (ah *AdminHandler) UpdateRecipient(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_RECIPIENT, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) DeleteRecipient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	var payload dto.DeleteRecipientRequest
@@ -784,7 +776,6 @@ func (ah *AdminHandler) ReadAllLocker(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) GetDetailLocker(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	result, err := ah.adminService.GetLockerByID(ctx.Request.Context(), idStr)
@@ -797,7 +788,6 @@ func (ah *AdminHandler) GetDetailLocker(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_LOCKER, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) UpdateLocker(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	var payload dto.UpdateLockerRequest
@@ -911,7 +901,6 @@ func (ah *AdminHandler) GetDetailSender(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_DETAIL_SENDER, result)
 	ctx.JSON(http.StatusOK, res)
 }
-
 func (ah *AdminHandler) UpdateSender(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	var payload dto.UpdateSenderRequest

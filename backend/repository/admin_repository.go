@@ -30,7 +30,7 @@ type (
 		GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error)
 		GetAllCompany(ctx context.Context, tx *gorm.DB) ([]entity.Company, error)
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
-		GetAllExpiredPackages(now time.Time, out *[]entity.Package) error
+		GetAllUnclaimedPackages() ([]*entity.Package, error)
 		GetAllExpiredPackagesBefore(cutoff time.Time, out *[]entity.Package) error
 		GetAllRecipient(ctx context.Context, tx *gorm.DB) ([]entity.Recipient, error)
 		GetAllRecipientWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.RecipientPaginationRepositoryResponse, error)
@@ -58,11 +58,12 @@ type (
 		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 		UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID string, recipientID uuid.UUID, newStatus string, proofImage string) error
 		UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
-		UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status) error
+		UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status, now *time.Time) error
 		UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error
 		UpdateRecipient(ctx context.Context, tx *gorm.DB, recipient entity.Recipient) error
 		UpdateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error
 		UpdateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error
+		UpdateLastReminderSentAt(id string, now *time.Time) error
 
 		// Delete
 		DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error
@@ -230,7 +231,6 @@ func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gor
 		},
 	}, err
 }
-
 func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -257,8 +257,6 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 
 	return pkg, true, nil
 }
-
-
 func (ar *AdminRepository) GetPackageByTrackingCode(ctx context.Context, tx *gorm.DB, trackingCode string) (entity.Package, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -271,7 +269,6 @@ func (ar *AdminRepository) GetPackageByTrackingCode(ctx context.Context, tx *gor
 
 	return pkg, true, nil
 }
-
 func (ar *AdminRepository) GetAllPackage(ctx context.Context, tx *gorm.DB, userID, pkgType string) ([]entity.Package, error) {
 	if tx == nil {
 		tx = ar.db
@@ -305,8 +302,6 @@ func (ar *AdminRepository) GetAllPackage(ctx context.Context, tx *gorm.DB, userI
 
 	return packages, nil
 }
-
-
 func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest, userID, pkgType string) (dto.PackagePaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = ar.db
@@ -373,8 +368,6 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 		},
 	}, nil
 }
-
-
 func (ar *AdminRepository) GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error) {
 	if tx == nil {
 		tx = ar.db
@@ -451,12 +444,10 @@ func (ar *AdminRepository) GetAllCompanyWithPagination(ctx context.Context, tx *
 		},
 	}, nil
 }
-func (ur *AdminRepository) GetAllExpiredPackages(now time.Time, out *[]entity.Package) error {
-	return ur.db.
-		Where("expired_at < ?", now).
-		Where("deleted_at IS NULL").
-		Where("status != ?", entity.Expired).
-		Find(out).Error
+func (ur *AdminRepository) GetAllUnclaimedPackages() ([]*entity.Package, error) {
+	var pkgs []*entity.Package
+	err := ur.db.Where("status = ?", "received").Preload("User").Preload("Sender").Find(&pkgs).Error
+	return pkgs, err
 }
 func (ur *AdminRepository) GetAllExpiredPackagesBefore(cutoff time.Time, out *[]entity.Package) error {
 	return ur.db.
@@ -522,7 +513,6 @@ func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB,
 			"proof_image":  proofImage,
 		}).Error
 }
-
 func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
 	if tx == nil {
 		tx = ar.db
@@ -530,14 +520,21 @@ func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, compa
 
 	return tx.WithContext(ctx).Where("id = ?", company.ID).Updates(&company).Error
 }
-func (ur *AdminRepository) UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status) error {
-	return ur.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"status": status,
+func (ar *AdminRepository) UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status, now *time.Time) error {
+	return ar.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":     status,
+		"updated_at": now,
+		"expired_at": now,
 	}).Error
 }
-func (ur *AdminRepository) UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error {
-	return ur.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
+func (ar *AdminRepository) UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error {
+	return ar.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"deleted_at": deletedAt,
+	}).Error
+}
+func (ar *AdminRepository) UpdateLastReminderSentAt(id string, now *time.Time) error {
+	return ar.db.Model(&entity.Package{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"last_reminder_sent_at": now,
 	}).Error
 }
 
@@ -572,7 +569,6 @@ func (ar *AdminRepository) CreateRecipient(ctx context.Context, tx *gorm.DB, rec
 
 	return tx.WithContext(ctx).Create(&recipient).Error
 }
-
 func (ar *AdminRepository) GetAllRecipient(ctx context.Context, tx *gorm.DB) ([]entity.Recipient, error) {
 	if tx == nil {
 		tx = ar.db
@@ -591,7 +587,6 @@ func (ar *AdminRepository) GetAllRecipient(ctx context.Context, tx *gorm.DB) ([]
 
 	return recipients, err
 }
-
 func (ar *AdminRepository) GetRecipientByID(ctx context.Context, tx *gorm.DB, recipientID string) (entity.Recipient, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -604,7 +599,6 @@ func (ar *AdminRepository) GetRecipientByID(ctx context.Context, tx *gorm.DB, re
 
 	return recipient, true, nil
 }
-
 func (ar *AdminRepository) UpdateRecipient(ctx context.Context, tx *gorm.DB, recipient entity.Recipient) error {
 	if tx == nil {
 		tx = ar.db
@@ -619,7 +613,6 @@ func (ar *AdminRepository) DeleteRecipientByID(ctx context.Context, tx *gorm.DB,
 
 	return tx.WithContext(ctx).Where("id = ?", recipientID).Delete(&entity.Recipient{}).Error
 }
-
 func (ar *AdminRepository) GetRecipientByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.Recipient, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -632,7 +625,6 @@ func (ar *AdminRepository) GetRecipientByEmail(ctx context.Context, tx *gorm.DB,
 
 	return recipient, true, nil
 }
-
 func (ar *AdminRepository) GetAllRecipientWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.RecipientPaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = ar.db
@@ -733,7 +725,6 @@ func (ar *AdminRepository) GetAllLocker(ctx context.Context, tx *gorm.DB) ([]ent
 
 	return lockers, err
 }
-
 func (ar *AdminRepository) GetLockerByID(ctx context.Context, tx *gorm.DB, lockerID string) (entity.Locker, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -753,7 +744,6 @@ func (ar *AdminRepository) CreateLocker(ctx context.Context, tx *gorm.DB, locker
 
 	return tx.WithContext(ctx).Create(&locker).Error
 }
-
 func (ar *AdminRepository) UpdateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error {
 	if tx == nil {
 		tx = ar.db
@@ -768,7 +758,6 @@ func (ar *AdminRepository) DeleteLockerByID(ctx context.Context, tx *gorm.DB, lo
 
 	return tx.WithContext(ctx).Where("id = ?", lockerID).Delete(&entity.Locker{}).Error
 }
-
 func (ar *AdminRepository) GetLockerByLockerCode(ctx context.Context, tx *gorm.DB, lockerCode string) (entity.Locker, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -790,7 +779,6 @@ func (ar *AdminRepository) CreateSender(ctx context.Context, tx *gorm.DB, sender
 
 	return tx.WithContext(ctx).Create(&sender).Error
 }
-
 func (ar *AdminRepository) GetAllSender(ctx context.Context, tx *gorm.DB) ([]entity.Sender, error) {
 	if tx == nil {
 		tx = ar.db
@@ -809,7 +797,6 @@ func (ar *AdminRepository) GetAllSender(ctx context.Context, tx *gorm.DB) ([]ent
 
 	return senders, err
 }
-
 func (ar *AdminRepository) GetSenderByID(ctx context.Context, tx *gorm.DB, senderID string) (entity.Sender, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -822,7 +809,6 @@ func (ar *AdminRepository) GetSenderByID(ctx context.Context, tx *gorm.DB, sende
 
 	return sender, true, nil
 }
-
 func (ar *AdminRepository) GetAllSenderWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.SenderPaginationRepositoryResponse, error) {
 	if tx == nil {
 		tx = ar.db
@@ -863,7 +849,6 @@ func (ar *AdminRepository) GetAllSenderWithPagination(ctx context.Context, tx *g
 		},
 	}, nil
 }
-
 func (ar *AdminRepository) UpdateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error {
 	if tx == nil {
 		tx = ar.db
@@ -871,7 +856,6 @@ func (ar *AdminRepository) UpdateSender(ctx context.Context, tx *gorm.DB, sender
 
 	return tx.WithContext(ctx).Where("id = ?", sender.ID).Updates(&sender).Error
 }
-
 func (ar *AdminRepository) DeleteSenderByID(ctx context.Context, tx *gorm.DB, senderID string) error {
 	if tx == nil {
 		tx = ar.db
