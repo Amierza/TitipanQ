@@ -8,5 +8,7 @@ type Recipient struct {
 	Email       string    `gorm:"unique;not null" json:"recipient_email"`
 	PhoneNumber string    `gorm:"not null" json:"recipient_phone_number"`
 
+	Packages []Package `gorm:"foreignKey:RecipientID"`
+
 	TimeStamp
 }

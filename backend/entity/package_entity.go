@@ -36,6 +36,9 @@ type Package struct {
 	RecipientID *uuid.UUID `gorm:"type:uuid" json:"recipient_id"`
 	Recipient   Recipient  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"recipient"`
 
+	RecipientUserID *uuid.UUID `gorm:"type:uuid" json:"recipient_user_id"`
+	RecipientUser   User       `gorm:"foreignKey:RecipientUserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"recipient_user"`
+
 	TimeStamp
 }
 

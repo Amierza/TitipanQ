@@ -241,15 +241,10 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 		Model(&entity.Package{}).
 		Preload("User.Company").
 		Preload("User.Role").
-		Preload("Locker", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "locker_code", "location")
-		}).
-		Preload("Sender", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "name", "address", "phone_number")
-		}).
-		Preload("Recipient", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "name", "email", "phone_number")
-		}).
+		Preload("Sender").
+		Preload("Recipient").
+		Preload("RecipientUser").
+		Preload("Locker").
 		Where("id = ?", pkgID).
 		Take(&pkg).Error; err != nil {
 		return entity.Package{}, false, err

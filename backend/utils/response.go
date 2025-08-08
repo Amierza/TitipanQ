@@ -59,37 +59,51 @@ Kami akan segera memprosesnya.`,
 }
 
 func BuildCompletedMessage(p *entity.Package) string {
-	return fmt.Sprintf(
-		`✅ Paket dengan kode *%s* telah berhasil diterima oleh pemilik pada *%s*.
+	var message string
+	if p.RecipientID != nil {
+		message = fmt.Sprintf(
+			`✅ Paket dengan kode *%s* telah berhasil diterima oleh pemilik pada *%s*.
 
 Deskripsi: %s
 Jumlah: %d
 Tipe: %s
+Nama Penerima: %s
+Email Penerima: %s
+No Hp Penerima: %s
 
 Terima kasih telah menggunakan layanan TitipanQ!`,
-		p.TrackingCode,
-		p.CompletedAt.Format("02 Jan 2006"),
-		p.Description,
-		p.Quantity,
-		p.Type,
-	)
-}
+			p.TrackingCode,
+			p.CompletedAt.Format("02 Jan 2006"),
+			p.Description,
+			p.Quantity,
+			p.Type,
+			p.Recipient.Name,
+			p.Recipient.Email,
+			p.Recipient.PhoneNumber,
+		)
+	}
 
-func BuildExpiredMessage(p *entity.Package) string {
-	return fmt.Sprintf(
-		`⚠️ Paket dengan kode *%s* telah melewati batas waktu penyimpanan (3 bulan) dan dinyatakan *kedaluwarsa* pada *%s*.
+	if p.RecipientUserID != nil {
+		message = fmt.Sprintf(
+			`✅ Paket dengan kode *%s* telah berhasil diterima oleh pemilik pada *%s*.
 
 Deskripsi: %s
 Jumlah: %d
 Tipe: %s
-Pengirim: %s
+Nama Penerima: %s
+Email Penerima: %s
+No Hp Penerima: %s
 
-Silakan hubungi kantor TitipanQ untuk informasi lebih lanjut.`,
-		p.TrackingCode,
-		p.ExpiredAt.Format("02 Jan 2006"),
-		p.Description,
-		p.Quantity,
-		p.Type,
-		p.Sender.Name,
-	)
+Terima kasih telah menggunakan layanan TitipanQ!`,
+			p.TrackingCode,
+			p.CompletedAt.Format("02 Jan 2006"),
+			p.Description,
+			p.Quantity,
+			p.Type,
+			p.RecipientUser.Name,
+			p.RecipientUser.Email,
+			p.RecipientUser.PhoneNumber,
+		)
+	}
+	return message
 }

@@ -42,7 +42,7 @@ func main() {
 	// @every 10s
 	// @daily
 	// Monthly Reminder Packages
-	c.AddFunc("@every 10s", func() {
+	c.AddFunc("@daily", func() {
 		log.Println("[CRON] MonthlyReminderPackages triggered...")
 		err := adminService.MonthlyReminderPackages()
 		if err != nil {
@@ -53,7 +53,7 @@ func main() {
 	})
 
 	// Fill deleted at after through 2 weeks after status change
-	c.AddFunc("@every 10s", func() {
+	c.AddFunc("@daily", func() {
 		log.Println("[CRON] AutoSoftDeletePackages triggered...")
 		err := adminService.AutoSoftDeletePackages()
 		if err != nil {

@@ -328,16 +328,19 @@ type (
 		Packages []entity.Package
 	}
 	UpdatePackageRequest struct {
-		ID           string                `json:"-"`
-		TrackingCode string                `json:"package_tracking_code" form:"package_tracking_code"`
-		Description  string                `json:"package_description,omitempty" form:"package_description"`
-		Image        string                `json:"package_image,omitempty" form:"package_image"`
-		Type         entity.Type           `json:"package_type,omitempty" form:"package_type"`
-		Status       entity.Status         `json:"package_status,omitempty" form:"package_status"`
-		Quantity     *int                  `json:"package_quantity" form:"package_quantity"`
-		SenderID     string                `json:"sender_id,omitempty" form:"sender_id"`
-		FileHeader   *multipart.FileHeader `json:"fileheader,omitempty"`
-		FileReader   multipart.File        `json:"filereader,omitempty"`
+		ID              string                `json:"-"`
+		TrackingCode    string                `json:"package_tracking_code" form:"package_tracking_code"`
+		Description     string                `json:"package_description,omitempty" form:"package_description"`
+		Image           string                `json:"package_image,omitempty" form:"package_image"`
+		Type            entity.Type           `json:"package_type,omitempty" form:"package_type"`
+		Status          entity.Status         `json:"package_status,omitempty" form:"package_status"`
+		Quantity        *int                  `json:"package_quantity" form:"package_quantity"`
+		SenderID        string                `json:"sender_id,omitempty" form:"sender_id"`
+		LockerID        string                `json:"locker_id,omitempty" form:"locker_id"`
+		RecipientID     string                `json:"recipient_id,omitempty" form:"recipient_id"`
+		RecipientUserID string                `json:"recipient_user_id,omitempty" form:"recipient_user_id"`
+		FileHeader      *multipart.FileHeader `json:"fileheader,omitempty"`
+		FileReader      multipart.File        `json:"filereader,omitempty"`
 	}
 	UpdateStatusPackages struct {
 		PackageIDs  []uuid.UUID           `json:"package_ids" form:"package_ids"`
