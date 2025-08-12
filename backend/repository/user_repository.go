@@ -23,9 +23,14 @@ type (
 
 		// Create
 		Register(ctx context.Context, tx *gorm.DB, user entity.User) error
+		CreateUserCompany(ctx context.Context, tx *gorm.DB, userCompany entity.UserCompany) error
 
 		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
+		PreloadUserCompanies(ctx context.Context, tx *gorm.DB, user *entity.User) error
+
+		// delete 
+		DeleteUserCompaniesByUserID(ctx context.Context, tx *gorm.DB, userID string) error
 	}
 
 	UserRepository struct {
@@ -191,3 +196,38 @@ func (ur *UserRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user enti
 
 	return tx.WithContext(ctx).Where("id = ?", user.ID).Updates(&user).Error
 }
+
+
+// create 
+func (ur *UserRepository) CreateUserCompany(ctx context.Context, tx *gorm.DB, userCompany entity.UserCompany) error {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	return tx.WithContext(ctx).Create(&userCompany).Error
+}
+
+
+func (ur *UserRepository) PreloadUserCompanies(ctx context.Context, tx *gorm.DB, user *entity.User) error {
+	if tx == nil {
+		tx = ur.db
+	}
+	return tx.WithContext(ctx).
+		Preload("UserCompanies.Company").
+		First(user, "id = ?", user.ID).Error
+}
+
+
+func (ur *UserRepository) DeleteUserCompaniesByUserID(ctx context.Context, tx *gorm.DB, userID string) error {
+	if tx == nil {
+		tx = ur.db
+	}
+
+	return tx.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Delete(&entity.UserCompany{}).
+		Error
+}
+
+
+

@@ -27,17 +27,11 @@ type Package struct {
 	UserID *uuid.UUID `gorm:"type:uuid" json:"user_id"`
 	User   User       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
-	LockerID uuid.UUID `gorm:"type:uuid;not null" json:"locker_id"`
-	Locker   Locker    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+	LockerID *uuid.UUID `gorm:"type:uuid" json:"locker_id"`
+	Locker   Locker     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
-	SenderID uuid.UUID `gorm:"type:uuid;not null" json:"sender_id"`
-	Sender   Sender    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
-
-	RecipientID *uuid.UUID `gorm:"type:uuid" json:"recipient_id"`
-	Recipient   Recipient  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"recipient"`
-
-	RecipientUserID *uuid.UUID `gorm:"type:uuid" json:"recipient_user_id"`
-	RecipientUser   User       `gorm:"foreignKey:RecipientUserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"recipient_user"`
+	SenderID *uuid.UUID `gorm:"type:uuid" json:"sender_id"`
+	Sender   Sender     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	TimeStamp
 }

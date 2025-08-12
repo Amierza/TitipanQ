@@ -14,14 +14,13 @@ type User struct {
 	PhoneNumber string    `gorm:"not null" json:"user_phone_number"`
 	Address     string    `gorm:"type:text" json:"user_address"`
 
-	Packages          []Package        `gorm:"foreignKey:UserID"`
-	PackageHistories  []PackageHistory `gorm:"foreignKey:ChangedBy"`
-	RecipientPackages []Package        `gorm:"foreignKey:RecipientUserID"`
+	Packages         []Package        `gorm:"foreignKey:UserID"`
+	PackageHistories []PackageHistory `gorm:"foreignKey:ChangedBy"`
 
-	CompanyID *uuid.UUID `gorm:"type:uuid" json:"company_id"`
-	Company   Company    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	RoleID    *uuid.UUID `gorm:"type:uuid" json:"role_id"`
-	Role      Role       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	UserCompanies []UserCompany `gorm:"foreignKey:UserID" json:"user_companies"`
+
+	RoleID *uuid.UUID `gorm:"type:uuid" json:"role_id"`
+	Role   Role       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	TimeStamp
 }
