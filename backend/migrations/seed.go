@@ -42,8 +42,7 @@ func Seed(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-
-	err = SeedFromJSON[entity.Recipient](db, "./migrations/json/recipients.json", entity.Recipient{}, "Email")
+	err = SeedFromJSON[entity.UserCompany](db, "./migrations/json/user_company.json", entity.UserCompany{},"ID")
 	if err != nil {
 		return err
 	}

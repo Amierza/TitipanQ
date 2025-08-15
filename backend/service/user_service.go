@@ -67,15 +67,6 @@ func (us *UserService) Register(ctx context.Context, req dto.CreateUserRequest) 
 		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
 
-	var company *entity.Company
-	if req.CompanyID != nil {
-		c, flag, err := us.userRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-		if err != nil || !flag {
-			return dto.UserResponse{}, dto.ErrGetCompanyByID
-		}
-		company = &c
-	}
-
 	role, _, err := us.userRepo.GetRoleByName(ctx, nil, "user")
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrGetRoleFromName
@@ -92,14 +83,46 @@ func (us *UserService) Register(ctx context.Context, req dto.CreateUserRequest) 
 		Role:        role,
 	}
 
-	if company != nil {
-		user.CompanyID = &company.ID
-		user.Company = *company
-	}
-
 	err = us.userRepo.Register(ctx, nil, user)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrRegisterUser
+	}
+
+	if req.CompanyIDs != nil && len(req.CompanyIDs) > 0 {
+		for _, cid := range req.CompanyIDs {
+			if cid == nil {
+				continue
+			}
+			_, found, err := us.userRepo.GetCompanyByID(ctx, nil, cid.String())
+			if err != nil || !found {
+				return dto.UserResponse{}, dto.ErrGetCompanyByID
+			}
+
+			userCompany := entity.UserCompany{
+				ID:        uuid.New(),
+				UserID:    &user.ID,
+				CompanyID: cid,
+			}
+
+			err = us.userRepo.CreateUserCompany(ctx, nil, userCompany)
+			if err != nil {
+				return dto.UserResponse{}, err
+			}
+		}
+	}
+
+	user, _, err = us.userRepo.GetUserByID(ctx, nil, user.ID.String())
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	companies := []dto.CompanyResponse{}
+	for _, uc := range user.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
 	}
 
 	return dto.UserResponse{
@@ -109,17 +132,14 @@ func (us *UserService) Register(ctx context.Context, req dto.CreateUserRequest) 
 		Password:    user.Password,
 		PhoneNumber: user.PhoneNumber,
 		Address:     user.Address,
-		Company: dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		},
+		Companies:   companies,
 		Role: dto.RoleResponse{
 			ID:   user.RoleID,
 			Name: user.Role.Name,
 		},
 	}, nil
 }
+
 func (us *UserService) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
 	if !helpers.IsValidEmail(req.Email) {
 		return dto.LoginResponse{}, dto.ErrInvalidEmail
@@ -230,6 +250,15 @@ func (us *UserService) GetDetailUser(ctx context.Context) (dto.UserResponse, err
 		return dto.UserResponse{}, dto.ErrUserNotFound
 	}
 
+	companies := []dto.CompanyResponse{}
+	for _, uc := range user.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
+	}
+
 	return dto.UserResponse{
 		ID:          user.ID,
 		Name:        user.Name,
@@ -237,17 +266,14 @@ func (us *UserService) GetDetailUser(ctx context.Context) (dto.UserResponse, err
 		Password:    user.Password,
 		PhoneNumber: user.PhoneNumber,
 		Address:     user.Address,
-		Company: dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		},
+		Companies:   companies,
 		Role: dto.RoleResponse{
 			ID:   user.RoleID,
 			Name: user.Role.Name,
 		},
 	}, nil
 }
+
 func (us *UserService) UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error) {
 	token := ctx.Value("Authorization").(string)
 
@@ -308,23 +334,49 @@ func (us *UserService) UpdateUser(ctx context.Context, req dto.UpdateUserRequest
 		user.Address = req.Address
 	}
 
-	if req.CompanyID != nil {
-		company, flag, err := us.userRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-		if err != nil || !flag {
-			return dto.UserResponse{}, dto.ErrGetCompanyByID
+	if len(req.CompanyIDs) > 0 {
+		err := us.userRepo.DeleteUserCompaniesByUserID(ctx, nil, user.ID.String())
+		if err != nil {
+			return dto.UserResponse{}, dto.ErrDeletedUserCompanies
+		}
+		for _, companyID := range req.CompanyIDs {
+			_, flag, err := us.userRepo.GetCompanyByID(ctx, nil, companyID.String())
+			if err != nil || !flag {
+				return dto.UserResponse{}, dto.ErrFindCompanyID
+			}
+
+			userCompany := entity.UserCompany{
+				ID:        uuid.New(),
+				UserID:    &user.ID,
+				CompanyID: companyID,
+			}
+
+			err = us.userRepo.CreateUserCompany(ctx, nil, userCompany)
+			if err != nil {
+				return dto.UserResponse{}, dto.ErrFailedCreateUserCompany
+			}
 		}
 
-		if user.CompanyID == &company.ID {
-			return dto.UserResponse{}, dto.ErrSameCompanyID
+		// load ulang relasi UserCompanies
+		user.UserCompanies = nil
+		err = us.userRepo.PreloadUserCompanies(ctx, nil, &user)
+		if err != nil {
+			return dto.UserResponse{}, dto.ErrFailedPreloadUserCompany
 		}
-
-		user.CompanyID = &company.ID
-		user.Company = company
 	}
 
 	err = us.userRepo.UpdateUser(ctx, nil, user)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrUpdateUser
+	}
+
+	var companies []dto.CompanyResponse
+	for _, uc := range user.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
 	}
 
 	res := dto.UserResponse{
@@ -334,11 +386,7 @@ func (us *UserService) UpdateUser(ctx context.Context, req dto.UpdateUserRequest
 		Password:    user.Password,
 		PhoneNumber: user.PhoneNumber,
 		Address:     user.Address,
-		Company: dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		},
+		Companies:   companies,
 		Role: dto.RoleResponse{
 			ID:   user.RoleID,
 			Name: user.Role.Name,
@@ -364,6 +412,14 @@ func (us *UserService) ReadAllPackage(ctx context.Context) ([]dto.PackageRespons
 
 	var datas []dto.PackageResponse
 	for _, pkg := range dataWithPaginate {
+		var companies []dto.CompanyResponse
+		for _, uc := range pkg.User.UserCompanies {
+			companies = append(companies, dto.CompanyResponse{
+				ID:      &uc.Company.ID,
+				Name:    uc.Company.Name,
+				Address: uc.Company.Address,
+			})
+		}
 		data := dto.PackageResponse{
 			ID:           pkg.ID,
 			TrackingCode: pkg.TrackingCode,
@@ -380,11 +436,7 @@ func (us *UserService) ReadAllPackage(ctx context.Context) ([]dto.PackageRespons
 				Password:    pkg.User.Password,
 				PhoneNumber: pkg.User.PhoneNumber,
 				Address:     pkg.User.Address,
-				Company: dto.CompanyResponse{
-					ID:      pkg.User.CompanyID,
-					Name:    pkg.User.Company.Name,
-					Address: pkg.User.Company.Address,
-				},
+				Companies:   companies,
 				Role: dto.RoleResponse{
 					ID:   pkg.User.RoleID,
 					Name: pkg.User.Role.Name,
@@ -407,6 +459,15 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 		return dto.PackageResponse{}, dto.ErrPackageNotFound
 	}
 
+	var companies []dto.CompanyResponse
+	for _, uc := range pkg.User.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
+	}
+
 	return dto.PackageResponse{
 		ID:           pkg.ID,
 		TrackingCode: pkg.TrackingCode,
@@ -423,11 +484,7 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 			Password:    pkg.User.Password,
 			PhoneNumber: pkg.User.PhoneNumber,
 			Address:     pkg.User.Address,
-			Company: dto.CompanyResponse{
-				ID:      pkg.User.CompanyID,
-				Name:    pkg.User.Company.Name,
-				Address: pkg.User.Company.Address,
-			},
+			Companies:   companies,
 			Role: dto.RoleResponse{
 				ID:   pkg.User.RoleID,
 				Name: pkg.User.Role.Name,

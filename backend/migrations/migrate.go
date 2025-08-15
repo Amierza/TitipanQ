@@ -13,7 +13,7 @@ func Migrate(db *gorm.DB) error {
 		&entity.Sender{},
 		&entity.User{},
 		&entity.Locker{},
-		&entity.Recipient{},
+		&entity.UserCompany{},
 		&entity.Package{},
 		&entity.PackageHistory{},
 		&entity.CronLog{},

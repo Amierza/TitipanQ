@@ -7,7 +7,7 @@ type Company struct {
 	Name    string    `gorm:"not null" json:"company_name"`
 	Address string    `gorm:"type:text" json:"company_address"`
 
-	Users []User `gorm:"foreignKey:CompanyID"`
+	UserCompanies []UserCompany `gorm:"foreignKey:CompanyID" json:"user_companies"`
 
 	TimeStamp
 }

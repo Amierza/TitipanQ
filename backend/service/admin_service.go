@@ -57,14 +57,6 @@ type (
 		UpdateCompany(ctx context.Context, req dto.UpdateCompanyRequest) (dto.UpdateCompanyResponse, error)
 		DeleteCompany(ctx context.Context, companyID string) (dto.CompanyResponse, error)
 
-		// Recipient
-		CreateRecipient(ctx context.Context, req dto.CreateRecipientRequest) (dto.RecipientResponse, error)
-		GetAllRecipient(ctx context.Context) ([]dto.RecipientResponse, error)
-		GetRecipientByID(ctx context.Context, recipientID string) (dto.RecipientResponse, error)
-		GetAllRecipientsWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.RecipientPaginationResponse, error)
-		UpdateRecipient(ctx context.Context, req dto.UpdateRecipientRequest) (dto.RecipientResponse, error)
-		DeleteRecipient(ctx context.Context, req dto.DeleteRecipientRequest) (dto.RecipientResponse, error)
-
 		// Locker
 		CreateLocker(ctx context.Context, req dto.CreateLockerRequest) (dto.LockerResponse, error)
 		GetAllLocker(ctx context.Context) ([]dto.LockerResponse, error)
@@ -196,15 +188,6 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		return dto.UserResponse{}, dto.ErrFormatPhoneNumber
 	}
 
-	var company *entity.Company
-	if req.CompanyID != nil {
-		c, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-		if err != nil || !flag {
-			return dto.UserResponse{}, dto.ErrGetCompanyByID
-		}
-		company = &c
-	}
-
 	role, _, err := as.adminRepo.GetRoleByName(ctx, nil, "user")
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrGetRoleFromName
@@ -221,14 +204,34 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		Role:        role,
 	}
 
-	if company != nil {
-		user.CompanyID = &company.ID
-		user.Company = *company
+	if err := as.adminRepo.CreateUser(ctx, nil, user); err != nil {
+		return dto.UserResponse{}, dto.ErrRegisterUser
 	}
 
-	err = as.adminRepo.CreateUser(ctx, nil, user)
-	if err != nil {
-		return dto.UserResponse{}, dto.ErrRegisterUser
+	var companies []dto.CompanyResponse
+	if len(req.CompanyIDs) > 0 {
+		for _, cid := range req.CompanyIDs {
+			c, found, err := as.adminRepo.GetCompanyByID(ctx, nil, cid.String())
+			if err != nil || !found {
+				return dto.UserResponse{}, dto.ErrGetCompanyByID
+			}
+
+			userCompany := entity.UserCompany{
+				ID:        uuid.New(),
+				UserID:    &user.ID,
+				CompanyID: cid,
+			}
+
+			if err := as.adminRepo.CreateUserCompany(ctx, nil, userCompany); err != nil {
+				return dto.UserResponse{}, dto.ErrRegisterUser
+			}
+
+			companies = append(companies, dto.CompanyResponse{
+				ID:      &c.ID,
+				Name:    c.Name,
+				Address: c.Address,
+			})
+		}
 	}
 
 	res := dto.UserResponse{
@@ -238,11 +241,7 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 		Password:    user.Password,
 		PhoneNumber: user.PhoneNumber,
 		Address:     user.Address,
-		Company: dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		},
+		Companies:   companies,
 		Role: dto.RoleResponse{
 			ID:   user.RoleID,
 			Name: user.Role.Name,
@@ -251,6 +250,7 @@ func (as *AdminService) CreateUser(ctx context.Context, req dto.CreateUserReques
 
 	return res, nil
 }
+
 func (as *AdminService) ReadAllUserNoPagination(ctx context.Context) ([]dto.UserResponse, error) {
 	users, err := as.adminRepo.GetAllUser(ctx)
 	if err != nil {
@@ -259,28 +259,32 @@ func (as *AdminService) ReadAllUserNoPagination(ctx context.Context) ([]dto.User
 
 	var datas []dto.UserResponse
 	for _, user := range users {
-		data := dto.UserResponse{
+		var companies []dto.CompanyResponse
+		for _, uc := range user.UserCompanies {
+			companies = append(companies, dto.CompanyResponse{
+				ID:      &uc.Company.ID,
+				Name:    uc.Company.Name,
+				Address: uc.Company.Address,
+			})
+		}
+		datas = append(datas, dto.UserResponse{
 			ID:          user.ID,
 			Name:        user.Name,
 			Email:       user.Email,
 			Password:    user.Password,
 			PhoneNumber: user.PhoneNumber,
 			Address:     user.Address,
-		}
-		data.Company = dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		}
-		data.Role = dto.RoleResponse{
-			ID:   user.RoleID,
-			Name: user.Role.Name,
-		}
-		datas = append(datas, data)
+			Companies:   companies,
+			Role: dto.RoleResponse{
+				ID:   user.RoleID,
+				Name: user.Role.Name,
+			},
+		})
 	}
 
 	return datas, nil
 }
+
 func (as *AdminService) ReadAllUserWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.UserPaginationResponse, error) {
 	dataWithPaginate, err := as.adminRepo.GetAllUserWithPagination(ctx, nil, req)
 	if err != nil {
@@ -289,26 +293,27 @@ func (as *AdminService) ReadAllUserWithPagination(ctx context.Context, req dto.P
 
 	var datas []dto.UserResponse
 	for _, user := range dataWithPaginate.Users {
-		data := dto.UserResponse{
+		var companies []dto.CompanyResponse
+		for _, uc := range user.UserCompanies {
+			companies = append(companies, dto.CompanyResponse{
+				ID:      &uc.Company.ID,
+				Name:    uc.Company.Name,
+				Address: uc.Company.Address,
+			})
+		}
+		datas = append(datas, dto.UserResponse{
 			ID:          user.ID,
 			Name:        user.Name,
 			Email:       user.Email,
 			Password:    user.Password,
 			PhoneNumber: user.PhoneNumber,
 			Address:     user.Address,
-		}
-
-		data.Company = dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		}
-		data.Role = dto.RoleResponse{
-			ID:   user.RoleID,
-			Name: user.Role.Name,
-		}
-
-		datas = append(datas, data)
+			Companies:   companies,
+			Role: dto.RoleResponse{
+				ID:   user.RoleID,
+				Name: user.Role.Name,
+			},
+		})
 	}
 
 	return dto.UserPaginationResponse{
@@ -321,10 +326,20 @@ func (as *AdminService) ReadAllUserWithPagination(ctx context.Context, req dto.P
 		},
 	}, nil
 }
+
 func (as *AdminService) GetDetailUser(ctx context.Context, userID string) (dto.UserResponse, error) {
 	user, _, err := as.adminRepo.GetUserByID(ctx, nil, userID)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrUserNotFound
+	}
+
+	var companies []dto.CompanyResponse
+	for _, uc := range user.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
 	}
 
 	return dto.UserResponse{
@@ -334,17 +349,15 @@ func (as *AdminService) GetDetailUser(ctx context.Context, userID string) (dto.U
 		Password:    user.Password,
 		PhoneNumber: user.PhoneNumber,
 		Address:     user.Address,
-		Company: dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		},
+		Companies:   companies,
 		Role: dto.RoleResponse{
 			ID:   user.RoleID,
 			Name: user.Role.Name,
 		},
 	}, nil
+
 }
+
 func (as *AdminService) UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error) {
 	user, _, err := as.adminRepo.GetUserByID(ctx, nil, req.ID)
 	if err != nil {
@@ -398,19 +411,46 @@ func (as *AdminService) UpdateUser(ctx context.Context, req dto.UpdateUserReques
 		user.Address = req.Address
 	}
 
-	if req.CompanyID != nil {
-		company, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, req.CompanyID.String())
-		if err != nil || !flag {
-			return dto.UserResponse{}, dto.ErrGetCompanyByID
+	if len(req.CompanyIDs) > 0 {
+		err = as.adminRepo.DeleteUserCompaniesByUserID(ctx, nil, user.ID.String())
+		if err != nil {
+			return dto.UserResponse{}, err
 		}
+		for _, compID := range req.CompanyIDs {
+			_, flag, err := as.adminRepo.GetCompanyByID(ctx, nil, compID.String())
+			if err != nil || !flag {
+				return dto.UserResponse{}, dto.ErrGetCompanyByID
+			}
 
-		user.CompanyID = &company.ID
-		user.Company = company
+			userCompany := entity.UserCompany{
+				ID:        uuid.New(),
+				UserID:    &user.ID,
+				CompanyID: compID,
+			}
+			err = as.adminRepo.CreateUserCompany(ctx, nil, userCompany)
+			if err != nil {
+				return dto.UserResponse{}, err
+			}
+		}
 	}
 
 	err = as.adminRepo.UpdateUser(ctx, nil, user)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrUpdateUser
+	}
+
+	user, _, err = as.adminRepo.GetUserByID(ctx, nil, req.ID)
+	if err != nil {
+		return dto.UserResponse{}, dto.ErrGetUserByID
+	}
+
+	var companies []dto.CompanyResponse
+	for _, uc := range user.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
 	}
 
 	res := dto.UserResponse{
@@ -420,11 +460,7 @@ func (as *AdminService) UpdateUser(ctx context.Context, req dto.UpdateUserReques
 		Password:    user.Password,
 		PhoneNumber: user.PhoneNumber,
 		Address:     user.Address,
-		Company: dto.CompanyResponse{
-			ID:      user.CompanyID,
-			Name:    user.Company.Name,
-			Address: user.Company.Address,
-		},
+		Companies:   companies,
 		Role: dto.RoleResponse{
 			ID:   user.RoleID,
 			Name: user.Role.Name,
@@ -433,15 +469,31 @@ func (as *AdminService) UpdateUser(ctx context.Context, req dto.UpdateUserReques
 
 	return res, nil
 }
+
 func (as *AdminService) DeleteUser(ctx context.Context, req dto.DeleteUserRequest) (dto.UserResponse, error) {
 	deletedUser, _, err := as.adminRepo.GetUserByID(ctx, nil, req.UserID)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrGetUserByID
 	}
 
+	// Hapus relasi many-to-many di pivot table UserCompany
+	if err := as.adminRepo.DeleteUserCompaniesByUserID(ctx, nil, req.UserID); err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	// Hapus user
 	err = as.adminRepo.DeleteUserByID(ctx, nil, req.UserID)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrDeleteUserByID
+	}
+
+	var companies []dto.CompanyResponse
+	for _, uc := range deletedUser.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
 	}
 
 	res := dto.UserResponse{
@@ -451,11 +503,7 @@ func (as *AdminService) DeleteUser(ctx context.Context, req dto.DeleteUserReques
 		Password:    deletedUser.Password,
 		PhoneNumber: deletedUser.PhoneNumber,
 		Address:     deletedUser.Address,
-		Company: dto.CompanyResponse{
-			ID:      deletedUser.CompanyID,
-			Name:    deletedUser.Company.Name,
-			Address: deletedUser.Company.Address,
-		},
+		Companies:   companies,
 		Role: dto.RoleResponse{
 			ID:   deletedUser.RoleID,
 			Name: deletedUser.Role.Name,
@@ -537,7 +585,6 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		SenderID:     req.SenderID,
 		UserID:       &user.ID,
 		LockerID:     req.LockerID,
-		RecipientID:  nil,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: now,
 			UpdatedAt: now,
@@ -573,6 +620,15 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		return dto.PackageResponse{}, dto.ErrCreatePackageHistory
 	}
 
+	var companies []dto.CompanyResponse
+	for _, uc := range user.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
+	}
+
 	return dto.PackageResponse{
 		ID:           pkg.ID,
 		TrackingCode: pkg.TrackingCode,
@@ -601,11 +657,7 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 			Password:    user.Password,
 			PhoneNumber: user.PhoneNumber,
 			Address:     user.Address,
-			Company: dto.CompanyResponse{
-				ID:      user.CompanyID,
-				Name:    user.Company.Name,
-				Address: user.Company.Address,
-			},
+			Companies:   companies,
 			Role: dto.RoleResponse{
 				ID:   user.RoleID,
 				Name: user.Role.Name,
@@ -617,6 +669,7 @@ func (as *AdminService) CreatePackage(ctx context.Context, req dto.CreatePackage
 		},
 	}, nil
 }
+
 func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, pkgType string) ([]dto.PackageResponse, error) {
 	packages, err := as.adminRepo.GetAllPackage(ctx, nil, userID, pkgType)
 	if err != nil {
@@ -625,14 +678,13 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, 
 
 	var datas []dto.PackageResponse
 	for _, pkg := range packages {
-		var recipient *dto.RecipientResponse
-		if pkg.RecipientID != nil {
-			recipient = &dto.RecipientResponse{
-				ID:          *pkg.RecipientID,
-				Name:        pkg.Recipient.Name,
-				Email:       pkg.Recipient.Email,
-				PhoneNumber: pkg.Recipient.PhoneNumber,
-			}
+		var companies []dto.CompanyResponse
+		for _, uc := range pkg.User.UserCompanies {
+			companies = append(companies, dto.CompanyResponse{
+				ID:      &uc.Company.ID,
+				Name:    uc.Company.Name,
+				Address: uc.Company.Address,
+			})
 		}
 
 		data := dto.PackageResponse{
@@ -652,7 +704,7 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, 
 				PhoneNumber: pkg.Sender.PhoneNumber,
 			},
 			Locker: dto.LockerResponse{
-				ID:         pkg.LockerID,
+				ID:         pkg.Locker.ID,
 				LockerCode: pkg.Locker.LockerCode,
 				Location:   pkg.Locker.Location,
 			},
@@ -663,17 +715,12 @@ func (as *AdminService) ReadAllPackageNoPagination(ctx context.Context, userID, 
 				Password:    pkg.User.Password,
 				PhoneNumber: pkg.User.PhoneNumber,
 				Address:     pkg.User.Address,
-				Company: dto.CompanyResponse{
-					ID:      pkg.User.CompanyID,
-					Name:    pkg.User.Company.Name,
-					Address: pkg.User.Company.Address,
-				},
+				Companies:   companies,
 				Role: dto.RoleResponse{
 					ID:   pkg.User.RoleID,
 					Name: pkg.User.Role.Name,
 				},
 			},
-			Recipient: recipient,
 			TimeStamp: entity.TimeStamp{
 				CreatedAt: pkg.CreatedAt,
 				UpdatedAt: pkg.UpdatedAt,
@@ -694,17 +741,14 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 	var datas []dto.PackageResponse
 
 	for _, pkg := range dataWithPaginate.Packages {
-		// default nil
-		var recipient *dto.RecipientResponse
-		if pkg.RecipientID != nil {
-			recipient = &dto.RecipientResponse{
-				ID:          *pkg.RecipientID,
-				Name:        pkg.Recipient.Name,
-				Email:       pkg.Recipient.Email,
-				PhoneNumber: pkg.Recipient.PhoneNumber,
-			}
+		var companies []dto.CompanyResponse
+		for _, uc := range pkg.User.UserCompanies {
+			companies = append(companies, dto.CompanyResponse{
+				ID:      &uc.Company.ID,
+				Name:    uc.Company.Name,
+				Address: uc.Company.Address,
+			})
 		}
-
 		data := dto.PackageResponse{
 			ID:           pkg.ID,
 			TrackingCode: pkg.TrackingCode,
@@ -722,7 +766,7 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 				PhoneNumber: pkg.Sender.PhoneNumber,
 			},
 			Locker: dto.LockerResponse{
-				ID:         pkg.LockerID,
+				ID:         pkg.Locker.ID,
 				LockerCode: pkg.Locker.LockerCode,
 				Location:   pkg.Locker.Location,
 			},
@@ -733,17 +777,12 @@ func (as *AdminService) ReadAllPackageWithPagination(ctx context.Context, req dt
 				Password:    pkg.User.Password,
 				PhoneNumber: pkg.User.PhoneNumber,
 				Address:     pkg.User.Address,
-				Company: dto.CompanyResponse{
-					ID:      pkg.User.CompanyID,
-					Name:    pkg.User.Company.Name,
-					Address: pkg.User.Company.Address,
-				},
+				Companies:   companies,
 				Role: dto.RoleResponse{
 					ID:   pkg.User.RoleID,
 					Name: pkg.User.Role.Name,
 				},
 			},
-			Recipient: recipient, // bisa null
 			TimeStamp: entity.TimeStamp{
 				CreatedAt: pkg.CreatedAt,
 				UpdatedAt: pkg.UpdatedAt,
@@ -777,15 +816,13 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 		return dto.PackageResponse{}, dto.ErrPackageNotFound
 	}
 
-	// default recipient nil
-	var recipient *dto.RecipientResponse
-	if pkg.RecipientID != nil {
-		recipient = &dto.RecipientResponse{
-			ID:          *pkg.RecipientID,
-			Name:        pkg.Recipient.Name,
-			Email:       pkg.Recipient.Email,
-			PhoneNumber: pkg.Recipient.PhoneNumber,
-		}
+	var companies []dto.CompanyResponse
+	for _, uc := range pkg.User.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
 	}
 
 	return dto.PackageResponse{
@@ -805,7 +842,7 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 			PhoneNumber: pkg.Sender.PhoneNumber,
 		},
 		Locker: dto.LockerResponse{
-			ID:         pkg.LockerID,
+			ID:         pkg.Locker.ID,
 			LockerCode: pkg.Locker.LockerCode,
 			Location:   pkg.Locker.Location,
 		},
@@ -816,17 +853,12 @@ func (as *AdminService) GetDetailPackage(ctx context.Context, identifier string)
 			Password:    pkg.User.Password,
 			PhoneNumber: pkg.User.PhoneNumber,
 			Address:     pkg.User.Address,
-			Company: dto.CompanyResponse{
-				ID:      pkg.User.CompanyID,
-				Name:    pkg.User.Company.Name,
-				Address: pkg.User.Company.Address,
-			},
+			Companies:   companies,
 			Role: dto.RoleResponse{
 				ID:   pkg.User.RoleID,
 				Name: pkg.User.Role.Name,
 			},
 		},
-		Recipient: recipient,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: pkg.CreatedAt,
 			UpdatedAt: pkg.UpdatedAt,
@@ -958,15 +990,15 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		p.Quantity = *req.Quantity
 	}
 
-	if req.SenderID != "" {
-		sender, found, err := as.adminRepo.GetSenderByID(ctx, nil, req.SenderID)
+	if req.SenderID != nil {
+		sender, found, err := as.adminRepo.GetSenderByID(ctx, nil, req.SenderID.String())
 		if err != nil || !found {
 			return dto.UpdatePackageResponse{}, dto.ErrSenderNotFound
 		}
 
-		if p.SenderID != sender.ID {
+		if p.SenderID == nil || *p.SenderID != sender.ID {
 			descriptionChanges = append(descriptionChanges, "sender changed")
-			p.SenderID = sender.ID
+			p.SenderID = &sender.ID
 		}
 	}
 
@@ -982,44 +1014,16 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		}
 	}
 
-	if req.LockerID != "" {
-		locker, found, err := as.adminRepo.GetLockerByID(ctx, nil, req.LockerID)
+	if req.LockerID != nil {
+		locker, found, err := as.adminRepo.GetLockerByID(ctx, nil, req.LockerID.String())
 		if err != nil || !found {
 			return dto.UpdatePackageResponse{}, dto.ErrLockerNotFound
 		}
 
-		if p.LockerID != locker.ID {
+		if p.LockerID == nil || *p.LockerID != locker.ID {
 			descriptionChanges = append(descriptionChanges, "locker changed")
-			p.LockerID = locker.ID
+			p.LockerID = &locker.ID
 		}
-	}
-
-	if req.RecipientID != "" {
-		recipient, foundRecipient, err := as.adminRepo.GetRecipientByID(ctx, nil, req.RecipientID)
-		if err != nil {
-			return dto.UpdatePackageResponse{}, err
-		}
-		if !foundRecipient {
-			return dto.UpdatePackageResponse{}, dto.ErrRecipientNotFound
-		}
-
-		descriptionChanges = append(descriptionChanges, "recipient changed (taken by representative)")
-		p.RecipientID = &recipient.ID
-		p.Recipient = recipient
-	}
-
-	if req.RecipientUserID != "" {
-		user, foundRecipient, err := as.adminRepo.GetUserByID(ctx, nil, req.RecipientUserID)
-		if err != nil {
-			return dto.UpdatePackageResponse{}, err
-		}
-		if !foundRecipient {
-			return dto.UpdatePackageResponse{}, dto.ErrRecipientNotFound
-		}
-
-		descriptionChanges = append(descriptionChanges, "recipient changed (taken by user)")
-		p.RecipientUserID = &user.ID
-		p.RecipientUser = user
 	}
 
 	var validStatusOrder = map[entity.Status]entity.Status{
@@ -1097,14 +1101,14 @@ func (as *AdminService) UpdatePackage(ctx context.Context, req dto.UpdatePackage
 		CompletedAt:  p.CompletedAt,
 		ExpiredAt:    p.ExpiredAt,
 		Sender: dto.SenderResponse{
-			ID:          p.SenderID,
+			ID:          *p.SenderID,
 			Name:        p.Sender.Name,
 			Address:     p.Sender.Address,
 			PhoneNumber: p.Sender.PhoneNumber,
 		},
 		User: client,
 		Locker: dto.LockerResponse{
-			ID:         p.LockerID,
+			ID:         *p.LockerID,
 			LockerCode: p.Locker.LockerCode,
 			Location:   p.Locker.Location,
 		},
@@ -1155,11 +1159,6 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 		proofImagePath = fileName
 	}
 
-	recipient, _, err := as.adminRepo.GetRecipientByID(ctx, nil, req.RecipientID.String())
-	if err != nil {
-		return dto.ErrRecipientNotFound
-	}
-
 	for _, pkgID := range req.PackageIDs {
 		p, _, err := as.adminRepo.GetPackageByID(ctx, nil, pkgID.String())
 		if err != nil {
@@ -1169,7 +1168,6 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 		err = as.adminRepo.UpdateStatusPackage(
 			ctx, nil,
 			pkgID.String(),
-			req.RecipientID,
 			string(entity.Completed),
 			proofImagePath,
 		)
@@ -1189,7 +1187,7 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 		history := entity.PackageHistory{
 			ID:          uuid.New(),
 			Status:      entity.Completed,
-			Description: fmt.Sprintf("package status changed, taken by %s", recipient.Name),
+			Description: fmt.Sprintf("package status changed, taken by %s", "user"),
 			PackageID:   &pkgID,
 			ChangedBy:   &idChanger,
 		}
@@ -1211,14 +1209,13 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 		return dto.PackageResponse{}, dto.ErrDeleteUserByID
 	}
 
-	var recipient *dto.RecipientResponse
-	if deletedPackage.RecipientID != nil {
-		recipient = &dto.RecipientResponse{
-			ID:          *deletedPackage.RecipientID,
-			Name:        deletedPackage.Recipient.Name,
-			Email:       deletedPackage.Recipient.Email,
-			PhoneNumber: deletedPackage.Recipient.PhoneNumber,
-		}
+	var companies []dto.CompanyResponse
+	for _, uc := range deletedPackage.User.UserCompanies {
+		companies = append(companies, dto.CompanyResponse{
+			ID:      &uc.Company.ID,
+			Name:    uc.Company.Name,
+			Address: uc.Company.Address,
+		})
 	}
 
 	res := dto.PackageResponse{
@@ -1238,7 +1235,7 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 			PhoneNumber: deletedPackage.Sender.PhoneNumber,
 		},
 		Locker: dto.LockerResponse{
-			ID:         deletedPackage.LockerID,
+			ID:         deletedPackage.Locker.ID,
 			LockerCode: deletedPackage.Locker.LockerCode,
 			Location:   deletedPackage.Locker.Location,
 		},
@@ -1249,17 +1246,12 @@ func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackage
 			Password:    deletedPackage.User.Password,
 			PhoneNumber: deletedPackage.User.PhoneNumber,
 			Address:     deletedPackage.User.Address,
-			Company: dto.CompanyResponse{
-				ID:      deletedPackage.User.CompanyID,
-				Name:    deletedPackage.User.Company.Name,
-				Address: deletedPackage.User.Company.Address,
-			},
+			Companies:   companies,
 			Role: dto.RoleResponse{
 				ID:   deletedPackage.User.RoleID,
 				Name: deletedPackage.User.Role.Name,
 			},
 		},
-		Recipient: recipient,
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: deletedPackage.CreatedAt,
 			UpdatedAt: deletedPackage.UpdatedAt,
@@ -1561,169 +1553,6 @@ func (as *AdminService) DeleteCompany(ctx context.Context, companyID string) (dt
 	return res, nil
 }
 
-// Recipient
-func (as *AdminService) CreateRecipient(ctx context.Context, req dto.CreateRecipientRequest) (dto.RecipientResponse, error) {
-	if len(req.Name) < 3 {
-		return dto.RecipientResponse{}, dto.ErrInvalidCompanyName
-	}
-	_, flag, err := as.adminRepo.GetRecipientByEmail(ctx, nil, req.Email)
-	if flag || err == nil {
-		return dto.RecipientResponse{}, dto.ErrEmailAlreadyExists
-	}
-
-	if !helpers.IsValidEmail(req.Email) {
-		return dto.RecipientResponse{}, dto.ErrInvalidEmail
-	}
-
-	phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
-	if err != nil {
-		return dto.RecipientResponse{}, dto.ErrFormatPhoneNumber
-	}
-
-	recipient := entity.Recipient{
-		ID:          uuid.New(),
-		Name:        req.Name,
-		Email:       req.Email,
-		PhoneNumber: phoneNumberFormatted,
-	}
-
-	if err := as.adminRepo.CreateRecipient(ctx, nil, recipient); err != nil {
-		return dto.RecipientResponse{}, dto.ErrCreateRecipient
-	}
-
-	return dto.RecipientResponse{
-		ID:          recipient.ID,
-		Name:        recipient.Name,
-		Email:       recipient.Email,
-		PhoneNumber: recipient.PhoneNumber,
-	}, nil
-}
-func (as *AdminService) GetAllRecipient(ctx context.Context) ([]dto.RecipientResponse, error) {
-	recipients, err := as.adminRepo.GetAllRecipient(ctx, nil)
-	if err != nil {
-		return nil, dto.ErrGetAllRecipients
-	}
-
-	var datas []dto.RecipientResponse
-	for _, recipients := range recipients {
-		datas = append(datas, dto.RecipientResponse{
-			ID:          recipients.ID,
-			Name:        recipients.Name,
-			Email:       recipients.Email,
-			PhoneNumber: recipients.PhoneNumber,
-		})
-	}
-
-	return datas, nil
-}
-func (as *AdminService) GetRecipientByID(ctx context.Context, recipientID string) (dto.RecipientResponse, error) {
-	recipient, flag, err := as.adminRepo.GetRecipientByID(ctx, nil, recipientID)
-	if err != nil || !flag {
-		return dto.RecipientResponse{}, dto.ErrRecipientNotFound
-	}
-
-	return dto.RecipientResponse{
-		ID:          recipient.ID,
-		Name:        recipient.Name,
-		Email:       recipient.Email,
-		PhoneNumber: recipient.PhoneNumber,
-	}, nil
-}
-func (as *AdminService) UpdateRecipient(ctx context.Context, req dto.UpdateRecipientRequest) (dto.RecipientResponse, error) {
-	recipient, _, err := as.adminRepo.GetRecipientByID(ctx, nil, req.ID)
-	if err != nil {
-		return dto.RecipientResponse{}, dto.ErrGetRecipientByID
-	}
-
-	if req.Name != "" {
-		if len(req.Name) < 3 {
-			return dto.RecipientResponse{}, dto.ErrInvalidName
-		}
-		recipient.Name = req.Name
-	}
-
-	if req.Email != "" {
-		if !helpers.IsValidEmail(req.Email) {
-			return dto.RecipientResponse{}, dto.ErrInvalidEmail
-		}
-
-		_, flag, err := as.adminRepo.GetRecipientByEmail(ctx, nil, req.Email)
-		if flag || err == nil {
-			return dto.RecipientResponse{}, dto.ErrEmailAlreadyExists
-		}
-		recipient.Email = req.Email
-	}
-
-	if req.PhoneNumber != "" {
-		phoneNumberFormatted, err := helpers.StandardizePhoneNumber(req.PhoneNumber)
-		if err != nil {
-			return dto.RecipientResponse{}, dto.ErrFormatPhoneNumber
-		}
-
-		recipient.PhoneNumber = phoneNumberFormatted
-	}
-
-	err = as.adminRepo.UpdateRecipient(ctx, nil, recipient)
-	if err != nil {
-		return dto.RecipientResponse{}, dto.ErrUpdateRecipient
-	}
-
-	res := dto.RecipientResponse{
-		ID:          recipient.ID,
-		Name:        recipient.Name,
-		Email:       recipient.Email,
-		PhoneNumber: recipient.PhoneNumber,
-	}
-
-	return res, nil
-}
-func (as *AdminService) DeleteRecipient(ctx context.Context, req dto.DeleteRecipientRequest) (dto.RecipientResponse, error) {
-	deletedRecipient, flag, err := as.adminRepo.GetRecipientByID(ctx, nil, req.RecipientID)
-	if err != nil || !flag {
-		return dto.RecipientResponse{}, dto.ErrRecipientNotFound
-	}
-
-	err = as.adminRepo.DeleteRecipientByID(ctx, nil, req.RecipientID)
-	if err != nil {
-		return dto.RecipientResponse{}, dto.ErrDeletedRecipient
-	}
-
-	res := dto.RecipientResponse{
-		ID:          deletedRecipient.ID,
-		Name:        deletedRecipient.Name,
-		Email:       deletedRecipient.Email,
-		PhoneNumber: deletedRecipient.PhoneNumber,
-	}
-
-	return res, nil
-}
-func (as *AdminService) GetAllRecipientsWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.RecipientPaginationResponse, error) {
-	dataWithPaginate, err := as.adminRepo.GetAllRecipientWithPagination(ctx, nil, req)
-	if err != nil {
-		return dto.RecipientPaginationResponse{}, dto.ErrGetAllRecipientsWithPagination
-	}
-
-	var datas []dto.RecipientResponse
-	for _, recipient := range dataWithPaginate.Recipients {
-		datas = append(datas, dto.RecipientResponse{
-			ID:          recipient.ID,
-			Name:        recipient.Name,
-			Email:       recipient.Email,
-			PhoneNumber: recipient.PhoneNumber,
-		})
-	}
-
-	return dto.RecipientPaginationResponse{
-		Data: datas,
-		PaginationResponse: dto.PaginationResponse{
-			Page:    dataWithPaginate.Page,
-			PerPage: dataWithPaginate.PerPage,
-			MaxPage: dataWithPaginate.MaxPage,
-			Count:   dataWithPaginate.Count,
-		},
-	}, nil
-}
-
 // Locker
 func (as *AdminService) CreateLocker(ctx context.Context, req dto.CreateLockerRequest) (dto.LockerResponse, error) {
 	_, flag, err := as.adminRepo.GetLockerByLockerCode(ctx, nil, req.LockerCode)
@@ -1898,7 +1727,7 @@ func (as *AdminService) GetSenderByID(ctx context.Context, senderID string) (dto
 func (as *AdminService) GetAllSender(ctx context.Context) ([]dto.SenderResponse, error) {
 	senders, err := as.adminRepo.GetAllSender(ctx, nil)
 	if err != nil {
-		return nil, dto.ErrGetAllRecipients
+		return nil, dto.ErrGetAllSenders
 	}
 
 	var datas []dto.SenderResponse
@@ -1981,7 +1810,7 @@ func (as *AdminService) DeleteSender(ctx context.Context, req dto.DeleteSenderRe
 		return dto.SenderResponse{}, dto.ErrSenderNotFound
 	}
 
-	err = as.adminRepo.DeleteRecipientByID(ctx, nil, req.SenderID)
+	err = as.adminRepo.DeleteSenderByID(ctx, nil, req.SenderID)
 	if err != nil {
 		return dto.SenderResponse{}, dto.ErrDeletedSender
 	}

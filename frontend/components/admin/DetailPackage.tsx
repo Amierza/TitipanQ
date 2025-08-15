@@ -220,24 +220,28 @@ const DetailPackageSection = () => {
                     />
                     <PackageInfoComponent
                       title="Locker"
-                      information={packageData.data.locker.locker_code}
+                      information={
+                        packageData.data.locker?.locker_code || 'N/A'
+                      }
                       icon={<Barcode className="w-4 h-4" />}
                     />
                     <PackageInfoComponent
                       title="Package Type"
-                      information={packageData.data.package_type}
+                      information={packageData.data.package_type || 'N/A'}
                       icon={<Package className="w-4 h-4" />}
                     />
                     <PackageInfoComponent
                       title="Quantity"
-                      information={packageData.data.package_quantity}
+                      information={packageData.data.package_quantity || 'N/A'}
                       icon={<Backpack className="w-4 h-4" />}
                     />
                   </div>
                   <div className="md:col-span-2">
                     <PackageInfoComponent
                       title="Description"
-                      information={packageData.data.package_description}
+                      information={
+                        packageData.data.package_description || 'N/A'
+                      }
                       icon={<FileText className="w-4 h-4" />}
                     />
                   </div>
@@ -256,18 +260,24 @@ const DetailPackageSection = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <PackageInfoComponent
                       title="Name"
-                      information={packageData.data.package_sender_name}
+                      information={
+                        packageData.data.sender?.sender_name || 'N/A'
+                      }
                       icon={<User className="w-4 h-4" />}
                     />
                     <PackageInfoComponent
                       title="Phone Number"
-                      information={packageData.data.package_sender_phone_number}
+                      information={
+                        packageData.data.sender?.sender_phone_number || 'N/A'
+                      }
                       icon={<Phone className="w-4 h-4" />}
                     />
                     <div className="md:col-span-2">
                       <PackageInfoComponent
                         title="Address"
-                        information={packageData.data.package_sender_address}
+                        information={
+                          packageData.data.sender?.sender_address || 'N/A'
+                        }
                         icon={<MapPin className="w-4 h-4" />}
                       />
                     </div>
@@ -287,23 +297,27 @@ const DetailPackageSection = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <PackageInfoComponent
                       title="User Name"
-                      information={packageData.data.user.user_name}
+                      information={packageData.data.user?.user_name || 'N/A'}
                       icon={<User className="w-4 h-4" />}
                     />
                     <PackageInfoComponent
                       title="Phone Number"
-                      information={packageData.data.user.user_phone_number}
+                      information={
+                        packageData.data.user?.user_phone_number || 'N/A'
+                      }
                       icon={<Phone className="w-4 h-4" />}
                     />
                     <PackageInfoComponent
                       title="Company Name"
-                      information={packageData.data.user.company.company_name}
+                      information={
+                        packageData.data.user?.company?.company_name || 'N/A'
+                      }
                       icon={<Building className="w-4 h-4" />}
                     />
                     <PackageInfoComponent
                       title="Company Address"
                       information={
-                        packageData.data.user.company.company_address
+                        packageData.data.user?.company?.company_address || 'N/A'
                       }
                       icon={<MapPin className="w-4 h-4" />}
                     />
@@ -326,7 +340,7 @@ const PackageInfoComponent = ({
   icon,
 }: {
   title: string;
-  information: string | number;
+  information: string | number | undefined | null;
   icon?: React.ReactNode;
 }) => {
   return (

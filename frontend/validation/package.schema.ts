@@ -13,8 +13,6 @@ export enum PackageStatus {
   Deleted = 'deleted',
 }
 
-const phoneNumberRegex = /^(?:\+62|62|0)8[1-9][0-9]{6,10}$/;
-
 export const PackageSchema = z.object({
   package_tracking_code: z
     .string()
@@ -40,11 +38,14 @@ export const PackageSchema = z.object({
       /^[1-9][0-9]*$/,
       'Quantity harus berupa angka positif tanpa nol di depan'
     ),
-  package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
-  package_sender_phone_number: z
+  // package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
+  // package_sender_phone_number: z
+  //   .string()
+  //   .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
+  // package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+  sender_id: z
     .string()
-    .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
-  package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+    .uuid({ message: 'Sender ID harus berupa UUID yang valid' }),
   user_id: z.string().uuid({ message: 'User ID harus berupa UUID yang valid' }),
   locker_id: z
     .string()
@@ -71,21 +72,35 @@ export const UpdatePackageSchema = z.object({
       /^[1-9][0-9]*$/,
       'Quantity harus berupa angka positif tanpa nol di depan'
     ),
-  package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
-  package_sender_phone_number: z
+  // package_sender_name: z.string().min(1, 'Nama pengirim tidak boleh kosong'),
+  // package_sender_phone_number: z
+  //   .string()
+  //   .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
+  // package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+  sender_id: z
     .string()
-    .regex(phoneNumberRegex, 'Nomer telepon tidak valid'),
-  package_sender_address: z.string().min(1, 'Alamat pengirim harus diisi'),
+    .uuid({ message: 'Sender ID harus berupa UUID yang valid' }),
   user_id: z.string().uuid({ message: 'User ID harus berupa UUID yang valid' }),
   locker_id: z
     .string()
     .uuid({ message: 'Locker ID harus berupa UUID yang valid' }),
 });
 
-export const UpdateStatusPackages = z.object({
+export const UpdateStatusPackagesSchema = z.object({
   package_ids: z
     .array(z.string(), {
       required_error: 'Package IDs wajib ada',
     })
     .min(1, { message: 'Paket yang diperbarui setidaknya berjumlah 1' }),
+  proof_image: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, {
+      message: 'Gambar tidak boleh kosong',
+    })
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: 'Ukuran gambar maksimal 5MB',
+    }),
+  recipient_id: z
+    .string()
+    .uuid({ message: 'User ID harus berupa UUID yang valid' }),
 });

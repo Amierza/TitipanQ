@@ -60,7 +60,7 @@ Kami akan segera memprosesnya.`,
 
 func BuildCompletedMessage(p *entity.Package) string {
 	var message string
-	if p.RecipientID != nil {
+	if p.UserID != nil {
 		message = fmt.Sprintf(
 			`✅ Paket dengan kode *%s* telah berhasil diterima oleh pemilik pada *%s*.
 
@@ -77,33 +77,11 @@ Terima kasih telah menggunakan layanan TitipanQ!`,
 			p.Description,
 			p.Quantity,
 			p.Type,
-			p.Recipient.Name,
-			p.Recipient.Email,
-			p.Recipient.PhoneNumber,
+			p.User.Name,
+			p.User.Email,
+			p.User.PhoneNumber,
 		)
 	}
-
-	if p.RecipientUserID != nil {
-		message = fmt.Sprintf(
-			`✅ Paket dengan kode *%s* telah berhasil diterima oleh pemilik pada *%s*.
-
-Deskripsi: %s
-Jumlah: %d
-Tipe: %s
-Nama Penerima: %s
-Email Penerima: %s
-No Hp Penerima: %s
-
-Terima kasih telah menggunakan layanan TitipanQ!`,
-			p.TrackingCode,
-			p.CompletedAt.Format("02 Jan 2006"),
-			p.Description,
-			p.Quantity,
-			p.Type,
-			p.RecipientUser.Name,
-			p.RecipientUser.Email,
-			p.RecipientUser.PhoneNumber,
-		)
-	}
+	
 	return message
 }

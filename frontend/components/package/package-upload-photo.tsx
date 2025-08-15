@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { imageUrl } from '@/config/api';
 import QrScanner from 'qr-scanner';
 import Webcam from 'react-webcam';
+import { Aperture } from 'lucide-react';
 
 interface UploadPackagePhotoProps {
   photo: File | null;
@@ -45,7 +46,6 @@ export default function UploadPackagePhoto({
 
     try {
       const result = await QrScanner.scanImage(file);
-      console.log('QR Scan:', result);
 
       onChangeValue(result);
     } catch (err: any) {
@@ -69,7 +69,6 @@ export default function UploadPackagePhoto({
     const res = await fetch(imageSrc);
     const blob = await res.blob();
     const file = new File([blob], 'webcam.png', { type: 'image/png' });
-    console.log('Webcam:', file);
 
     await processFile(file);
     setShowCamera(false);
@@ -115,18 +114,20 @@ export default function UploadPackagePhoto({
       </div>
 
       {showCamera && (
-        <div className="space-y-2">
+        <div className="space-y-2 flex flex-col items-center">
           <Webcam
+            screenshotQuality={1}
             ref={webcamRef}
             screenshotFormat="image/png"
             videoConstraints={true}
-            className="w-48 h-36 rounded-md border"
+            className="w-full h-auto rounded-md border"
           />
           <button
             type="button"
             onClick={handleCapture}
-            className="text-sm border px-3 py-1 rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 cursor-pointer border-gray-500"
+            className="flex items-center gap-2 justify-center text-sm border px-3 py-1 rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 cursor-pointer border-gray-500"
           >
+            <Aperture />
             Ambil Gambar
           </button>
         </div>

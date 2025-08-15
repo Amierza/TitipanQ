@@ -32,10 +32,6 @@ type (
 		GetAllCompanyWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.CompanyPaginationRepositoryResponse, error)
 		GetAllUnclaimedPackages() ([]*entity.Package, error)
 		GetAllExpiredPackagesBefore(cutoff time.Time, out *[]entity.Package) error
-		GetAllRecipient(ctx context.Context, tx *gorm.DB) ([]entity.Recipient, error)
-		GetAllRecipientWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.RecipientPaginationRepositoryResponse, error)
-		GetRecipientByID(ctx context.Context, tx *gorm.DB, recipientID string) (entity.Recipient, bool, error)
-		GetRecipientByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.Recipient, bool, error)
 		GetAllLockerWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.LockerPaginationRepositoryResponse, error)
 		GetAllLocker(ctx context.Context, tx *gorm.DB) ([]entity.Locker, error)
 		GetLockerByID(ctx context.Context, tx *gorm.DB, lockerID string) (entity.Locker, bool, error)
@@ -49,19 +45,18 @@ type (
 		CreatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
 		CreatePackageHistory(ctx context.Context, tx *gorm.DB, history entity.PackageHistory) error
 		CreateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
-		CreateRecipient(ctx context.Context, tx *gorm.DB, recipient entity.Recipient) error
 		CreateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error
 		CreateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error
 		CreateLog(tx *gorm.DB, cron *entity.CronLog) error
+		CreateUserCompany(ctx context.Context, tx *gorm.DB, uc entity.UserCompany) error
 
 		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		UpdatePackage(ctx context.Context, tx *gorm.DB, pkg entity.Package) error
-		UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID string, recipientID uuid.UUID, newStatus string, proofImage string) error
+		UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID string, newStatus string, proofImage string) error
 		UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
 		UpdatePackageStatusToExpired(id uuid.UUID, status entity.Status, now *time.Time) error
 		UpdateSoftDeletePackage(id uuid.UUID, deletedAt time.Time) error
-		UpdateRecipient(ctx context.Context, tx *gorm.DB, recipient entity.Recipient) error
 		UpdateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error
 		UpdateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error
 		UpdateLastReminderSentAt(id string, now *time.Time) error
@@ -70,9 +65,9 @@ type (
 		DeleteUserByID(ctx context.Context, tx *gorm.DB, userID string) error
 		DeletePackageByID(ctx context.Context, tx *gorm.DB, pkgID string) error
 		DeleteCompanyByID(ctx context.Context, tx *gorm.DB, CompanyID string) error
-		DeleteRecipientByID(ctx context.Context, tx *gorm.DB, recipientID string) error
 		DeleteLockerByID(ctx context.Context, tx *gorm.DB, lockerID string) error
 		DeleteSenderByID(ctx context.Context, tx *gorm.DB, senderID string) error
+		DeleteUserCompaniesByUserID(ctx context.Context, tx *gorm.DB, userID string) error
 	}
 
 	AdminRepository struct {
@@ -129,7 +124,7 @@ func (ar *AdminRepository) GetUserByEmail(ctx context.Context, tx *gorm.DB, emai
 	}
 
 	var user entity.User
-	if err := tx.WithContext(ctx).Preload("Company").Preload("Role").Where("email = ?", email).Take(&user).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("UserCompanies.Company").Preload("Role").Where("email = ?", email).Take(&user).Error; err != nil {
 		return entity.User{}, false, err
 	}
 
@@ -141,7 +136,7 @@ func (ar *AdminRepository) GetUserByID(ctx context.Context, tx *gorm.DB, userID 
 	}
 
 	var user entity.User
-	if err := tx.WithContext(ctx).Preload("Company").Preload("Role").Where("id = ?", userID).Take(&user).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("UserCompanies.Company").Preload("Role").Where("id = ?", userID).Take(&user).Error; err != nil {
 		return entity.User{}, false, err
 	}
 
@@ -172,6 +167,7 @@ func (ar *AdminRepository) GetAllUser(ctx context.Context) ([]entity.User, error
 		Where("role_id IN (?)", adminIDs).
 		Preload("Company").
 		Preload("Role").
+		Preload("UserCompanies.Company").
 		Order("created_at DESC").
 		Find(&users).Error
 
@@ -210,7 +206,7 @@ func (ar *AdminRepository) GetAllUserWithPagination(ctx context.Context, tx *gor
 		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ?", searchValue, searchValue)
 	}
 
-	query = query.Preload("Company").Preload("Role")
+	query = query.Preload("UserCompanies.Company").Preload("Role")
 
 	if err := query.Count(&count).Error; err != nil {
 		return dto.UserPaginationRepositoryResponse{}, err
@@ -240,11 +236,9 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 	var pkg entity.Package
 	if err := tx.WithContext(ctx).
 		Model(&entity.Package{}).
-		Preload("User.Company").
+		Preload("User.UserCompanies.Company").
 		Preload("User.Role").
 		Preload("Sender").
-		Preload("Recipient").
-		Preload("RecipientUser").
 		Preload("Locker").
 		Where("id = ?", pkgID).
 		Take(&pkg).Error; err != nil {
@@ -259,7 +253,7 @@ func (ar *AdminRepository) GetPackageByTrackingCode(ctx context.Context, tx *gor
 	}
 
 	var pkg entity.Package
-	if err := tx.WithContext(ctx).Preload("User.Company").Preload("User.Role").Where("tracking_code = ?", trackingCode).Take(&pkg).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("User.UserCompanies.Company").Preload("User.Role").Where("tracking_code = ?", trackingCode).Take(&pkg).Error; err != nil {
 		return entity.Package{}, false, err
 	}
 
@@ -274,16 +268,12 @@ func (ar *AdminRepository) GetAllPackage(ctx context.Context, tx *gorm.DB, userI
 
 	query := tx.WithContext(ctx).
 		Model(&entity.Package{}).
-		Preload("User.Company").
+		Preload("User.UserCompanies.Company").
 		Preload("User.Role").
 		Preload("Locker").
 		Preload("Sender", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id", "name", "address", "phone_number")
-		}).
-		Preload("Recipient", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "name", "email", "phone_number")
 		})
-
 	if pkgType != "" {
 		query = query.Where("type = ?", pkgType)
 	}
@@ -316,14 +306,11 @@ func (ar *AdminRepository) GetAllPackageWithPagination(ctx context.Context, tx *
 
 	query := tx.WithContext(ctx).
 		Model(&entity.Package{}).
-		Preload("User.Company").
+		Preload("User.UserCompanies.Company").
 		Preload("User.Role").
 		Preload("Locker").
 		Preload("Sender", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id", "name", "address", "phone_number")
-		}).
-		Preload("Recipient", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "name", "email", "phone_number")
 		})
 
 	if req.Search != "" {
@@ -503,7 +490,7 @@ func (ar *AdminRepository) UpdatePackage(ctx context.Context, tx *gorm.DB, pkg e
 
 	return tx.WithContext(ctx).Where("id = ?", pkg.ID).Updates(&pkg).Error
 }
-func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID string, recipientID uuid.UUID, newStatus string, proofImage string) error {
+func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB, pkgID string, newStatus string, proofImage string) error {
 	if tx == nil {
 		tx = ar.db
 	}
@@ -511,9 +498,8 @@ func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB,
 		Model(&entity.Package{}).
 		Where("id = ?", pkgID).
 		Updates(map[string]interface{}{
-			"recipient_id": recipientID,
-			"status":       newStatus,
-			"proof_image":  proofImage,
+			"status":      newStatus,
+			"proof_image": proofImage,
 		}).Error
 }
 func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
@@ -562,111 +548,6 @@ func (ar *AdminRepository) DeleteCompanyByID(ctx context.Context, tx *gorm.DB, C
 	}
 
 	return tx.WithContext(ctx).Where("id = ?", CompanyID).Delete(&entity.Company{}).Error
-}
-
-// Recipient
-func (ar *AdminRepository) CreateRecipient(ctx context.Context, tx *gorm.DB, recipient entity.Recipient) error {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	return tx.WithContext(ctx).Create(&recipient).Error
-}
-func (ar *AdminRepository) GetAllRecipient(ctx context.Context, tx *gorm.DB) ([]entity.Recipient, error) {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	var (
-		recipients []entity.Recipient
-		err        error
-	)
-
-	query := tx.WithContext(ctx).Model(&entity.Recipient{})
-
-	if err := query.Order("created_at DESC").Find(&recipients).Error; err != nil {
-		return []entity.Recipient{}, err
-	}
-
-	return recipients, err
-}
-func (ar *AdminRepository) GetRecipientByID(ctx context.Context, tx *gorm.DB, recipientID string) (entity.Recipient, bool, error) {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	var recipient entity.Recipient
-	if err := tx.WithContext(ctx).Where("id = ?", recipientID).Take(&recipient).Error; err != nil {
-		return entity.Recipient{}, false, err
-	}
-
-	return recipient, true, nil
-}
-func (ar *AdminRepository) UpdateRecipient(ctx context.Context, tx *gorm.DB, recipient entity.Recipient) error {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	return tx.WithContext(ctx).Where("id = ?", recipient.ID).Updates(&recipient).Error
-}
-func (ar *AdminRepository) DeleteRecipientByID(ctx context.Context, tx *gorm.DB, recipientID string) error {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	return tx.WithContext(ctx).Where("id = ?", recipientID).Delete(&entity.Recipient{}).Error
-}
-func (ar *AdminRepository) GetRecipientByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.Recipient, bool, error) {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	var recipient entity.Recipient
-	if err := tx.WithContext(ctx).Where("email = ?", email).Take(&recipient).Error; err != nil {
-		return entity.Recipient{}, false, err
-	}
-
-	return recipient, true, nil
-}
-func (ar *AdminRepository) GetAllRecipientWithPagination(ctx context.Context, tx *gorm.DB, req dto.PaginationRequest) (dto.RecipientPaginationRepositoryResponse, error) {
-	if tx == nil {
-		tx = ar.db
-	}
-
-	var Recipients []entity.Recipient
-	var count int64
-
-	if req.PerPage == 0 {
-		req.PerPage = 10
-	}
-	if req.Page == 0 {
-		req.Page = 1
-	}
-
-	query := tx.WithContext(ctx).Model(&entity.Recipient{})
-
-	if req.Search != "" {
-		search := "%" + strings.ToLower(req.Search) + "%"
-		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ?", search, search)
-	}
-
-	if err := query.Count(&count).Error; err != nil {
-		return dto.RecipientPaginationRepositoryResponse{}, err
-	}
-
-	if err := query.Order("created_at DESC").Scopes(Paginate(req.Page, req.PerPage)).Find(&Recipients).Error; err != nil {
-		return dto.RecipientPaginationRepositoryResponse{}, err
-	}
-
-	return dto.RecipientPaginationRepositoryResponse{
-		Recipients: Recipients,
-		PaginationResponse: dto.PaginationResponse{
-			Page:    req.Page,
-			PerPage: req.PerPage,
-			MaxPage: int64(math.Ceil(float64(count) / float64(req.PerPage))),
-			Count:   count,
-		},
-	}, nil
 }
 
 // Locker
@@ -864,5 +745,23 @@ func (ar *AdminRepository) DeleteSenderByID(ctx context.Context, tx *gorm.DB, se
 		tx = ar.db
 	}
 
-	return tx.WithContext(ctx).Where("id = ?", senderID).Delete(&entity.Recipient{}).Error
+	return tx.WithContext(ctx).Where("id = ?", senderID).Delete(&entity.Sender{}).Error
+}
+
+// UserCompany
+func (ar *AdminRepository) CreateUserCompany(ctx context.Context, tx *gorm.DB, uc entity.UserCompany) error {
+	if tx == nil {
+		tx = ar.db
+	}
+	return tx.WithContext(ctx).Create(&uc).Error
+}
+
+func (ar *AdminRepository) DeleteUserCompaniesByUserID(ctx context.Context, tx *gorm.DB, userID string) error {
+	if tx == nil {
+		tx = ar.db
+	}
+	return tx.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Delete(&entity.UserCompany{}).
+		Error
 }

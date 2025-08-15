@@ -196,15 +196,6 @@ var (
 	ErrGetRoleFromToken = errors.New("failed get role from token")
 	ErrGetRoleFromID    = errors.New("failed get role by role id")
 
-	// Recipient
-	ErrCreateRecipient                = errors.New("failed create Recipient")
-	ErrGetAllRecipients               = errors.New("failed get all Recipients")
-	ErrRecipientNotFound              = errors.New("faield found Recipient")
-	ErrUpdateRecipient                = errors.New("failed update Recipient")
-	ErrGetRecipientByID               = errors.New("failed get Recipient by id")
-	ErrDeletedRecipient               = errors.New("failed deleted Recipient")
-	ErrGetAllRecipientsWithPagination = errors.New("failed get all Recipients with pagination")
-
 	// Locker
 	ErrCreateLocker               = errors.New("failed to create locker")
 	ErrGetAllLocker               = errors.New("failed get all locker")
@@ -225,6 +216,13 @@ var (
 	ErrUpdateSender                = errors.New("failed to update sender")
 	ErrSenderNotFound              = errors.New("sender not found")
 	ErrDeletedSender               = errors.New("failed to delete sender")
+	ErrGetAllSenders               = errors.New("failed get all senders")
+
+	// user companies
+	ErrDeletedUserCompanies = errors.New("failed delete user companies")
+	ErrFindCompanyID        = errors.New("failed found company by id")
+	ErrFailedCreateUserCompany = errors.New("failed create user company")
+	ErrFailedPreloadUserCompany = errors.New("failed preload user companies")
 )
 
 type (
@@ -252,31 +250,31 @@ type (
 
 	// User
 	UserResponse struct {
-		ID          uuid.UUID       `json:"user_id"`
-		Name        string          `json:"user_name"`
-		Email       string          `json:"user_email"`
-		Password    string          `json:"user_password"`
-		PhoneNumber string          `json:"user_phone_number"`
-		Address     string          `json:"user_address"`
-		Company     CompanyResponse `json:"company"`
-		Role        RoleResponse    `json:"role"`
+		ID          uuid.UUID         `json:"user_id"`
+		Name        string            `json:"user_name"`
+		Email       string            `json:"user_email"`
+		Password    string            `json:"user_password"`
+		PhoneNumber string            `json:"user_phone_number"`
+		Address     string            `json:"user_address"`
+		Companies   []CompanyResponse `json:"companies"`
+		Role        RoleResponse      `json:"role"`
 	}
 	CreateUserRequest struct {
-		Name        string     `json:"user_name" form:"user_name"`
-		Email       string     `json:"user_email" form:"user_email"`
-		Password    string     `json:"user_password" form:"user_password"`
-		PhoneNumber string     `json:"user_phone_number" form:"user_phone_number"`
-		Address     string     `json:"user_address,omitempty" form:"user_address"`
-		CompanyID   *uuid.UUID `json:"company_id" form:"company_id"`
+		Name        string       `json:"user_name" form:"user_name"`
+		Email       string       `json:"user_email" form:"user_email"`
+		Password    string       `json:"user_password" form:"user_password"`
+		PhoneNumber string       `json:"user_phone_number" form:"user_phone_number"`
+		Address     string       `json:"user_address,omitempty" form:"user_address"`
+		CompanyIDs  []*uuid.UUID `json:"company_ids" form:"company_ids"`
 	}
 	UpdateUserRequest struct {
-		ID          string     `json:"-"`
-		Name        string     `json:"user_name,omitempty"`
-		Email       string     `json:"user_email,omitempty"`
-		Password    string     `json:"user_password,omitempty"`
-		PhoneNumber string     `json:"user_phone_number,omitempty"`
-		Address     string     `json:"user_address,omitempty"`
-		CompanyID   *uuid.UUID `json:"company_id,omitempty"`
+		ID          string       `json:"-"`
+		Name        string       `json:"user_name,omitempty"`
+		Email       string       `json:"user_email,omitempty"`
+		Password    string       `json:"user_password,omitempty"`
+		PhoneNumber string       `json:"user_phone_number,omitempty"`
+		Address     string       `json:"user_address,omitempty"`
+		CompanyIDs  []*uuid.UUID `json:"company_ids,omitempty"`
 	}
 	DeleteUserRequest struct {
 		UserID string `json:"-"`
@@ -298,25 +296,24 @@ type (
 		Type         entity.Type           `json:"package_type" form:"package_type"`
 		Quantity     int                   `json:"package_quantity" form:"package_quantity"`
 		UserID       uuid.UUID             `json:"user_id" form:"user_id"`
-		SenderID     uuid.UUID             `json:"sender_id" from:"sender_id"`
-		LockerID     uuid.UUID             `json:"locker_id" form:"locker_id"`
+		SenderID     *uuid.UUID            `json:"sender_id" form:"sender_id"`
+		LockerID     *uuid.UUID            `json:"locker_id" form:"locker_id"`
 		FileHeader   *multipart.FileHeader `json:"fileheader,omitempty"`
 		FileReader   multipart.File        `json:"filereader,omitempty"`
 	}
 	PackageResponse struct {
-		ID           uuid.UUID          `json:"package_id"`
-		TrackingCode string             `json:"package_tracking_code"`
-		Description  string             `json:"package_description"`
-		Image        string             `json:"package_image"`
-		Type         entity.Type        `json:"package_type"`
-		Status       entity.Status      `json:"package_status"`
-		Quantity     int                `json:"package_quantity"`
-		CompletedAt  *time.Time         `json:"package_completed_at"`
-		ExpiredAt    *time.Time         `json:"package_expired_at"`
-		Sender       SenderResponse     `json:"sender"`
-		User         UserResponse       `json:"user"`
-		Locker       LockerResponse     `json:"locker"`
-		Recipient    *RecipientResponse `json:"recipient"`
+		ID           uuid.UUID      `json:"package_id"`
+		TrackingCode string         `json:"package_tracking_code"`
+		Description  string         `json:"package_description"`
+		Image        string         `json:"package_image"`
+		Type         entity.Type    `json:"package_type"`
+		Status       entity.Status  `json:"package_status"`
+		Quantity     int            `json:"package_quantity"`
+		CompletedAt  *time.Time     `json:"package_completed_at"`
+		ExpiredAt    *time.Time     `json:"package_expired_at"`
+		Sender       SenderResponse `json:"sender"`
+		User         UserResponse   `json:"user"`
+		Locker       LockerResponse `json:"locker"`
 		entity.TimeStamp
 	}
 	PackagePaginationResponse struct {
@@ -328,25 +325,22 @@ type (
 		Packages []entity.Package
 	}
 	UpdatePackageRequest struct {
-		ID              string                `json:"-"`
-		TrackingCode    string                `json:"package_tracking_code" form:"package_tracking_code"`
-		Description     string                `json:"package_description,omitempty" form:"package_description"`
-		Image           string                `json:"package_image,omitempty" form:"package_image"`
-		Type            entity.Type           `json:"package_type,omitempty" form:"package_type"`
-		Status          entity.Status         `json:"package_status,omitempty" form:"package_status"`
-		Quantity        *int                  `json:"package_quantity" form:"package_quantity"`
-		SenderID        string                `json:"sender_id,omitempty" form:"sender_id"`
-		LockerID        string                `json:"locker_id,omitempty" form:"locker_id"`
-		RecipientID     string                `json:"recipient_id,omitempty" form:"recipient_id"`
-		RecipientUserID string                `json:"recipient_user_id,omitempty" form:"recipient_user_id"`
-		FileHeader      *multipart.FileHeader `json:"fileheader,omitempty"`
-		FileReader      multipart.File        `json:"filereader,omitempty"`
+		ID           string                `json:"-"`
+		TrackingCode string                `json:"package_tracking_code" form:"package_tracking_code"`
+		Description  string                `json:"package_description,omitempty" form:"package_description"`
+		Image        string                `json:"package_image,omitempty" form:"package_image"`
+		Type         entity.Type           `json:"package_type,omitempty" form:"package_type"`
+		Status       entity.Status         `json:"package_status,omitempty" form:"package_status"`
+		Quantity     *int                  `json:"package_quantity" form:"package_quantity"`
+		SenderID     *uuid.UUID            `json:"sender_id,omitempty" form:"sender_id"`
+		LockerID     *uuid.UUID            `json:"locker_id,omitempty" form:"locker_id"`
+		FileHeader   *multipart.FileHeader `json:"fileheader,omitempty"`
+		FileReader   multipart.File        `json:"filereader,omitempty"`
 	}
 	UpdateStatusPackages struct {
-		PackageIDs  []uuid.UUID           `json:"package_ids" form:"package_ids"`
-		FileReader  multipart.File        `form:"proof_image"`
-		FileHeader  *multipart.FileHeader `form:"proof_image"`
-		RecipientID uuid.UUID             `form:"recipient_id" json:"recipient_id"`
+		PackageIDs []uuid.UUID           `json:"package_ids" form:"package_ids"`
+		FileReader multipart.File        `form:"proof_image"`
+		FileHeader *multipart.FileHeader `form:"proof_image"`
 	}
 
 	UserResponseCustom struct {
@@ -408,40 +402,6 @@ type (
 		ID      *uuid.UUID `json:"company_id"`
 		Name    string     `json:"company_name"`
 		Address string     `json:"company_address"`
-	}
-
-	// recipient
-	CreateRecipientRequest struct {
-		Name        string `json:"recipient_name"`
-		Email       string `json:"recipient_email"`
-		PhoneNumber string `json:"recipient_phone_number"`
-	}
-
-	RecipientResponse struct {
-		ID          uuid.UUID `json:"recipient_id"`
-		Name        string    `json:"recipient_name"`
-		Email       string    `json:"recipient_email"`
-		PhoneNumber string    `json:"recipient_phone_number"`
-	}
-
-	UpdateRecipientRequest struct {
-		ID          string `json:"-"`
-		Name        string `json:"recipient_name,omitempty"`
-		Email       string `json:"recipient_email,omitempty"`
-		PhoneNumber string `json:"recipient_phone_number,omitempty"`
-	}
-
-	DeleteRecipientRequest struct {
-		RecipientID string `json:"-"`
-	}
-
-	RecipientPaginationResponse struct {
-		PaginationResponse
-		Data []RecipientResponse `json:"data"`
-	}
-	RecipientPaginationRepositoryResponse struct {
-		PaginationResponse
-		Recipients []entity.Recipient
 	}
 
 	// locker

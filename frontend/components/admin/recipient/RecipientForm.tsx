@@ -29,7 +29,7 @@ import { createRecipientService } from '@/services/admin/recipient/createRecipie
 interface SenderFormProps {
   isOpen: boolean;
   onClose: () => void;
-  recipient: Recipient | null;
+  recipient?: Recipient | null;
 }
 
 const RecipientForm = ({ isOpen, onClose, recipient }: SenderFormProps) => {
