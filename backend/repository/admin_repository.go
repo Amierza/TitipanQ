@@ -52,6 +52,7 @@ type (
 		CreateRecipient(ctx context.Context, tx *gorm.DB, recipient entity.Recipient) error
 		CreateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error
 		CreateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error
+		CreateLog(tx *gorm.DB, cron *entity.CronLog) error
 
 		// Update
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
@@ -478,6 +479,13 @@ func (r *AdminRepository) CreateCompany(ctx context.Context, tx *gorm.DB, compan
 		tx = r.db
 	}
 	return tx.WithContext(ctx).Create(&company).Error
+}
+func (ar *AdminRepository) CreateLog(tx *gorm.DB, cron *entity.CronLog) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.Create(&cron).Error
 }
 
 // Update

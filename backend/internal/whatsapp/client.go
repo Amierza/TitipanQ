@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
+	_ "github.com/lib/pq"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -42,8 +43,20 @@ func InjectNLPService(s openai.IChatbotNLPService) {
 // ========== INIT CLIENT ==========
 
 func InitClient() error {
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	dbName := os.Getenv("DB_NAME")
+	dbPort := os.Getenv("DB_PORT")
+
+	// DSN untuk lib/pq
+	connString := fmt.Sprintf(
+		"host=%v user=%v password=%v dbname=%v port=%v sslmode=disable",
+		dbHost, dbUser, dbPass, dbName, dbPort,
+	)
+
 	dbLog := waLog.Stdout("DB", "INFO", true)
-	container, err := sqlstore.New(context.Background(), "sqlite3", "file:session.db?_foreign_keys=on", dbLog)
+	container, err := sqlstore.New(context.Background(), "postgres", connString, dbLog)
 	if err != nil {
 		return fmt.Errorf("failed to create DB container: %w", err)
 	}

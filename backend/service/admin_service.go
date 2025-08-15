@@ -36,6 +36,8 @@ type (
 		// cron
 		MonthlyReminderPackages() error
 		AutoSoftDeletePackages() error
+		LogSuccess(jobName, message string)
+		LogError(jobName, message string)
 
 		// Package
 		CreatePackage(ctx context.Context, req dto.CreatePackageRequest) (dto.PackageResponse, error)
@@ -1406,6 +1408,26 @@ func (as *AdminService) AutoSoftDeletePackages() error {
 	}
 
 	return nil
+}
+func (as *AdminService) LogSuccess(jobName, message string) {
+	cron := &entity.CronLog{
+		ID:      uuid.New(),
+		JobName: jobName,
+		Status:  "success",
+		Message: message,
+	}
+
+	_ = as.adminRepo.CreateLog(nil, cron)
+}
+func (as *AdminService) LogError(jobName, message string) {
+	cron := &entity.CronLog{
+		ID:      uuid.New(),
+		JobName: jobName,
+		Status:  "failed",
+		Message: message,
+	}
+
+	_ = as.adminRepo.CreateLog(nil, cron)
 }
 
 // Company

@@ -47,19 +47,22 @@ func main() {
 		err := adminService.MonthlyReminderPackages()
 		if err != nil {
 			log.Println("[CRON] MonthlyReminderPackages error:", err)
+			adminService.LogError("MonthlyReminderPackages", err.Error())
 		} else {
 			log.Println("[CRON] MonthlyReminderPackages success")
+			adminService.LogSuccess("MonthlyReminderPackages", "Executed successfully")
 		}
 	})
 
-	// Fill deleted at after through 2 weeks after status change
 	c.AddFunc("@daily", func() {
 		log.Println("[CRON] AutoSoftDeletePackages triggered...")
 		err := adminService.AutoSoftDeletePackages()
 		if err != nil {
 			log.Println("[CRON] AutoSoftDeletePackages error:", err)
+			adminService.LogError("AutoSoftDeletePackages", err.Error())
 		} else {
 			log.Println("[CRON] AutoSoftDeletePackages success")
+			adminService.LogSuccess("AutoSoftDeletePackages", "Executed successfully")
 		}
 	})
 	c.Start()
