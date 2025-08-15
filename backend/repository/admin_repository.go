@@ -47,6 +47,7 @@ type (
 		CreateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error
 		CreateLocker(ctx context.Context, tx *gorm.DB, locker entity.Locker) error
 		CreateSender(ctx context.Context, tx *gorm.DB, sender entity.Sender) error
+		CreateLog(tx *gorm.DB, cron *entity.CronLog) error
 		CreateUserCompany(ctx context.Context, tx *gorm.DB, uc entity.UserCompany) error
 
 		// Update
@@ -117,7 +118,6 @@ func (ar *AdminRepository) GetPermissionsByRoleID(ctx context.Context, tx *gorm.
 
 	return endpoints, true, nil
 }
-
 func (ar *AdminRepository) GetUserByEmail(ctx context.Context, tx *gorm.DB, email string) (entity.User, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -130,8 +130,6 @@ func (ar *AdminRepository) GetUserByEmail(ctx context.Context, tx *gorm.DB, emai
 
 	return user, true, nil
 }
-
-
 func (ar *AdminRepository) GetUserByID(ctx context.Context, tx *gorm.DB, userID string) (entity.User, bool, error) {
 	if tx == nil {
 		tx = ar.db
@@ -246,7 +244,6 @@ func (ar *AdminRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgI
 		Take(&pkg).Error; err != nil {
 		return entity.Package{}, false, err
 	}
-
 
 	return pkg, true, nil
 }
@@ -470,6 +467,13 @@ func (r *AdminRepository) CreateCompany(ctx context.Context, tx *gorm.DB, compan
 	}
 	return tx.WithContext(ctx).Create(&company).Error
 }
+func (ar *AdminRepository) CreateLog(tx *gorm.DB, cron *entity.CronLog) error {
+	if tx == nil {
+		tx = ar.db
+	}
+
+	return tx.Create(&cron).Error
+}
 
 // Update
 func (ar *AdminRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error {
@@ -494,8 +498,8 @@ func (ar *AdminRepository) UpdateStatusPackage(ctx context.Context, tx *gorm.DB,
 		Model(&entity.Package{}).
 		Where("id = ?", pkgID).
 		Updates(map[string]interface{}{
-			"status":       newStatus,
-			"proof_image":  proofImage,
+			"status":      newStatus,
+			"proof_image": proofImage,
 		}).Error
 }
 func (ar *AdminRepository) UpdateCompany(ctx context.Context, tx *gorm.DB, company entity.Company) error {
@@ -744,16 +748,13 @@ func (ar *AdminRepository) DeleteSenderByID(ctx context.Context, tx *gorm.DB, se
 	return tx.WithContext(ctx).Where("id = ?", senderID).Delete(&entity.Sender{}).Error
 }
 
-
-
-//UserCompany 
+// UserCompany
 func (ar *AdminRepository) CreateUserCompany(ctx context.Context, tx *gorm.DB, uc entity.UserCompany) error {
-    if tx == nil {
-        tx = ar.db
-    }
-    return tx.WithContext(ctx).Create(&uc).Error
+	if tx == nil {
+		tx = ar.db
+	}
+	return tx.WithContext(ctx).Create(&uc).Error
 }
-
 
 func (ar *AdminRepository) DeleteUserCompaniesByUserID(ctx context.Context, tx *gorm.DB, userID string) error {
 	if tx == nil {
@@ -764,4 +765,3 @@ func (ar *AdminRepository) DeleteUserCompaniesByUserID(ctx context.Context, tx *
 		Delete(&entity.UserCompany{}).
 		Error
 }
-

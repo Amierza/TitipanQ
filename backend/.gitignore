@@ -8,4 +8,4 @@ assets/**
 !assets/package/.gitkeep
 !assets/barcode/
 !assets/barcode/.gitkeep
-session.db
+tmp/
