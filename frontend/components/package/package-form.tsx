@@ -322,7 +322,7 @@ export default function PackageForm({
                     users.find((u) => u.id === field.value) ?? null;
                   return (
                     <FormItem>
-                      <FormLabel>Select user</FormLabel>
+                      <FormLabel>Select Recipient</FormLabel>
                       <Combobox
                         value={selectedUser}
                         onChange={(user) => {

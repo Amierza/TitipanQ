@@ -42,6 +42,7 @@ import { getAllCompanyService } from '@/services/admin/company/getAllCompany';
 import { useRouter } from 'next/navigation';
 import QrScannerModal from '../package/package-open-camera';
 import UpdateStatusPackageModal from '../package/UpdatePackageModal';
+import { AllCompanyResponse, Company } from '@/types/company.type';
 
 const HistoryPackageSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,14 +54,19 @@ const HistoryPackageSection = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const router = useRouter();
+  
+  const { data: companyData, isLoading, isError } = useQuery<AllCompanyResponse>(
+    {
+      queryKey: ['company'],
+      queryFn: getAllCompanyService,
+    }
+  );
 
-  const { data: companyData } = useQuery({
-    queryKey: ['company'],
-    queryFn: getAllCompanyService,
-  });
-
-  if (!companyData) return <p>Failed to fetch company data</p>;
+  if (isLoading) return <p>Loading company data...</p>;
+  if (isError || !companyData) return <p>Failed to fetch company data</p>;
   if (!companyData.status) return <p>Failed to fetch company data</p>;
+
+  const companies: Company[] = companyData.data ?? [];
 
   const openCamera = () => {
     setOpenCameraModal(true);
@@ -127,7 +133,7 @@ const HistoryPackageSection = () => {
               <Button
                 disabled={selectedId.length === 0}
                 variant={'ghost'}
-                className="cursor-pointer bg-green-500 hover:bg-green-600"
+                className="cursor-pointer bg-green-500 hover:bg-green-600 text-white"
                 onClick={() => setOpenUpdateModal(true)}
               >
                 Update Package
@@ -142,7 +148,7 @@ const HistoryPackageSection = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by client or description"
+                placeholder="Search by client, description or company"
                 className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
               />
               <Button
@@ -154,6 +160,7 @@ const HistoryPackageSection = () => {
               </Button>
             </div>
 
+            {/* Filter */}
             <div className="flex flex-row gap-4 mb-4">
               <Select onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
@@ -179,8 +186,9 @@ const HistoryPackageSection = () => {
                     className="w-fit justify-between bg-transparent"
                   >
                     {value
-                      ? companyData.data.find(
-                          (company) => company.company_name === value
+                      ? companies.find(
+                          (company: Company) =>
+                            company.company_name === value
                         )?.company_name
                       : 'Select company...'}
                     <ChevronsUpDown className="opacity-50" />
@@ -197,7 +205,7 @@ const HistoryPackageSection = () => {
                       <CommandGroup>
                         <CommandItem
                           key="all"
-                          value=""
+                          value="all"
                           onSelect={() => {
                             setValue('');
                             setCompanyFilter(undefined);
@@ -208,12 +216,12 @@ const HistoryPackageSection = () => {
                           <Check
                             className={cn(
                               'ml-auto',
-                              value === '' ? 'opacity-100' : 'opacity-0'
+                              !value ? 'opacity-100' : 'opacity-0'
                             )}
                           />
                         </CommandItem>
 
-                        {companyData.data.map((company) => (
+                        {companies.map((company: Company) => (
                           <CommandItem
                             key={company.company_id}
                             value={company.company_name}
@@ -261,6 +269,7 @@ const HistoryPackageSection = () => {
         </div>
       </div>
 
+      {/* Modals */}
       <QrScannerModal
         open={openCameraModal}
         onClose={() => setOpenCameraModal(false)}

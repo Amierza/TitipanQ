@@ -14,11 +14,14 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
     return `${imageUrl}/package/${imagePath}`;
   };
 
+  const companies =
+    pkg.user?.user_companies?.map(
+      (uc) => uc.company?.company_name ?? "Unknown"
+    ) ?? [];
+
   return (
     <Link href={`/admin/package/${pkg.package_id}`}>
-      <Card
-        className={`rounded-2xl shadow-md h-full overflow-hidden transition hover:shadow-lg`}
-      >
+      <Card className="rounded-2xl shadow-md h-full overflow-hidden transition hover:shadow-lg">
         {/* Header */}
         <CardHeader className="px-4">
           <div className="flex flex-col items-start gap-2">
@@ -33,8 +36,9 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
             alt={pkg.package_description}
             width={400}
             height={200}
-            className={`w-full h-[120px] object-cover rounded-lg transition ${pkg.package_status === "expired" ? "grayscale" : ""
-              }`}
+            className={`w-full h-[120px] object-cover rounded-lg transition ${
+              pkg.package_status === "expired" ? "grayscale" : ""
+            }`}
           />
         </div>
 
@@ -45,19 +49,13 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
             <User className="w-4 h-4 mt-0.5" />
             <div className="space-y-1">
               <span className="block font-semibold text-foreground mb-0.5">
-                {pkg.user.user_name}
+                {pkg.user?.user_name}
               </span>
-              {pkg.user.company.company_name !== "" ?
-                (
-                  <p className="text-xs">
-                    {pkg.user.company.company_name}
-                  </p>
-                ) :
-                (
-                  <p className="text-xs">
-                    {pkg.user.user_address}
-                  </p>
-                )}
+              {companies.length > 0 ? (
+                <p className="text-xs">{companies.join(", ")}</p>
+              ) : (
+                <p className="text-xs">{pkg.user?.user_address}</p>
+              )}
             </div>
           </div>
 

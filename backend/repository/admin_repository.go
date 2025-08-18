@@ -165,7 +165,6 @@ func (ar *AdminRepository) GetAllUser(ctx context.Context) ([]entity.User, error
 	err := ar.db.WithContext(ctx).
 		Model(&entity.User{}).
 		Where("role_id IN (?)", adminIDs).
-		Preload("Company").
 		Preload("Role").
 		Preload("UserCompanies.Company").
 		Order("created_at DESC").

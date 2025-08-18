@@ -1,4 +1,5 @@
-import { Company } from "./company.type";
+
+import { UserCompany } from "./company.type";
 import { Role } from "./general";
 import { Meta, SuccessResponse } from "./sucess";
 
@@ -9,7 +10,7 @@ export type User = {
   user_password: string;
   user_phone_number: string;
   user_address: string;
-  company: Company;
+ user_companies?: UserCompany[];
   role: Role;
 };
 
