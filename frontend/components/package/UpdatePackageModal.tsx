@@ -174,7 +174,7 @@ const UpdateStatusPackageModal = ({
                                 <span className="font-semibold">
                                   {pkg.user.user_name}
                                 </span>{' '}
-                                - {pkg.user.company.company_name}
+                                - {pkg.user.user_companies.company_name}
                               </p>
                             </div>
                           </div>
@@ -298,7 +298,7 @@ const UpdateStatusPackageModal = ({
                 className="cursor-pointer bg-blue-500 hover:bg-blue-400 text-white  hover:text-white "
                 onClick={() => setIsFormOpen(true)}
               >
-                Regist Recipient
+               New Recipient
               </Button>
 
               <div className="flex justify-end gap-2">
