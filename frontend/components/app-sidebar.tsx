@@ -10,7 +10,6 @@ import {
   Building,
   LogOut,
   Send,
-  UserCheck,
 } from 'lucide-react';
 
 import {
@@ -38,11 +37,6 @@ const menuItems = [
     title: 'Sender',
     href: '/admin/sender',
     icon: Send,
-  },
-  {
-    title: 'Recipient',
-    href: '/admin/recipient',
-    icon: UserCheck,
   },
   {
     title: 'Package',

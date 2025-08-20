@@ -38,7 +38,7 @@ import clsx from 'clsx';
 import { toast } from 'sonner';
 import { updateStatusPackagesService } from '@/services/admin/package/updateStatusPackages';
 import { Package } from '@/types/package.type';
-import RecipientForm from '../admin/recipient/RecipientForm';
+// import RecipientForm from '../admin/recipient/RecipientForm';
 
 interface Props {
   isOpen: boolean;
@@ -65,7 +65,6 @@ const UpdateStatusPackageModal = ({
     }
   }, [isOpen, selectedPackage]);
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const queryClient = useQueryClient();
   const [queryRecipient, setQueryRecipient] = useState('');
   const methods = useForm<PackageSchemaType>({
@@ -174,7 +173,7 @@ const UpdateStatusPackageModal = ({
                                 <span className="font-semibold">
                                   {pkg.user.user_name}
                                 </span>{' '}
-                                - {pkg.user.user_companies.company_name}
+                                - {pkg.user.companies[0].company_name}
                               </p>
                             </div>
                           </div>
@@ -292,15 +291,6 @@ const UpdateStatusPackageModal = ({
             />
 
             <div className="flex justify-between items-center pt-4">
-              <Button
-                variant="outline"
-                type="button"
-                className="cursor-pointer bg-blue-500 hover:bg-blue-400 text-white  hover:text-white "
-                onClick={() => setIsFormOpen(true)}
-              >
-               New Recipient
-              </Button>
-
               <div className="flex justify-end gap-2">
                 <Button
                   variant="outline"
@@ -324,12 +314,6 @@ const UpdateStatusPackageModal = ({
             </div>
           </form>
         </FormProvider>
-
-        <RecipientForm
-          key={'new'}
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-        />
       </DialogContent>
     </Dialog>
   );

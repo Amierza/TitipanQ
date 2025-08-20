@@ -1,9 +1,9 @@
 // components/UserTable.tsx
-"use client";
+'use client';
 
-import { Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { User } from "@/types/user.type";
+import { Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { User } from '@/types/user.type';
 import {
   Pagination,
   PaginationContent,
@@ -11,7 +11,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "../ui/pagination";
+} from '../ui/pagination';
 
 interface Props {
   query?: string;
@@ -24,7 +24,7 @@ interface Props {
 }
 
 const UserTable = ({
-  query = "",
+  query = '',
   users,
   page,
   setPage,
@@ -37,16 +37,15 @@ const UserTable = ({
 
   const filteredData = users.filter((user) => {
     const q = query.toLowerCase();
-    const name = user.user_name?.toLowerCase() ?? "";
-    const company = user.company?.company_name?.toLowerCase() ?? "";
+    const name = user.user_name?.toLowerCase() ?? '';
+    const company =
+      user.companies
+        ?.map((company) => company.company_name)
+        .join(', ')
+        .toLowerCase() ?? '';
 
     return name.includes(q) || company.includes(q);
   });
-
-  const paginatedUsers = filteredData.slice(
-    (currentPage - 1) * itemPerPage,
-    currentPage * itemPerPage
-  );
 
   return (
     <>
@@ -63,8 +62,8 @@ const UserTable = ({
             </tr>
           </thead>
           <tbody>
-            {paginatedUsers.length > 0 ? (
-              paginatedUsers.map((user, index) => (
+            {filteredData.length > 0 ? (
+              filteredData.map((user, index) => (
                 <tr key={user.user_id} className="border-b hover:bg-gray-100">
                   <td className="p-3 font-medium text-gray-800">
                     {(currentPage - 1) * itemPerPage + (index + 1)}
@@ -73,9 +72,13 @@ const UserTable = ({
                     {user.user_name}
                   </td>
                   <td className="p-3 text-gray-600">{user.user_email}</td>
-                  <td className="p-3">{user.company?.company_name ?? "-"}</td>
+                  <td className="p-3">
+                    {user.companies
+                      .map((company) => company.company_name)
+                      .join(', ')}
+                  </td>
                   <td className="p-3 capitalize">
-                    {user.role?.role_name ?? "-"}
+                    {user.role?.role_name ?? '-'}
                   </td>
                   <td className="p-3 space-x-2">
                     <Button

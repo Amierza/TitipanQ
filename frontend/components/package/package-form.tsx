@@ -98,28 +98,6 @@ export default function PackageForm({
     },
   });
 
-  // const handleDownloadImage = async (imageName?: string) => {
-  //   if (!imageName) {
-  //     toast.error("No image available");
-  //     return;
-  //   }
-
-  //   try {
-  //     const url = imageName.startsWith("http")
-  //       ? imageName
-  //       : `${imageUrl}/barcode/${imageName}`;
-
-  //     const res = await fetch(url, { mode: "cors" });
-  //     if (!res.ok) throw new Error("Failed to fetch image");
-
-  //     const blob = await res.blob();
-  //     saveAs(blob, imageName.replace(/.*[\\/]/, "") || "barcode.png");
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error("Download failed");
-  //   }
-  // }
-
   const onSubmit = (data: PackageSchemaType) => {
     createMutation(data);
   };
@@ -131,7 +109,7 @@ export default function PackageForm({
           <div className="p-4 border border-gray-300 rounded-lg space-y-3">
             <h3 className="font-semibold text-sm">Sender</h3>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <FormField
                   name="sender_id"
                   control={control}
