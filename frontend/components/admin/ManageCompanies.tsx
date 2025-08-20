@@ -154,14 +154,14 @@ const ManageCompaniesSection = () => {
                       ${
                         userData.data.find(
                           (user) =>
-                            user.company.company_id === company.company_id
+                            user.companies[0].company_id === company.company_id
                         )?.user_name
                       } 
                       - 
                       ${
                         userData.data.find(
                           (user) =>
-                            user.company.company_id === company.company_id
+                            user.companies[0].company_id === company.company_id
                         )?.user_email
                       }`}
                     </p>
@@ -169,7 +169,7 @@ const ManageCompaniesSection = () => {
                   </div>
                   {packageData.data.filter(
                     (pkg) =>
-                      pkg.user.company.company_id === company.company_id &&
+                      pkg.user.companies[0].company_id === company.company_id &&
                       pkg.package_status === 'received'
                   ).length > 0 && (
                     <Badge
@@ -178,14 +178,15 @@ const ManageCompaniesSection = () => {
                     >{`Unclaimed Package : ${
                       packageData.data.filter(
                         (pkg) =>
-                          pkg.user.company.company_id === company.company_id &&
+                          pkg.user.companies[0].company_id ===
+                            company.company_id &&
                           pkg.package_status === 'received'
                       ).length
                     }`}</Badge>
                   )}
                   {packageData.data.filter(
                     (pkg) =>
-                      pkg.user.company.company_id === company.company_id &&
+                      pkg.user.companies[0].company_id === company.company_id &&
                       pkg.package_status === 'expired'
                   ).length > 0 && (
                     <Badge
@@ -194,7 +195,8 @@ const ManageCompaniesSection = () => {
                     >{`Expired Package : ${
                       packageData.data.filter(
                         (pkg) =>
-                          pkg.user.company.company_id === company.company_id &&
+                          pkg.user.companies[0].company_id ===
+                            company.company_id &&
                           pkg.package_status === 'expired'
                       ).length
                     }`}</Badge>

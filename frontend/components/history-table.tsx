@@ -81,8 +81,11 @@ const HistoryTable = ({
         : pkg.package_status.toLowerCase() === statusFilter.toLowerCase();
 
     const matchesCompanyFilter = companyFilter
-      ? pkg.user?.company?.company_name.toLowerCase() ===
-        companyFilter.toLowerCase()
+      ? pkg.user?.companies?.some((company) =>
+          company.company_name
+            .toLowerCase()
+            .includes(companyFilter.toLowerCase())
+        )
       : true;
 
     return matchesSearchFilter && matchesStatusFilter && matchesCompanyFilter;
@@ -165,7 +168,7 @@ const HistoryTable = ({
                     />
                   </td>
                   <td className="p-3">
-                    {pkg.user.company.company_name || 'Unknown'}
+                    {pkg.user.companies[0]?.company_name || 'Unknown'}
                   </td>
                   <td className="p-3">
                     <PackageStatusBadge status={pkg.package_status} />

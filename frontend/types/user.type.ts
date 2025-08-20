@@ -1,7 +1,6 @@
-
-import { UserCompany } from "./company.type";
-import { Role } from "./general";
-import { Meta, SuccessResponse } from "./sucess";
+import { Company } from './company.type';
+import { Role } from './general';
+import { Meta, SuccessResponse } from './sucess';
 
 export type User = {
   user_id: string;
@@ -10,7 +9,7 @@ export type User = {
   user_password: string;
   user_phone_number: string;
   user_address: string;
- user_companies?: UserCompany[];
+  companies: Company[];
   role: Role;
 };
 
@@ -19,7 +18,6 @@ export type UserResponse = SuccessResponse<User>;
 export type AllUserResponse = SuccessResponse<User[]> & {
   meta: Meta;
 };
-
 
 export interface UserProfile {
   user_id: string;
@@ -37,4 +35,3 @@ export interface UserProfile {
     role_name: string;
   };
 }
-

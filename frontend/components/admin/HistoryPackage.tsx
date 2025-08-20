@@ -42,7 +42,7 @@ import { getAllCompanyService } from '@/services/admin/company/getAllCompany';
 import { useRouter } from 'next/navigation';
 import QrScannerModal from '../package/package-open-camera';
 import UpdateStatusPackageModal from '../package/UpdatePackageModal';
-import { AllCompanyResponse, Company } from '@/types/company.type';
+import { Company } from '@/types/company.type';
 
 const HistoryPackageSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,13 +54,15 @@ const HistoryPackageSection = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const router = useRouter();
-  
-  const { data: companyData, isLoading, isError } = useQuery<AllCompanyResponse>(
-    {
-      queryKey: ['company'],
-      queryFn: getAllCompanyService,
-    }
-  );
+
+  const {
+    data: companyData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['company'],
+    queryFn: getAllCompanyService,
+  });
 
   if (isLoading) return <p>Loading company data...</p>;
   if (isError || !companyData) return <p>Failed to fetch company data</p>;
@@ -187,8 +189,7 @@ const HistoryPackageSection = () => {
                   >
                     {value
                       ? companies.find(
-                          (company: Company) =>
-                            company.company_name === value
+                          (company: Company) => company.company_name === value
                         )?.company_name
                       : 'Select company...'}
                     <ChevronsUpDown className="opacity-50" />
@@ -224,7 +225,9 @@ const HistoryPackageSection = () => {
                         {companies.map((company: Company) => (
                           <CommandItem
                             key={company.company_id}
-                            value={company.company_name}
+                            value={
+                              company.company_name ? company.company_name : ''
+                            }
                             onSelect={(currentValue) => {
                               setValue(
                                 currentValue === value ? '' : currentValue
