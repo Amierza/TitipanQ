@@ -172,7 +172,7 @@ const LockerSection = () => {
               {paginatedData.map((locker) => (
                 <div
                   key={locker.locker_code}
-                  className="group border border-gray-200 rounded-lg p-2 hover:shadow-md hover:border-gray-300 transition-all duration-200 bg-white"
+                  className="group border border-gray-200 rounded-lg cursor-pointer p-2 hover:shadow-md hover:border-gray-300 transition-all duration-200 bg-white"
                 >
                   <div className="flex flex-col justify-between gap-4">
                     {/* Content Section */}
@@ -211,6 +211,17 @@ const LockerSection = () => {
 
                       {/* Action Buttons */}
                       <div className="flex items-center justify-start md:justify-end gap-2">
+                        {/* <Button
+                          variant={'outline'}
+                          size="sm"
+                          onClick={() =>
+                            router.push(`/admin/locker/${locker.locker_id}`)
+                          }
+                          className="cursor-pointer border p-2 rounded-md opacity-70 group-hover:opacity-100 transition-opacity"
+                          aria-label="Edit sender"
+                        >
+                          <Package className="w-4 h-4" />
+                        </Button> */}
                         <Button
                           variant="ghost"
                           size="sm"

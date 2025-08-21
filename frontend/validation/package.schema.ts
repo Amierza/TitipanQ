@@ -100,7 +100,5 @@ export const UpdateStatusPackagesSchema = z.object({
     .refine((file) => file.size <= 5 * 1024 * 1024, {
       message: 'Ukuran gambar maksimal 5MB',
     }),
-  recipient_id: z
-    .string()
-    .uuid({ message: 'User ID harus berupa UUID yang valid' }),
+  user_id: z.string().uuid({ message: 'User ID harus berupa UUID yang valid' }),
 });
