@@ -74,6 +74,13 @@ const HistoryPackageSection = () => {
     setOpenCameraModal(true);
   };
 
+  const openStatusModal = () => {
+    console.log('Opening modal, selectedId:', selectedId);
+    setOpenUpdateModal(true);
+    console.log('Opening update modal:', openUpdateModal);
+  };
+  console.log('Opening update modal:', openUpdateModal);
+
   const handleRemoveSelectedPackage = (packageId: string) => {
     const updatedSelected = selectedId.filter((id) => id !== packageId);
     setSelectedId(updatedSelected);
@@ -126,17 +133,19 @@ const HistoryPackageSection = () => {
                 </span>
                 Locker
               </Button>
+
               <Button
                 className="cursor-pointer"
                 onClick={() => router.push('/admin/package/new')}
               >
                 + Add Package
               </Button>
+
               <Button
                 disabled={selectedId.length === 0}
                 variant={'ghost'}
                 className="cursor-pointer bg-green-500 hover:bg-green-600 text-white"
-                onClick={() => setOpenUpdateModal(true)}
+                onClick={openStatusModal}
               >
                 Update Package
               </Button>
@@ -150,7 +159,7 @@ const HistoryPackageSection = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by client, description or company"
+                placeholder="Search by locker, location, client, description or company"
                 className="w-full px-4 py-2 border rounded-lg focus-visible:ring-black"
               />
               <Button
@@ -281,16 +290,18 @@ const HistoryPackageSection = () => {
         }}
       />
 
-      <UpdateStatusPackageModal
-        isOpen={openUpdateModal}
-        onClose={() => setOpenUpdateModal(false)}
-        onConfirm={() => {
-          setSelectedId([]);
-          setOpenUpdateModal(false);
-        }}
-        selectedPackage={selectedId}
-        onRemove={handleRemoveSelectedPackage}
-      />
+      {openUpdateModal && (
+        <UpdateStatusPackageModal
+          isOpen={openUpdateModal}
+          onClose={() => setOpenUpdateModal(false)}
+          onConfirm={() => {
+            setSelectedId([]);
+            setOpenUpdateModal(false);
+          }}
+          selectedPackage={selectedId}
+          onRemove={handleRemoveSelectedPackage}
+        />
+      )}
     </SidebarInset>
   );
 };

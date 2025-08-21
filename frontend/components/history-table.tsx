@@ -73,7 +73,9 @@ const HistoryTable = ({
       !query ||
       pkg.user?.user_name.toLowerCase().includes(query) ||
       pkg.package_description.toLowerCase().includes(query) ||
-      pkg.package_tracking_code.toLowerCase().includes(query);
+      pkg.package_tracking_code.toLowerCase().includes(query) ||
+      pkg.locker.locker_code.toLowerCase().includes(query) ||
+      pkg.locker.location.toLowerCase().includes(query);
 
     const matchesStatusFilter =
       !statusFilter || statusFilter === 'all'
@@ -116,13 +118,40 @@ const HistoryTable = ({
     return `${imageUrl}/package/${imagePath}`;
   };
 
+  // ✅ Handler untuk Select All
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = paginatedData.map((pkg) => pkg.package_id);
+      const unique = Array.from(new Set([...selectedPackageId, ...allIds]));
+      onSelectionChange?.(unique);
+    } else {
+      const remaining = selectedPackageId.filter(
+        (id) => !paginatedData.some((pkg) => pkg.package_id === id)
+      );
+      onSelectionChange?.(remaining);
+    }
+  };
+
+  // ✅ Apakah semua di halaman ini sudah ke-select?
+  const isAllSelected =
+    paginatedData.length > 0 &&
+    paginatedData.every((pkg) => selectedPackageId.includes(pkg.package_id));
+
   return (
     <>
       <div className="overflow-x-auto border rounded-xl">
         <table className="min-w-full table-auto bg-white text-sm">
           <thead className="bg-black text-white">
             <tr>
-              <th className="p-3 text-left">Check</th>
+              <th className="p-3 text-left">
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={(checked) =>
+                    handleSelectAll(checked as boolean)
+                  }
+                  className="cursor-pointer"
+                />
+              </th>
               <th className="p-3 text-left">Photo</th>
               <th className="p-3 text-left">Description</th>
               <th className="p-3 text-left">Client</th>
@@ -145,7 +174,6 @@ const HistoryTable = ({
                           : selectedPackageId.filter(
                               (id) => id !== pkg.package_id
                             );
-
                         onSelectionChange?.(updateSelection);
                       }}
                       className="cursor-pointer"
@@ -199,7 +227,7 @@ const HistoryTable = ({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-gray-500">
+                <td colSpan={8} className="text-center py-4 text-gray-500">
                   Tidak ada data yang cocok.
                 </td>
               </tr>
