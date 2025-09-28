@@ -99,12 +99,17 @@ func (ur *UserRepository) GetUserByID(ctx context.Context, tx *gorm.DB, userID s
 	}
 
 	var user entity.User
-	if err := tx.WithContext(ctx).Preload("UserCompanies").Preload("Role").Where("id = ?", userID).Take(&user).Error; err != nil {
+	if err := tx.WithContext(ctx).
+		Preload("UserCompanies.Company").
+		Preload("Role").
+		Where("id = ?", userID).
+		Take(&user).Error; err != nil {
 		return entity.User{}, false, err
 	}
 
 	return user, true, nil
 }
+
 func (ur *UserRepository) GetCompanyByID(ctx context.Context, tx *gorm.DB, companyID string) (entity.Company, bool, error) {
 	if tx == nil {
 		tx = ur.db
@@ -135,31 +140,44 @@ func (ur *UserRepository) GetAllPackage(ctx context.Context, tx *gorm.DB, userID
 		tx = ur.db
 	}
 
-	var (
-		packages []entity.Package
-		err      error
-	)
+	var packages []entity.Package
 
-	query := tx.WithContext(ctx).Model(&entity.Package{}).Where("user_id = ? ", userID).Preload("User.Company").Preload("User.Role")
+	query := tx.WithContext(ctx).
+		Model(&entity.Package{}).
+		Where("user_id = ?", userID).
+		Preload("User.UserCompanies.Company").
+		Preload("User.Role").
+		Preload("Sender"). // ✅ load sender
+		Preload("Locker")  // ✅ load locker (kalau mau tampil juga)
 
 	if err := query.Order("created_at DESC").Find(&packages).Error; err != nil {
 		return []entity.Package{}, err
 	}
 
-	return packages, err
+	return packages, nil
 }
+
 func (ur *UserRepository) GetPackageByID(ctx context.Context, tx *gorm.DB, pkgID string) (entity.Package, bool, error) {
 	if tx == nil {
 		tx = ur.db
 	}
 
-	var user entity.Package
-	if err := tx.WithContext(ctx).Preload("User.Company").Preload("User.Role").Where("id = ?", pkgID).Take(&user).Error; err != nil {
+	var pkg entity.Package
+	err := tx.WithContext(ctx).
+		Preload("User.UserCompanies.Company").
+		Preload("User.Role").
+		Preload("Sender"). 
+		Preload("Locker").
+		Where("id = ?", pkgID).
+		Take(&pkg).Error
+
+	if err != nil {
 		return entity.Package{}, false, err
 	}
 
-	return user, true, nil
+	return pkg, true, nil
 }
+
 func (ur *UserRepository) GetAllPackageHistory(ctx context.Context, tx *gorm.DB, pkgID string) ([]entity.PackageHistory, error) {
 	if tx == nil {
 		tx = ur.db

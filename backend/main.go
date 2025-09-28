@@ -10,8 +10,6 @@ import (
 	"github.com/Amierza/TitipanQ/backend/internal/openai"
 	"github.com/Amierza/TitipanQ/backend/internal/whatsapp"
 
-	// "github.com/Amierza/TitipanQ/backend/internal/openai"
-	// "github.com/Amierza/TitipanQ/backend/internal/whatsapp"
 	"github.com/Amierza/TitipanQ/backend/middleware"
 	"github.com/Amierza/TitipanQ/backend/repository"
 	"github.com/Amierza/TitipanQ/backend/routes"
