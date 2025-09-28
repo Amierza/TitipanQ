@@ -1198,6 +1198,7 @@ func (as *AdminService) UpdateStatusPackages(ctx context.Context, req dto.Update
 
 	return nil
 }
+
 func (as *AdminService) DeletePackage(ctx context.Context, req dto.DeletePackageRequest) (dto.PackageResponse, error) {
 	deletedPackage, _, err := as.adminRepo.GetPackageByID(ctx, nil, req.PackageID)
 	if err != nil {
