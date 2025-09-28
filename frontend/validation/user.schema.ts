@@ -10,7 +10,7 @@ export const UserSchema = z.object({
     .regex(phoneNumberRegex, 'Phone number format is not valid'),
   user_password: z.string().min(3, 'Password must have at least 3 characters'),
   user_address: z.string({ required_error: 'Address is required' }).optional(),
-  company_id: z.string({ required_error: 'Company is required' }).optional(),
+  company_ids: z.array(z.string()).optional(),
 });
 
 export const UserEditSchema = z.object({
@@ -27,5 +27,5 @@ export const UserEditSchema = z.object({
       message: 'Password must have at least 3 characters',
     }),
   user_address: z.string({ required_error: 'Address is required' }),
-  company_id: z.string(),
+  company_ids: z.array(z.string()).optional(),
 });

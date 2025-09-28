@@ -150,21 +150,21 @@ const ManageCompaniesSection = () => {
                       {company.company_name}
                     </h3>
                     <p className="text-sm">
-                      {`PIC : 
-                      ${
-                        userData.data.find(
-                          (user) =>
-                            user.companies[0].company_id === company.company_id
+                      {`PIC : ${
+                        userData.data.find((user) =>
+                          user.companies?.some(
+                            (c) => c.company_id === company.company_id
+                          )
                         )?.user_name
-                      } 
-                      - 
-                      ${
-                        userData.data.find(
-                          (user) =>
-                            user.companies[0].company_id === company.company_id
+                      } - ${
+                        userData.data.find((user) =>
+                          user.companies?.some(
+                            (c) => c.company_id === company.company_id
+                          )
                         )?.user_email
                       }`}
                     </p>
+
                     <p className="text-sm">{company.company_address}</p>
                   </div>
                   {packageData.data.filter(

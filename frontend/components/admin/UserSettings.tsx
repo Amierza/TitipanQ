@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { DeleteConfirmation } from "@/components/delete-confirmation";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { DeleteConfirmation } from '@/components/delete-confirmation';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import UserForm from "../user/user-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import UserTable from "../user/user-table";
-import { User } from "@/types/user.type";
-import { deleteUserService } from "@/services/admin/user/deleteUser";
-import { toast } from "sonner";
-import { getAllUserPaginationService } from "@/services/admin/user/getAllUserPagination";
-import { Input } from "../ui/input";
+} from '@/components/ui/breadcrumb';
+import { Separator } from '@/components/ui/separator';
+import UserForm from '../user/user-form';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import UserTable from '../user/user-table';
+import { User } from '@/types/user.type';
+import { deleteUserService } from '@/services/admin/user/deleteUser';
+import { toast } from 'sonner';
+import { getAllUserPaginationService } from '@/services/admin/user/getAllUserPagination';
+import { Input } from '../ui/input';
 
 const UserSettingsSection = () => {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -43,7 +43,7 @@ const UserSettingsSection = () => {
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ["user"] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
       } else {
         toast.error(result.message);
       }
@@ -66,7 +66,7 @@ const UserSettingsSection = () => {
   };
 
   const { data: userData } = useQuery({
-    queryKey: ["user", page],
+    queryKey: ['user', page],
     queryFn: () => getAllUserPaginationService({ page }),
   });
 
@@ -112,7 +112,7 @@ const UserSettingsSection = () => {
           </div>
 
           <UserTable
-            users={userData.data}
+            users={userData.data ?? []}
             query={searchQuery}
             page={page}
             setPage={setPage}
@@ -122,7 +122,7 @@ const UserSettingsSection = () => {
           />
 
           <UserForm
-            key={selectedUser?.user_id ?? "new"}
+            key={selectedUser?.user_id ?? 'new'}
             isOpen={isFormOpen}
             onClose={() => setIsFormOpen(false)}
             user={selectedUser}

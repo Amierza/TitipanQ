@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import {
   Select,
   SelectContent,
@@ -8,23 +8,23 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
-import { getAllCompanyClientService } from "@/services/client/company/getAllCompany";
+} from '@/components/ui/select';
+import { useQuery } from '@tanstack/react-query';
+import { getAllCompanyClientService } from '@/services/client/company/getAllCompany';
 
 const SelectCompany = ({
   value,
   onChange,
 }: {
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
 }) => {
   const {
     data: companyData,
     error,
     isLoading,
   } = useQuery({
-    queryKey: ["companyData"],
+    queryKey: ['companyData'],
     queryFn: getAllCompanyClientService,
   });
 
@@ -49,7 +49,7 @@ const SelectCompany = ({
   }
 
   return (
-    <Select onValueChange={onChange} defaultValue={value}>
+    <Select onValueChange={(val) => onChange([val])} value={value[0] || ''}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Select a company" />
       </SelectTrigger>
