@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -15,28 +15,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import z from "zod";
-import { LoginSchema } from "@/validation/auth.schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { loginUserService } from "@/services/auth/loginUserService";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { loginAdminService } from "@/services/auth/loginAdminService";
+} from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import z from 'zod';
+import { LoginSchema } from '@/validation/auth.schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { loginUserService } from '@/services/auth/loginUserService';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { loginAdminService } from '@/services/auth/loginAdminService';
 
 export function LoginForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<'div'>) {
   const [show, setShow] = useState(false);
   const router = useRouter();
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
-      user_email: "",
-      user_password: "",
+      user_email: '',
+      user_password: '',
     },
   });
 
@@ -45,7 +45,7 @@ export function LoginForm({
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        router.push("/client/package");
+        router.push('/client/package');
       } else {
         loginAdmin(form.getValues());
       }
@@ -59,9 +59,8 @@ export function LoginForm({
     mutationFn: loginAdminService,
     onSuccess: (result) => {
       if (result.status) {
-        console.log("Login admin berhasil")
         toast.success(result.message);
-        router.push("/admin");
+        router.push('/admin');
       } else {
         toast.error(result.message);
       }
@@ -72,12 +71,11 @@ export function LoginForm({
   });
 
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    console.log("Submitted values:", values);
     loginUser(values);
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
           <Form {...form}>
@@ -121,7 +119,7 @@ export function LoginForm({
                         <Input
                           {...field}
                           placeholder="******"
-                          type={show ? "text" : "password"}
+                          type={show ? 'text' : 'password'}
                         />
                         <Button
                           type="button"
@@ -150,12 +148,16 @@ export function LoginForm({
                 Forgot password?
               </Link>
 
-              <Button type="submit" disabled={isPending} className="w-full cursor-pointer">
-                {isPending ? "Loading" : "Login"}
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full cursor-pointer"
+              >
+                {isPending ? 'Loading' : 'Login'}
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">
-                Belum punya akun?{" "}
+                Belum punya akun?{' '}
                 <Link
                   href="/register"
                   className="underline underline-offset-4 hover:text-black hover:font-semibold"

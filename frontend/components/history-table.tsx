@@ -155,6 +155,7 @@ const HistoryTable = ({
               <th className="p-3 text-left">Photo</th>
               <th className="p-3 text-left">Description</th>
               <th className="p-3 text-left">Client</th>
+              <th className="p-3 text-left">Locker</th>
               <th className="p-3 text-left">Company</th>
               <th className="p-3 text-left">Status</th>
               <th className="p-3 text-left">Detail</th>
@@ -194,6 +195,9 @@ const HistoryTable = ({
                       name={pkg.user.user_name}
                       email={pkg.user.user_email}
                     />
+                  </td>
+                  <td className="p-3 font-semibold">
+                    {pkg.locker.locker_code}
                   </td>
                   <td className="p-3">
                     {pkg.user.companies[0]?.company_name || 'Unknown'}

@@ -25,13 +25,6 @@ export interface UserProfile {
   user_email: string;
   user_phone_number: string;
   user_address: string;
-  company: {
-    company_id: string;
-    company_name: string;
-    company_address: string;
-  };
-  role: {
-    role_id: string;
-    role_name: string;
-  };
+  company: Company[];
+  role: Role;
 }

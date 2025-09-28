@@ -1,35 +1,34 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form";
-import { Eye, EyeOff } from "lucide-react";
-import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import SelectCompany from "../auth/companyDropDown";
-import { createUserService } from "@/services/admin/user/createUser";
-import { User } from "@/types/user.type";
-import { updateUserService } from "@/services/admin/user/updateUser";
-import { UserSchema } from "@/validation/user.schema";
+} from '../ui/form';
+import { Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import SelectCompany from '../auth/companyDropDown';
+import { createUserService } from '@/services/admin/user/createUser';
+import { User } from '@/types/user.type';
+import { updateUserService } from '@/services/admin/user/updateUser';
+import { UserSchema } from '@/validation/user.schema';
 
 interface UserFormProps {
   isOpen: boolean;
@@ -43,14 +42,20 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
   const [isCompany, setIsCompany] = useState(false);
   const form = useForm<z.infer<typeof UserSchema>>({
     resolver: zodResolver(UserSchema),
-    mode: "onChange",
+    mode: 'onChange',
     defaultValues: {
-      user_name: user?.user_name || "",
-      user_email: user?.user_email || "",
-      user_phone_number: user?.user_phone_number || "",
-      user_address: user?.user_address || "",
-      user_password: user?.user_password || "",
+      user_name: user?.user_name || '',
+      user_email: user?.user_email || '',
+      user_phone_number: user?.user_phone_number || '',
+      user_address: user?.user_address || '',
+      user_password: user?.user_password || '',
+      company_ids: user?.companies?.map((c) => c.company_id) || [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'company_ids',
   });
 
   const { mutate: createUser, isPending } = useMutation({
@@ -58,10 +63,10 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ["user"] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
         onClose();
       } else {
-        toast.error(result.message);
+        toast.error(result.error);
       }
     },
     onError: (error) => {
@@ -74,10 +79,10 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
     onSuccess: (result) => {
       if (result.status) {
         toast.success(result.message);
-        queryClient.invalidateQueries({ queryKey: ["user"] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
         onClose();
       } else {
-        toast.error(result.message);
+        toast.error(result.error);
       }
     },
     onError: (error) => {
@@ -92,23 +97,27 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
       for (const key in values) {
         const field = key as keyof typeof values;
 
-        if (field === "company_id") {
-          if (values.company_id !== user.company?.company_id) {
-            updatedFields.company_id = values.company_id;
+        if (field === 'company_ids') {
+          const oldIds = user.companies?.map((c) => c.company_id) || [];
+          const newIds = values.company_ids || [];
+          const isDifferent =
+            oldIds.length !== newIds.length ||
+            oldIds.some((id, index) => id !== newIds[index]);
+
+          if (isDifferent) {
+            updatedFields.company_ids = newIds;
           }
-        } else if (values[field] !== (user as any)[field]) {
-          updatedFields[field] = values[field];
         }
       }
 
       if (!updatedFields.user_address) delete updatedFields.user_address;
-      if (!updatedFields.company_id) delete updatedFields.company_id;
+      if (!updatedFields.company_ids) delete updatedFields.company_ids;
 
       updateUser({ userId: user.user_id, data: updatedFields });
     } else {
       const payload = { ...values };
       if (!payload.user_address) delete payload.user_address;
-      if (!payload.company_id) delete payload.company_id;
+      if (!payload.company_ids) delete payload.company_ids;
 
       createUser(payload);
       form.reset();
@@ -119,7 +128,7 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{user ? "Edit User" : "Add New User"}</DialogTitle>
+          <DialogTitle>{user ? 'Edit User' : 'Add New User'}</DialogTitle>
         </DialogHeader>
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -172,7 +181,7 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
             <RadioGroup
               className="grid grid-cols-2 gap-6"
               defaultValue="user"
-              onValueChange={(val) => setIsCompany(val === "company")}
+              onValueChange={(val) => setIsCompany(val === 'company')}
             >
               <div className="flex items-center gap-3">
                 <RadioGroupItem value="user" id="r1" />
@@ -193,7 +202,7 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
                     <FormLabel>Address</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Jalan Ahmad Yani"
+                        placeholder="Jl. Ahmad Yani"
                         type="text"
                         {...field}
                       />
@@ -203,22 +212,35 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
                 )}
               />
             ) : (
-              <FormField
-                control={form.control}
-                name="company_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company</FormLabel>
-                    <FormControl>
-                      <SelectCompany
-                        value={field.value ?? ""}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <>
+                {fields.map((field, index) => (
+                  <FormField
+                    key={field.id}
+                    control={form.control}
+                    name={`company_ids.${index}`}
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-2">
+                        <FormControl className="flex-1">
+                          <SelectCompany
+                            value={[field.value]}
+                            onChange={(val: string[]) => field.onChange(val[0])}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          onClick={() => remove(index)}
+                        >
+                          Remove
+                        </Button>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+                <Button type="button" onClick={() => append('')}>
+                  + Add Company
+                </Button>
+              </>
             )}
 
             <FormField
@@ -233,7 +255,7 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
                         {...field}
                         id="password"
                         placeholder="******"
-                        type={show ? "text" : "password"}
+                        type={show ? 'text' : 'password'}
                         required
                       />
                       <Button
@@ -261,7 +283,7 @@ const UserForm = ({ isOpen, onClose, user }: UserFormProps) => {
                 disabled={isPending || !form.formState.isValid}
                 type="submit"
               >
-                {user ? "Update" : "Create"}
+                {user ? 'Update' : 'Create'}
               </Button>
             </div>
           </form>

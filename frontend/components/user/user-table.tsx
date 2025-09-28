@@ -72,11 +72,12 @@ const UserTable = ({
                     {user.user_name}
                   </td>
                   <td className="p-3 text-gray-600">{user.user_email}</td>
-                  <td className="p-3">
+                  <td className="p-3 truncate">
                     {user.companies
-                      .map((company) => company.company_name)
-                      .join(', ')}
+                      ?.map((company) => company.company_name)
+                      .join(', ') ?? '-'}
                   </td>
+
                   <td className="p-3 capitalize">
                     {user.role?.role_name ?? '-'}
                   </td>
