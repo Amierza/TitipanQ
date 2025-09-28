@@ -29,7 +29,7 @@ type (
 		UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) error
 		PreloadUserCompanies(ctx context.Context, tx *gorm.DB, user *entity.User) error
 
-		// delete 
+		// delete
 		DeleteUserCompaniesByUserID(ctx context.Context, tx *gorm.DB, userID string) error
 	}
 
@@ -87,7 +87,7 @@ func (ur *UserRepository) GetUserByEmail(ctx context.Context, tx *gorm.DB, email
 	}
 
 	var user entity.User
-	if err := tx.WithContext(ctx).Preload("Company").Preload("Role").Where("email = ?", email).Take(&user).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("UserCompanies").Preload("Role").Where("email = ?", email).Take(&user).Error; err != nil {
 		return entity.User{}, false, err
 	}
 
@@ -99,7 +99,7 @@ func (ur *UserRepository) GetUserByID(ctx context.Context, tx *gorm.DB, userID s
 	}
 
 	var user entity.User
-	if err := tx.WithContext(ctx).Preload("Company").Preload("Role").Where("id = ?", userID).Take(&user).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("UserCompanies").Preload("Role").Where("id = ?", userID).Take(&user).Error; err != nil {
 		return entity.User{}, false, err
 	}
 
@@ -197,8 +197,7 @@ func (ur *UserRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user enti
 	return tx.WithContext(ctx).Where("id = ?", user.ID).Updates(&user).Error
 }
 
-
-// create 
+// create
 func (ur *UserRepository) CreateUserCompany(ctx context.Context, tx *gorm.DB, userCompany entity.UserCompany) error {
 	if tx == nil {
 		tx = ur.db
@@ -206,7 +205,6 @@ func (ur *UserRepository) CreateUserCompany(ctx context.Context, tx *gorm.DB, us
 
 	return tx.WithContext(ctx).Create(&userCompany).Error
 }
-
 
 func (ur *UserRepository) PreloadUserCompanies(ctx context.Context, tx *gorm.DB, user *entity.User) error {
 	if tx == nil {
@@ -216,7 +214,6 @@ func (ur *UserRepository) PreloadUserCompanies(ctx context.Context, tx *gorm.DB,
 		Preload("UserCompanies.Company").
 		First(user, "id = ?", user.ID).Error
 }
-
 
 func (ur *UserRepository) DeleteUserCompaniesByUserID(ctx context.Context, tx *gorm.DB, userID string) error {
 	if tx == nil {
@@ -228,6 +225,3 @@ func (ur *UserRepository) DeleteUserCompaniesByUserID(ctx context.Context, tx *g
 		Delete(&entity.UserCompany{}).
 		Error
 }
-
-
-
