@@ -1,23 +1,21 @@
-import { StatusBadge } from "../status-badge";
-import Image from "next/image";
-import { Card, CardContent, CardHeader } from "../ui/card";
-import { FileText, User } from "lucide-react";
-import { Package } from "@/types/package.type";
-import { imageUrl } from "@/config/api";
-import Link from "next/link";
+import { StatusBadge } from '../status-badge';
+import Image from 'next/image';
+import { Card, CardContent, CardHeader } from '../ui/card';
+import { FileText, User } from 'lucide-react';
+import { Package } from '@/types/package.type';
+import { imageUrl } from '@/config/api';
+import Link from 'next/link';
 
 const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
   const getFullImageUrl = (imagePath: string) => {
-    if (!imagePath) return "/assets/default_image.jpg";
-    if (imagePath.startsWith("http")) return imagePath;
+    if (!imagePath) return '/assets/default_image.jpg';
+    if (imagePath.startsWith('http')) return imagePath;
 
     return `${imageUrl}/package/${imagePath}`;
   };
 
   const companies =
-    pkg.user?.user_companies?.map(
-      (uc) => uc.company?.company_name ?? "Unknown"
-    ) ?? [];
+    pkg.user?.companies?.map((uc) => uc.company_name ?? 'Unknown') ?? [];
 
   return (
     <Link href={`/admin/package/${pkg.package_id}`}>
@@ -37,7 +35,7 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
             width={400}
             height={200}
             className={`w-full h-[120px] object-cover rounded-lg transition ${
-              pkg.package_status === "expired" ? "grayscale" : ""
+              pkg.package_status === 'expired' ? 'grayscale' : ''
             }`}
           />
         </div>
@@ -52,7 +50,7 @@ const PackageCardDashboard = ({ pkg }: { pkg: Package }) => {
                 {pkg.user?.user_name}
               </span>
               {companies.length > 0 ? (
-                <p className="text-xs">{companies.join(", ")}</p>
+                <p className="text-xs">{companies.join(', ')}</p>
               ) : (
                 <p className="text-xs">{pkg.user?.user_address}</p>
               )}

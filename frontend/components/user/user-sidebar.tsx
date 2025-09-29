@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   PackageSearch,
   MessageSquareText,
   Settings,
   LogOut,
-} from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   Sidebar,
@@ -22,22 +22,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { getUserProfileService } from "@/services/client/get-user-profile-by-id";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { getUserProfileService } from '@/services/client/get-user-profile-by-id';
 
 const mainMenuItems = [
   {
-    title: "My Packages",
-    href: "/client/package",
+    title: 'My Packages',
+    href: '/client/package',
     icon: PackageSearch,
   },
   {
-    title: "Ask In Whatsapp",
-    href: "https://wa.me/6282332384036",
+    title: 'Ask In Whatsapp',
+    href: 'https://wa.me/6282332384036',
     icon: MessageSquareText,
     external: true,
   },
@@ -45,24 +44,26 @@ const mainMenuItems = [
 
 const settingsMenuItems = [
   {
-    title: "Account Settings",
-    href: "/client/edit-account",
+    title: 'Account Settings',
+    href: '/client/edit-account',
     icon: Settings,
   },
 ];
 
-export function UserSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function UserSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["user-profile"],
+    queryKey: ['user-profile'],
     queryFn: getUserProfileService,
   });
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    window.location.href = "/login";
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    window.location.href = '/login';
   };
 
   // Loading state
@@ -91,19 +92,17 @@ export function UserSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
 
   return (
     <Sidebar {...props}>
-    <SidebarHeader className="flex flex-col items-center justify-center gap-3 px-4 py-5 border-b">
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-sm font-medium truncate">
-          {user.user_name}
-        </span>
-        <span className="text-xs text-muted-foreground truncate">
-          {user.user_email}
-        </span>
-      </div>
-      <Badge variant="outline" className="text-xs mt-2 py-3">
-        {user.company.company_name}
-      </Badge>
-    </SidebarHeader>
+      <SidebarHeader className="flex flex-col items-center justify-center gap-3 px-4 py-5 border-b">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-sm font-medium truncate">{user.user_name}</span>
+          <span className="text-xs text-muted-foreground truncate">
+            {user.user_email}
+          </span>
+        </div>
+        <Badge variant="outline" className="text-xs mt-2 py-3">
+          {user.companies[0]?.company_name ?? 'No Company'}
+        </Badge>
+      </SidebarHeader>
 
       {/* Sidebar Content */}
       <SidebarContent>
@@ -117,18 +116,20 @@ export function UserSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 return (
                   <SidebarMenuItem
                     key={item.href}
-                    className={isActive ? "bg-muted text-primary" : ""}
+                    className={isActive ? 'bg-muted text-primary' : ''}
                   >
                     <SidebarMenuButton asChild>
                       <Link
                         href={item.href}
-                        target={item.external ? "_blank" : "_self"}
+                        target={item.external ? '_blank' : '_self'}
                         className="flex items-center gap-3"
                       >
                         <item.icon className="size-4" />
                         {item.title}
                         {item.external && (
-                          <span className="ml-auto text-xs text-muted-foreground">↗</span>
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            ↗
+                          </span>
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -149,7 +150,7 @@ export function UserSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 return (
                   <SidebarMenuItem
                     key={item.href}
-                    className={isActive ? "bg-muted text-primary" : ""}
+                    className={isActive ? 'bg-muted text-primary' : ''}
                   >
                     <SidebarMenuButton asChild>
                       <Link
@@ -163,7 +164,7 @@ export function UserSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                   </SidebarMenuItem>
                 );
               })}
-              
+
               {/* Logout Button */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
