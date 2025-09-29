@@ -420,6 +420,7 @@ func (us *UserService) ReadAllPackage(ctx context.Context) ([]dto.PackageRespons
 				Address: uc.Company.Address,
 			})
 		}
+
 		data := dto.PackageResponse{
 			ID:           pkg.ID,
 			TrackingCode: pkg.TrackingCode,
@@ -429,6 +430,20 @@ func (us *UserService) ReadAllPackage(ctx context.Context) ([]dto.PackageRespons
 			Status:       pkg.Status,
 			CompletedAt:  pkg.CompletedAt,
 			ExpiredAt:    pkg.ExpiredAt,
+
+			Locker: dto.LockerResponse{
+				ID:         pkg.Locker.ID,
+				LockerCode: pkg.Locker.LockerCode,
+				Location:   pkg.Locker.Location,
+			},
+
+			Sender: dto.SenderResponse{
+				ID:          pkg.Sender.ID,
+				Name:        pkg.Sender.Name,
+				PhoneNumber: pkg.Sender.PhoneNumber,
+				Address:     pkg.Sender.Address,
+			},
+
 			User: dto.UserResponse{
 				ID:          pkg.User.ID,
 				Name:        pkg.User.Name,
@@ -442,12 +457,14 @@ func (us *UserService) ReadAllPackage(ctx context.Context) ([]dto.PackageRespons
 					Name: pkg.User.Role.Name,
 				},
 			},
+
 			TimeStamp: entity.TimeStamp{
 				CreatedAt: pkg.CreatedAt,
 				UpdatedAt: pkg.UpdatedAt,
 				DeletedAt: pkg.DeletedAt,
 			},
 		}
+
 		datas = append(datas, data)
 	}
 
@@ -477,6 +494,20 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 		Status:       pkg.Status,
 		CompletedAt:  pkg.CompletedAt,
 		ExpiredAt:    pkg.ExpiredAt,
+
+		Locker: dto.LockerResponse{
+			ID:         pkg.Locker.ID,
+			LockerCode: pkg.Locker.LockerCode,
+			Location:   pkg.Locker.Location,
+		},
+
+		Sender: dto.SenderResponse{
+			ID:          pkg.Sender.ID,
+			Name:        pkg.Sender.Name,
+			PhoneNumber: pkg.Sender.PhoneNumber,
+			Address:     pkg.Sender.Address,
+		},
+
 		User: dto.UserResponse{
 			ID:          pkg.User.ID,
 			Name:        pkg.User.Name,
@@ -490,12 +521,14 @@ func (us *UserService) GetDetailPackage(ctx context.Context, pkgID string) (dto.
 				Name: pkg.User.Role.Name,
 			},
 		},
+
 		TimeStamp: entity.TimeStamp{
 			CreatedAt: pkg.CreatedAt,
 			UpdatedAt: pkg.UpdatedAt,
 			DeletedAt: pkg.DeletedAt,
 		},
 	}, nil
+
 }
 func (us *UserService) ReadAllPackageHistory(ctx context.Context, pkgID string) ([]dto.PackageHistoryResponse, error) {
 	dataWithPaginate, err := us.userRepo.GetAllPackageHistory(ctx, nil, pkgID)
