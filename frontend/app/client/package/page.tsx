@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useQuery, useQueries } from "@tanstack/react-query";
-import { JSX, useMemo } from "react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { PackageSection } from "@/components/package/package-section";
-import { PackageCardFooter } from "@/components/package/package-card-footer";
-import { getUserProfileService } from "@/services/client/get-user-profile-by-id";
-import { getUserPackages } from "@/services/client/get-user-packages";
-import { getUserPackageHistory } from "@/services/client/get-user-package-history";
-import { PackageItem } from "@/types/package";
+import { useQuery, useQueries } from '@tanstack/react-query';
+import { JSX, useMemo } from 'react';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { PackageSection } from '@/components/package/package-section';
+import { PackageCardFooter } from '@/components/package/package-card-footer';
+import { getUserProfileService } from '@/services/client/get-user-profile-by-id';
+import { getUserPackages } from '@/services/client/get-user-packages';
+import { getUserPackageHistory } from '@/services/client/get-user-package-history';
+import { PackageItem } from '@/types/package';
 import {
   Package,
   Clock,
   PackageCheck,
   CheckCircle,
   AlertTriangle,
-} from "lucide-react";
+} from 'lucide-react';
 
-type PackageStatus = "received" | "delivered" | "completed" | "expired";
+type PackageStatus = 'received' | 'delivered' | 'completed' | 'expired';
 
 interface StatusMeta {
   label: string;
@@ -39,11 +39,11 @@ export default function UserDashboardPage() {
     isError: isUserError,
     error: userError,
   } = useQuery({
-    queryKey: ["user-profile"],
+    queryKey: ['user-profile'],
     queryFn: getUserProfileService,
   });
 
-  const userId = userProfile?.data?.user_id ?? "";
+  const userId = userProfile?.data?.user_id ?? '';
 
   // Step 2: Get user packages
   const {
@@ -52,7 +52,7 @@ export default function UserDashboardPage() {
     isError: isPackagesError,
     error: packagesError,
   } = useQuery<PackageItem[]>({
-    queryKey: ["user-packages", userId],
+    queryKey: ['user-packages', userId],
     queryFn: () => getUserPackages(userId),
     enabled: !!userId,
     select: (data) => data ?? [],
@@ -61,7 +61,7 @@ export default function UserDashboardPage() {
   // Step 3: Get all histories for all packages
   const historyQueries = useQueries({
     queries: packages.map((pkg) => ({
-      queryKey: ["package-history", pkg.package_id],
+      queryKey: ['package-history', pkg.package_id],
       queryFn: () => getUserPackageHistory(pkg.package_id),
       enabled: !!pkg.package_id,
       staleTime: 5 * 60 * 1000, // 5 minutes
@@ -92,28 +92,28 @@ export default function UserDashboardPage() {
   const isError = isUserError || isPackagesError;
 
   // Step 6: Define status order & meta - improved type safety
-  const statusOrder: PackageStatus[] = ["received", "completed", "expired"];
+  const statusOrder: PackageStatus[] = ['received', 'completed', 'expired'];
 
   const statusMeta: Record<PackageStatus, StatusMeta> = {
     received: {
-      label: "Received",
-      badgeClass: "bg-yellow-400 text-black",
-      cardClass: "border-yellow-200",
+      label: 'Received',
+      badgeClass: 'bg-yellow-400 text-black',
+      cardClass: 'border-yellow-200',
     },
     delivered: {
-      label: "Delivered",
-      badgeClass: "bg-blue-500",
-      cardClass: "border-blue-200",
+      label: 'Delivered',
+      badgeClass: 'bg-blue-500',
+      cardClass: 'border-blue-200',
     },
     completed: {
-      label: "Completed",
-      badgeClass: "bg-green-500",
-      cardClass: "border-green-200",
+      label: 'Completed',
+      badgeClass: 'bg-green-500',
+      cardClass: 'border-green-200',
     },
     expired: {
-      label: "Expired",
-      badgeClass: "bg-red-500",
-      cardClass: "border-red-200",
+      label: 'Expired',
+      badgeClass: 'bg-red-500',
+      cardClass: 'border-red-200',
     },
   };
 
@@ -166,7 +166,7 @@ export default function UserDashboardPage() {
           <p className="text-xs text-muted-foreground">
             {userError?.message ||
               packagesError?.message ||
-              "Unknown error occurred"}
+              'Unknown error occurred'}
           </p>
         )}
         <Button
@@ -188,7 +188,7 @@ export default function UserDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold">My Packages</h1>
           <p className="text-muted-foreground py-3">
-            Total {totalPackages} package{totalPackages !== 1 ? "s" : ""}
+            Total {totalPackages} package{totalPackages !== 1 ? 's' : ''}
           </p>
           {hasHistoryErrors && (
             <p className="text-xs text-orange-600">
@@ -244,7 +244,7 @@ export default function UserDashboardPage() {
                 <Button variant="outline" size="sm" asChild>
                   <Link
                     href={{
-                      pathname: "/client/package/all-package",
+                      pathname: '/client/package/all-package',
                       query: { status },
                     }}
                   >

@@ -1,32 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { getUserProfileService } from "@/services/client/get-user-profile-by-id";
-import { UserEditForm } from "./user/user-edit-form";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { getUserProfileService } from '@/services/client/get-user-profile-by-id';
+import { UserEditForm } from './user/user-edit-form';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery } from '@tanstack/react-query';
 
 export function EditAccountPage() {
-  const [userData, setUserData] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    data: userProfile,
+    isLoading,
+    isFetching,
+  } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: getUserProfileService,
+  });
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await getUserProfileService();
-        setUserData(data.data);
-      } catch (error: any) {
-        toast.error(error.message || "Failed to fetch user data.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="w-full max-w-2xl space-y-4 px-4">
@@ -37,28 +26,13 @@ export function EditAccountPage() {
     );
   }
 
-  if (!userData) {
+  if (!userProfile?.data) {
     return (
       <div className="h-screen flex items-center justify-center">
         <p className="text-red-500">Failed to load user data.</p>
       </div>
     );
   }
-
-  const formattedUser = {
-    id: userData.user_id,
-    user_name: userData.user_name,
-    user_email: userData.user_email,
-    user_password: "",
-    user_phone_number: userData.user_phone_number,
-    user_address: userData.user_address,
-    company_name: userData.company.company_name,
-    company_id: userData.company.company_id,
-  };
-
-  const handleSave = (updatedUser: typeof formattedUser) => {
-    console.log("User updated:", updatedUser);
-  };
 
   return (
     <div className="min-h-screen flex items-start justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -81,7 +55,7 @@ export function EditAccountPage() {
           </div>
 
           <div className="pt-4 border-t border-gray-200">
-            <UserEditForm user={formattedUser} onSave={handleSave} />
+            <UserEditForm user={userProfile.data} />
           </div>
         </div>
       </div>
