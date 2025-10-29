@@ -1,6 +1,6 @@
 # Complete Deployment Guide
 
-Panduan lengkap deployment aplikasi **Go Backend + Next.js Frontend + PostgreSQL** tanpa Docker di VPS biasa.
+Panduan lengkap deployment aplikasi **Go Backend + Next.js Frontend + PostgreSQL**.
 
 ---
 
@@ -35,23 +35,6 @@ sudo ufw allow 8000/tcp  # Backend (development)
 
 # Check status
 sudo ufw status verbose
-```
-
-### 3. Setup Swap
-
-```bash
-# Buat swap 2GB
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-
-# Make permanent
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-
-# Verify
-sudo swapon --show
-free -h
 ```
 
 ---
@@ -158,11 +141,6 @@ port = 5432
 ```bash
 # Edit access configuration
 sudo nano /etc/postgresql/14/main/pg_hba.conf
-
-# Pastikan ada line ini:
-# TYPE  DATABASE        USER            ADDRESS                 METHOD
-host    titipanq        titipanq_user   127.0.0.1/32            md5
-local   titipanq        titipanq_user                           md5
 ```
 
 ### 3. Restart PostgreSQL
@@ -360,13 +338,13 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 
 # Enable service
-sudo systemctl enable myapp-frontend
+sudo systemctl enable titipanq-frontend
 
 # Start service
-sudo systemctl start myapp-frontend
+sudo systemctl start titipanq-frontend
 
 # Check status
-sudo systemctl status myapp-frontend
+sudo systemctl status titipanq-frontend
 ```
 
 ---
@@ -407,7 +385,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
         
-        # CORS headers (jika diperlukan)
+        # CORS headers
         add_header 'Access-Control-Allow-Origin' '*' always;
         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
         add_header 'Access-Control-Allow-Headers' 'X-Requested-With,Accept,Content-Type,Origin' always;
@@ -511,9 +489,9 @@ sudo -u postgres psql
 ```bash
 # Buat directory
 sudo mkdir -p /titipanq/{backend,frontend,logs}
-sudo chown -R $USER:$USER /opt/myapp
+sudo chown -R $USER:$USER /titipanq
 
-# Upload atau clone code
+# Clone code
 cd /titipanq/backend
 # Upload backend code ke sini
 
@@ -528,7 +506,7 @@ cd /titipanq/frontend
 nano /titipanq/backend/.env
 
 # Frontend
-nano /titipanq/frontend/.env.local
+nano /titipanq/frontend/.env
 ```
 
 ### 5. Build Applications
