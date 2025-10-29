@@ -1,47 +1,10 @@
-# 🚀 Complete Deployment Guide
+# Complete Deployment Guide
 
-Panduan lengkap deployment aplikasi **Go Backend + Next.js Frontend + PostgreSQL** menggunakan Docker di VPS.
-
----
-
-## 📋 Daftar Isi
-
-- [Arsitektur Aplikasi](#-arsitektur-aplikasi)
-- [Persiapan VPS](#-persiapan-vps)
-- [Instalasi Requirements](#-instalasi-requirements)
-- [Struktur Project](#-struktur-project)
-- [Konfigurasi Environment](#-konfigurasi-environment)
-- [Docker Configuration](#-docker-configuration)
-- [Deployment Steps](#-deployment-steps)
-- [Management & Monitoring](#-management--monitoring)
-- [Troubleshooting](#-troubleshooting)
+Panduan lengkap deployment aplikasi **Go Backend + Next.js Frontend + PostgreSQL** tanpa Docker di VPS biasa.
 
 ---
 
-## 🏗 Arsitektur Aplikasi
-
-```
-┌──────────────┐
-│   Frontend   │ (Next.js - Port 3000)
-│   Container  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│   Backend    │ (Golang - Port 8000)
-│   Container  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  PostgreSQL  │ (Database - Port 5432)
-│   Container  │
-└──────────────┘
-```
-
----
-
-## 🖥 Persiapan VPS
+## Persiapan VPS
 
 ### System Requirements
 - **OS**: Ubuntu 20.04 / 22.04 LTS
@@ -53,15 +16,10 @@ Panduan lengkap deployment aplikasi **Go Backend + Next.js Frontend + PostgreSQL
 
 ```bash
 sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl wget git nano ufw net-tools build-essential
 ```
 
-### 2. Install Basic Tools
-
-```bash
-sudo apt install -y curl wget git nano ufw net-tools
-```
-
-### 3. Setup Firewall (UFW)
+### 2. Setup Firewall (UFW)
 
 ```bash
 # Enable UFW
@@ -71,15 +29,15 @@ sudo ufw enable
 sudo ufw allow 22/tcp
 
 # Allow aplikasi ports
-sudo ufw allow 8888/tcp    # Backend
-sudo ufw allow 8080/tcp    # Frontend
-sudo ufw allow 5432/tcp    # PostgreSQL (optional, untuk akses eksternal)
+sudo ufw allow 80/tcp    # HTTP
+sudo ufw allow 443/tcp   # HTTPS
+sudo ufw allow 8000/tcp  # Backend (development)
 
 # Check status
 sudo ufw status verbose
 ```
 
-### 4. Setup Swap (Optional tapi Recommended)
+### 3. Setup Swap
 
 ```bash
 # Buat swap 2GB
@@ -98,104 +56,168 @@ free -h
 
 ---
 
-## 📦 Instalasi Requirements
+## Instalasi Requirements
 
 ### 1. Install Git
 
 ```bash
 sudo apt install -y git
-
-# Verify
 git --version
 ```
 
-### 2. Install Docker
+### 2. Install PostgreSQL
 
 ```bash
-# Remove old versions (jika ada)
-sudo apt remove -y docker docker-engine docker.io containerd runc
+# Install PostgreSQL
+sudo apt install -y postgresql postgresql-contrib
 
-# Setup Docker repository
-sudo apt install -y ca-certificates curl gnupg lsb-release
+# Start and enable service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 
-# Add Docker's official GPG key
-sudo mkdir -m 0755 -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+# Check status
+sudo systemctl status postgresql
+```
 
-# Setup repository
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+### 3. Install Go
 
-# Install Docker Engine
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```bash
+# Download Go
+wget https://golang.org/dl/go1.22.0.linux-amd64.tar.gz
 
-# Add user to docker group
-sudo usermod -aG docker $USER
-newgrp docker
+# Extract ke /usr/local
+sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
+
+# Setup environment variables
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
+echo 'export GOPATH=$HOME/go' >> ~/.profile
+echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.profile
+
+# Reload profile
+source ~/.profile
 
 # Verify installation
-docker --version
-docker compose version
+go version
 ```
 
-### 3. Configure Docker (Optional)
+### 4. Install Node.js & npm
 
 ```bash
-# Enable Docker service
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo systemctl status docker
+# Using NodeSource repository
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verify installation
+node --version
+npm --version
+```
+
+### 5. Install Nginx
+
+```bash
+sudo apt install -y nginx
+
+# Start and enable
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+sudo systemctl status nginx
 ```
 
 ---
 
-## 📂 Struktur Project
+## Setup Database PostgreSQL
 
+### 1. Setup PostgreSQL User & Database
+
+```bash
+# Switch to postgres user
+sudo -u postgres psql
+
+# Dalam PostgreSQL shell:
+CREATE DATABASE titipanq;
+CREATE USER titipanq_user WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE titipanq TO titipanq_user;
+ALTER DATABASE titipanq OWNER TO titipanq_user;
+
+# Exit
+\q
 ```
-project-root/
-├── backend/
-│   ├── Dockerfile
-│   ├── .env.example
-│   ├── go.mod
-│   ├── go.sum
-│   └── main.go
-│
-├── frontend/
-│   ├── Dockerfile
-│   ├── .env.local.example
-│   ├── package.json
-│   ├── next.config.js
-│   └── ...
-│
-├── docker-compose.yml
-└── README.md
+
+### 2. Configure PostgreSQL
+
+```bash
+# Edit PostgreSQL configuration
+sudo nano /etc/postgresql/14/main/postgresql.conf
+
+# Cari dan ubah/modifikasi:
+listen_addresses = 'localhost'          
+port = 5432                           
+```
+
+```bash
+# Edit access configuration
+sudo nano /etc/postgresql/14/main/pg_hba.conf
+
+# Pastikan ada line ini:
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    titipanq        titipanq_user   127.0.0.1/32            md5
+local   titipanq        titipanq_user                           md5
+```
+
+### 3. Restart PostgreSQL
+
+```bash
+sudo systemctl restart postgresql
+```
+
+### 4. Test Connection
+
+```bash
+# Test connection sebagai titipanq_user
+psql -h localhost -U titipanq_user -d titipanq -W
+
+# Jika berhasil, akan masuk ke PostgreSQL shell
 ```
 
 ---
 
-## ⚙️ Konfigurasi Environment
+## Setup Backend (Go)
 
-### Backend Environment (`.env`)
+### 1. Prepare Directory Structure
 
-Buat file `backend/.env.example`:
+```bash
+# Buat directory untuk aplikasi
+sudo mkdir -p /titipanq/{backend,frontend,logs}
+sudo chown -R $USER:$USER /opt/myapp
+cd /opt/myapp
+```
+
+### 2. Clone/Upload Backend Code
+
+```bash
+# Clone atau upload code backend ke /titipanq/backend
+cd /titipanq/backend
+```
+
+### 3. Setup Environment File
+
+Buat file `/titipanq/backend/.env`:
 
 ```dotenv
 # Database Configuration
-DB_HOST=db
-DB_USER=postgres
+DB_HOST=localhost
+DB_USER=titipanq_user
 DB_PASS=your_secure_password_here
 DB_NAME=titipanq
 DB_PORT=5432
 
 # Backend Configuration
 PORT=8000
-GOLANG_PORT=8888
 APP_ENV=production
 
-# OpenAI API (Optional)
-OPENAI_API_KEY=sk-your-openai-api-key
+# JWT Secret
+JWT_SECRET=your_jwt_secret_key_here
 
 # SMTP Configuration
 SMTP_HOST=smtp.gmail.com
@@ -203,424 +225,346 @@ SMTP_PORT=587
 SMTP_SENDER_NAME=TitipanQ <no-reply@titipanq.com>
 SMTP_AUTH_EMAIL=your-email@gmail.com
 SMTP_AUTH_PASSWORD=your-app-password
-
-# JWT Secret (Generate secure key)
-JWT_SECRET=your_jwt_secret_key_here
 ```
 
-### Frontend Environment (`.env.local`)
+### 4. Build Backend Application
 
-Buat file `frontend/.env.local.example`:
+```bash
+cd /titipanq/backend
+
+# Download dependencies
+go mod download
+
+# Build aplikasi
+go build -o myapp-backend
+```
+
+### 5. Setup Systemd Service
+
+Buat file `/etc/systemd/system/titipanq-backend.service`:
+
+```ini
+[Unit]
+Description=titipanq Backend Service
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/titipanq/backend
+EnvironmentFile=/titipanq/backend/.env
+ExecStart=/titipanq/backend/titipanq-backend
+Restart=always
+RestartSec=10
+StandardOutput=file:/titipanq/logs/backend.log
+StandardError=file:/titipanq/logs/backend-error.log
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 6. Enable Backend Service
+
+```bash
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable service
+sudo systemctl enable myapp-backend
+
+# Start service
+sudo systemctl start myapp-backend
+
+# Check status
+sudo systemctl status myapp-backend
+```
+
+---
+
+## Setup Frontend (Next.js)
+
+### 1. Prepare Frontend Directory
+
+```bash
+cd /titipanq/frontend
+
+# Clone atau upload frontend code ke sini
+# Struktur:
+# /titipanq/frontend/
+# ├── package.json
+# ├── next.config.js
+# └── .env.local
+```
+
+### 2. Setup Environment File
+
+Buat file `/titipanq/frontend/.env`:
 
 ```dotenv
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:8888/api/v1
-NEXT_PUBLIC_ASSETS_URL=http://localhost:8888/assets
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_ASSETS_URL=http://localhost:8000/assets
 
-# Untuk production, ganti dengan domain/IP VPS:
-# NEXT_PUBLIC_API_URL=http://your-vps-ip:8888/api/v1
-# NEXT_PUBLIC_ASSETS_URL=http://your-vps-ip:8888/assets
+# Untuk production dengan domain
+# NEXT_PUBLIC_API_URL=https://yourdomain.com/api/v1
+# NEXT_PUBLIC_ASSETS_URL=https://yourdomain.com/assets
+```
+
+### 3. Install Dependencies & Build
+
+```bash
+cd /titipanq/frontend
+
+# Install dependencies
+npm ci
+
+# Build production
+npm run build
+
+# Test build
+npm start
+```
+
+### 4. Setup Systemd Service
+
+Buat file `/etc/systemd/system/titipanq-frontend.service`:
+
+```ini
+[Unit]
+Description=titipanq Frontend Service
+After=network.target titipanq-backend.service
+Requires=titipanq-backend.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/titipanq/frontend
+Environment=NODE_ENV=production
+ExecStart=npm start
+Restart=always
+RestartSec=10
+StandardOutput=file:/titipanq/logs/frontend.log
+StandardError=file:/titipanq/logs/frontend-error.log
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 5. Enable Frontend Service
+
+```bash
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable service
+sudo systemctl enable myapp-frontend
+
+# Start service
+sudo systemctl start myapp-frontend
+
+# Check status
+sudo systemctl status myapp-frontend
 ```
 
 ---
 
-## 🐳 Docker Configuration
+## Setup Nginx Reverse Proxy
 
-### Backend Dockerfile
+### 1. Configure Nginx
 
-`backend/Dockerfile`:
+Buat file `/etc/nginx/sites-available/titipanq`:
 
-```dockerfile
-# Build stage
-FROM golang:1.22-alpine AS builder
-
-WORKDIR /app
-
-# Install dependencies
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy source code
-COPY . .
-
-# Build binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server .
-
-# Runtime stage
-FROM alpine:latest
-
-RUN apk --no-cache add ca-certificates tzdata
-
-WORKDIR /root/
-
-# Copy binary from builder
-COPY --from=builder /app/server .
-
-# Expose port
-EXPOSE 8000
-
-# Run
-CMD ["./server"]
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com www.your-domain.com;
+    
+    # Frontend - Next.js
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+    
+    # Backend API
+    location /api/ {
+        proxy_pass http://localhost:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # CORS headers (jika diperlukan)
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
+        add_header 'Access-Control-Allow-Headers' 'X-Requested-With,Accept,Content-Type,Origin' always;
+    }
+    
+    # Static files dari backend
+    location /assets/ {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+    
+    # Compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private must-revalidate auth;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+}
 ```
 
-### Frontend Dockerfile
+### 2. Enable Site & Test
 
-`frontend/Dockerfile`:
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/titipanq /etc/nginx/sites-enabled/
 
-```dockerfile
-# Build stage
-FROM node:20-alpine AS builder
+# Remove default site (optional)
+sudo rm /etc/nginx/sites-enabled/default
 
-WORKDIR /app
+# Test configuration
+sudo nginx -t
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Build application
-RUN npm run build
-
-# Runtime stage
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copy built application
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.js ./
-
-# Expose port
-EXPOSE 3000
-
-# Run
-CMD ["npm", "start"]
-```
-
-### Docker Compose
-
-`docker-compose.yml`:
-
-```yaml
-version: '3.9'
-
-services:
-  # PostgreSQL Database
-  db:
-    image: postgres:15-alpine
-    container_name: myapp-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "${DB_PORT:-5432}:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Backend Service
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: myapp-backend
-    restart: unless-stopped
-    env_file:
-      - ./backend/.env
-    ports:
-      - "${GOLANG_PORT:-8888}:${PORT:-8000}"
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Frontend Service
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: myapp-frontend
-    restart: unless-stopped
-    env_file:
-      - ./frontend/.env.local
-    ports:
-      - "${NGINX_PORT:-8080}:3000"
-    depends_on:
-      - backend
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
-
-volumes:
-  pgdata:
+# Reload nginx
+sudo systemctl reload nginx
 ```
 
 ---
 
-## 🚀 Deployment Steps
+## Setup Process Management
 
-### 1. Clone Repository
+### 1. Install PM2 (Alternative to systemd for Node.js)
+
+```bash
+sudo npm install -g pm2
+
+# Setup startup script
+pm2 startup
+
+# Save current process list
+pm2 save
+```
+
+### 2. PM2 Configuration
+
+Jika ingin menggunakan PM2 untuk frontend:
+
+```bash
+cd /titipanq/frontend
+
+# Start dengan PM2
+pm2 start npm --name "titipanq-frontend" -- start
+
+# Save configuration
+pm2 save
+
+# Setup startup
+pm2 startup
+```
+
+---
+
+## Deployment Steps
+
+### 1. Initial Server Setup
 
 ```bash
 # SSH ke VPS
 ssh user@your-vps-ip
-
-# Clone project
-cd ~
-git clone https://github.com/username/project-name.git
-cd project-name
 ```
 
-### 2. Setup Environment Files
+### 2. Setup Database
 
 ```bash
-# Copy dan edit backend env
-cp backend/.env.example backend/.env
-nano backend/.env
-
-# Copy dan edit frontend env
-cp frontend/.env.local.example frontend/.env.local
-nano frontend/.env.local
+# Setup PostgreSQL user dan database
+sudo -u postgres psql
+# (Ikuti langkah di section database)
 ```
 
-**⚠️ PENTING**: Ubah nilai berikut:
-- `DB_PASS`: Password database yang kuat
-- `JWT_SECRET`: Secret key yang random
-- `SMTP_AUTH_PASSWORD`: App password dari Gmail
-- `NEXT_PUBLIC_API_URL`: Sesuaikan dengan IP/domain VPS
-
-### 3. Build & Run Containers
+### 3. Deploy Application Code
 
 ```bash
-# Build dan jalankan containers
-docker compose up -d --build
+# Buat directory
+sudo mkdir -p /titipanq/{backend,frontend,logs}
+sudo chown -R $USER:$USER /opt/myapp
 
-# Tunggu beberapa saat untuk build selesai
-# Monitor logs
-docker compose logs -f
+# Upload atau clone code
+cd /titipanq/backend
+# Upload backend code ke sini
+
+cd /titipanq/frontend  
+# Upload frontend code ke sini
 ```
 
-### 4. Verify Deployment
+### 4. Setup Environment Files
 
 ```bash
-# Check running containers
-docker compose ps
+# Backend
+nano /titipanq/backend/.env
 
-# Should show 3 containers: db, backend, frontend
-# All should be in "Up" status
-
-# Check backend health
-curl http://localhost:8888/health
-
-# Check frontend
-curl http://localhost:8080
+# Frontend
+nano /titipanq/frontend/.env.local
 ```
 
-### 5. Test dari Browser
-
-Buka browser dan akses:
-- Frontend: `http://your-vps-ip:8080`
-- Backend API: `http://your-vps-ip:8888`
-
----
-
-## 🔧 Management & Monitoring
-
-### Useful Docker Commands
+### 5. Build Applications
 
 ```bash
-# View running containers
-docker compose ps
+# Build backend
+cd /titipanq/backend
+go mod download
+go build -o titipanq-backend
 
-# View logs
-docker compose logs -f              # All services
-docker compose logs -f backend      # Specific service
-
-# Restart services
-docker compose restart
-
-# Stop services
-docker compose stop
-
-# Stop and remove containers
-docker compose down
-
-# Stop and remove with volumes
-docker compose down -v
-
-# Rebuild specific service
-docker compose up -d --build backend
-
-# Execute command in container
-docker compose exec backend sh
-docker compose exec db psql -U postgres -d titipanq
+# Build frontend
+cd /titipanq/frontend
+npm ci
+npm run build
 ```
 
-### Monitoring Resources
+### 6. Start Services
 
 ```bash
-# Monitor Docker stats
-docker stats
+# Enable dan start services
+sudo systemctl enable titipanq-backend
+sudo systemctl enable titipanq-frontend
 
-# Check disk usage
-docker system df
+sudo systemctl start titipanq-backend
+sudo systemctl start titipanq-frontend
 
-# Clean up unused resources
-docker system prune -a
+# Start nginx
+sudo systemctl enable nginx
+sudo systemctl start nginx
 ```
 
-### Database Management
+### 7. Verify Deployment
 
 ```bash
-# Access PostgreSQL
-docker compose exec db psql -U postgres -d titipanq
-
-# Backup database
-docker compose exec db pg_dump -U postgres titipanq > backup_$(date +%Y%m%d).sql
-
-# Restore database
-docker compose exec -T db psql -U postgres titipanq < backup_20250101.sql
+# Check service status
+sudo systemctl status titipanq-backend
+sudo systemctl status titipanq-frontend
+sudo systemctl status nginx
 ```
-
-### Update Application
-
-```bash
-# Pull latest code
-git pull origin main
-
-# Rebuild and restart
-docker compose down
-docker compose up -d --build
-
-# Or rebuild specific service
-docker compose up -d --build --no-deps backend
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Container tidak mau start
-
-```bash
-# Check logs
-docker compose logs
-
-# Check specific service
-docker compose logs backend
-
-# Rebuild dari awal
-docker compose down -v
-docker compose up -d --build
-```
-
-### Port sudah digunakan
-
-```bash
-# Cek port yang digunakan
-sudo netstat -tulpn | grep :8888
-
-# Kill process yang menggunakan port
-sudo kill -9 <PID>
-```
-
-### Database connection error
-
-```bash
-# Verify database is running
-docker compose ps db
-
-# Check database logs
-docker compose logs db
-
-# Test connection
-docker compose exec db psql -U postgres -d titipanq -c "SELECT 1;"
-```
-
-### Frontend tidak bisa connect ke Backend
-
-- Pastikan `NEXT_PUBLIC_API_URL` di `.env.local` sudah benar
-- Untuk production, gunakan IP/domain publik VPS, bukan `localhost`
-- Check network di `docker-compose.yml`
-
-### Out of disk space
-
-```bash
-# Check disk usage
-df -h
-
-# Clean Docker resources
-docker system prune -a --volumes
-
-# Remove old images
-docker image prune -a
-```
-
-### Permission denied
-
-```bash
-# Add user to docker group
-sudo usermod -aG docker $USER
-newgrp docker
-
-# Or run with sudo
-sudo docker compose up -d
-```
-
----
-
-## 📌 Production Best Practices
-
-1. **Security**:
-   - Ganti semua default passwords
-   - Gunakan strong JWT secret
-   - Setup SSL/TLS dengan Nginx reverse proxy
-   - Limit database port exposure
-
-2. **Performance**:
-   - Enable Docker logging driver
-   - Setup container resource limits
-   - Use multi-stage builds untuk optimize image size
-
-3. **Backup**:
-   - Schedule automatic database backups
-   - Backup `.env` files securely
-   - Version control semua konfigurasi
-
-4. **Monitoring**:
-   - Setup monitoring tools (Prometheus, Grafana)
-   - Configure log aggregation
-   - Setup alerts untuk critical issues
-
----
-
-## 📚 Additional Resources
-
-- [Docker Documentation](https://docs.docker.com/)
-- [Docker Compose Documentation](https://docs.docker.com/compose/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Next.js Deployment](https://nextjs.org/docs/deployment)
