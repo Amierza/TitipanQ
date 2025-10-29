@@ -1,4 +1,4 @@
-# Complete Deployment Guide
+# Deployment Guide
 
 Panduan lengkap deployment aplikasi **Go Backend + Next.js Frontend + PostgreSQL**.
 
