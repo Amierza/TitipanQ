@@ -197,6 +197,9 @@ APP_ENV=production
 # JWT Secret
 JWT_SECRET=your_jwt_secret_key_here
 
+# Open API Key
+OPEN_API_kEY = your_open_api_key
+
 # SMTP Configuration
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
